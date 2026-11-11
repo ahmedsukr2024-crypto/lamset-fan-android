@@ -114,6 +114,59 @@
 const KEY='lamset_fan_business_manager_v1';
 let db={products:[],orders:[],customers:[],productions:[],offers:[{threshold:10,bonus:1},{threshold:50,bonus:6},{threshold:100,bonus:12}],costLines:[]};
 const $=id=>document.getElementById(id), n=id=>Math.max(0,Number($(id).value)||0), money=x=>(Number(x)||0).toLocaleString('ar-EG',{maximumFractionDigits:2})+' ج.م';
+// مخزن صور مستقل - مرحلة تأسيسية متوافقة مع البيانات القديمة.
+const LAMSET_IMAGE_DB='lamset-fan-images-v1';
+const LAMSET_IMAGE_STORE='images';
+let lamsetImageDbPromise=null;
+function openLamsetImageDb(){
+  if(!('indexedDB' in window))return Promise.resolve(null);
+  if(lamsetImageDbPromise)return lamsetImageDbPromise;
+  lamsetImageDbPromise=new Promise(resolve=>{
+    try{
+      const request=indexedDB.open(LAMSET_IMAGE_DB,1);
+      request.onupgradeneeded=()=>{const d=request.result;if(!d.objectStoreNames.contains(LAMSET_IMAGE_STORE))d.createObjectStore(LAMSET_IMAGE_STORE,{keyPath:'id'})};
+      request.onsuccess=()=>resolve(request.result);
+      request.onerror=()=>resolve(null);
+      request.onblocked=()=>resolve(null);
+    }catch(e){resolve(null)}
+  });
+  return lamsetImageDbPromise;
+}
+async function lamsetPutImage(id,data){
+  const d=await openLamsetImageDb();
+  if(!d)return false;
+  return new Promise(resolve=>{
+    try{
+      const tx=d.transaction(LAMSET_IMAGE_STORE,'readwrite');
+      tx.objectStore(LAMSET_IMAGE_STORE).put({id:String(id),data:String(data),updatedAt:Date.now()});
+      tx.oncomplete=()=>resolve(true);
+      tx.onerror=tx.onabort=()=>resolve(false);
+    }catch(e){resolve(false)}
+  });
+}
+async function lamsetGetImage(id){
+  const d=await openLamsetImageDb();
+  if(!d)return null;
+  return new Promise(resolve=>{
+    try{
+      const r=d.transaction(LAMSET_IMAGE_STORE,'readonly').objectStore(LAMSET_IMAGE_STORE).get(String(id));
+      r.onsuccess=()=>resolve(r.result?.data||null);
+      r.onerror=()=>resolve(null);
+    }catch(e){resolve(null)}
+  });
+}
+async function lamsetDeleteImage(id){
+  const d=await openLamsetImageDb();
+  if(!d)return false;
+  return new Promise(resolve=>{
+    try{
+      const tx=d.transaction(LAMSET_IMAGE_STORE,'readwrite');
+      tx.objectStore(LAMSET_IMAGE_STORE).delete(String(id));
+      tx.oncomplete=()=>resolve(true);
+      tx.onerror=tx.onabort=()=>resolve(false);
+    }catch(e){resolve(false)}
+  });
+}
 function load(){try{let raw=localStorage.getItem(KEY);if(raw===null)return;let x=JSON.parse(raw);if(!x||typeof x!=='object'||Array.isArray(x)){alert('تعذر تحميل البيانات المحفوظة: صيغة البيانات غير صالحة. لم يتم استبدال قاعدة البيانات الافتراضية.');return}db={...db,...x}}catch(e){alert('تعذر قراءة البيانات المحفوظة. لم يتم حذف الملف أو الكتابة فوقه؛ أنشئ نسخة احتياطية أو استعد نسخة سليمة قبل متابعة العمل.')}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db));$('saveStatus').textContent='آخر حفظ: '+new Date().toLocaleString('ar-EG');return true}catch(e){$('saveStatus').textContent='تعذر الحفظ: مساحة التخزين ممتلئة أو غير متاحة';return false}}
 function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
