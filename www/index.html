@@ -164,7 +164,7 @@ if(!['good','damaged'].includes(condition))return alert('حالة المنتج �
 if(!Number.isInteger(qty)||qty<1||qty>available)return alert('الكمية غير صحيحة أو تتجاوز الكمية التي لم تُرجع');
 if(refund<0||refund>qty*unitPrice)return alert('قيمة الاسترداد غير صحيحة');
 if(type==='exchange'&&refund>0)return alert('في الاستبدال يُحسب فرق السعر تلقائيًا؛ لا تسجل استردادًا ماليًا إضافيًا');
-let original=db.products.find(x=>x.id===o.productId),originalUnits=Number(o.stockUnits)!=null?Math.round(qty*(Number(o.stockUnits)/(Number(o.qty)||1))):qty*(o.unitType==='carton'?Math.max(1,Number(o.productSnapshot?.unitsPerCarton)||Number(original?.unitsPerCarton)||1):1),replacement=null,replacementUnits=0,replacementPrice=0,difference=0,replacementUnitsPerCarton=0;
+let original=db.products.find(x=>x.id===o.productId),originalUnits=(o.stockUnits!==undefined&&o.stockUnits!==null&&Number.isFinite(Number(o.stockUnits)))?Math.round(qty*(Number(o.stockUnits)/(Number(o.qty)||1))):qty*(o.unitType==='carton'?Math.max(1,Number(o.productSnapshot?.unitsPerCarton)||Number(original?.unitsPerCarton)||1):1),replacement=null,replacementUnits=0,replacementPrice=0,difference=0,replacementUnitsPerCarton=0;
 if(condition==='good'&&!original)return alert('المنتج الأصلي غير موجود في سجل المنتجات؛ لم يتم تعديل المخزون');
 if(type==='exchange'){
 replacement=db.products.find(x=>x.id===$('returnReplacement').value);if(!replacement)return alert('اختر المنتج البديل');
