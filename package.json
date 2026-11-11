@@ -1,0 +1,23 @@
+{
+  "name": "lamset-fan-business-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LAMSET FAN Business Manager Android app",
+  "scripts": {
+    "sync:android": "cap sync android",
+    "open:android": "cap open android",
+    "build:android": "cap sync android && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/app": "^7.0.2",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/local-notifications": "^7.0.2",
+    "@capacitor/filesystem": "^7.1.4",
+    "@capacitor/share": "^7.0.2",
+    "@aparajita/capacitor-biometric-auth": "^9.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  }
+}

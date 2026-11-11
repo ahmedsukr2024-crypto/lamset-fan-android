@@ -1,0 +1,9 @@
+{
+  "appId": "com.lamsetfan.businessmanager",
+  "appName": "LAMSET FAN",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": false
+  }
+}
