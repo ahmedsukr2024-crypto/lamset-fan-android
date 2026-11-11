@@ -102,13 +102,21 @@ if (isNative) {
   document.documentElement.classList.add('app-locked');
   document.addEventListener('DOMContentLoaded', () => { showLockScreen(); authenticate(); }, { once: true });
   App.addListener('appStateChange', ({ isActive }) => {
-    if (isActive) {
-      authenticated = false;
-      authenticate();
-    } else {
-      document.documentElement.classList.add('app-locked');
-      showLockScreen();
+    // Android may report the app as inactive while the native biometric
+    // prompt is visible. Do not relock or restart authentication in that case.
+    if (authInProgress) return;
+
+    if (!isActive) {
+      if (authenticated) {
+        authenticated = false;
+        document.documentElement.classList.add('app-locked');
+        showLockScreen();
+      }
+      return;
     }
+
+    // Authenticate only when returning from a real background transition.
+    if (!authenticated) authenticate();
   });
   if (businessNotificationsEnabled) scheduleBackupReminder();
 }
