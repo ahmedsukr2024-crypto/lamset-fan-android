@@ -167,6 +167,23 @@ async function lamsetDeleteImage(id){
     }catch(e){resolve(false)}
   });
 }
+const lamsetImageCache=new Map();
+async function lamsetResolveImage(id,legacyData=''){
+  const key=String(id||'');
+  if(legacyData)return legacyData;
+  if(!key)return '';
+  if(lamsetImageCache.has(key))return lamsetImageCache.get(key);
+  const stored=await lamsetGetImage(key);
+  if(stored)lamsetImageCache.set(key,stored);
+  return stored||'';
+}
+async function lamsetStoreImage(id,data){
+  const key=String(id||'');
+  if(!key||!data)return false;
+  const ok=await lamsetPutImage(key,data);
+  if(ok)lamsetImageCache.set(key,String(data));
+  return ok;
+}
 function load(){try{let raw=localStorage.getItem(KEY);if(raw===null)return;let x=JSON.parse(raw);if(!x||typeof x!=='object'||Array.isArray(x)){alert('تعذر تحميل البيانات المحفوظة: صيغة البيانات غير صالحة. لم يتم استبدال قاعدة البيانات الافتراضية.');return}db={...db,...x}}catch(e){alert('تعذر قراءة البيانات المحفوظة. لم يتم حذف الملف أو الكتابة فوقه؛ أنشئ نسخة احتياطية أو استعد نسخة سليمة قبل متابعة العمل.')}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db));$('saveStatus').textContent='آخر حفظ: '+new Date().toLocaleString('ar-EG');return true}catch(e){$('saveStatus').textContent='تعذر الحفظ: مساحة التخزين ممتلئة أو غير متاحة';return false}}
 function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
