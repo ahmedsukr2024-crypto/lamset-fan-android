@@ -14,6 +14,22 @@ window.lamsetNativeBackup = async (json) => {
   await Share.share({ title: 'نسخة LAMSET FAN الاحتياطية', text: 'احتفظ بهذا الملف لاستعادة بيانات التطبيق لاحقًا.', url: saved.uri, dialogTitle: 'حفظ النسخة الاحتياطية' });
 };
 
+let businessNotificationsEnabled = false;
+try { businessNotificationsEnabled = localStorage.getItem('lamset-business-notifications') === 'true'; } catch {}
+window.lamsetSetBusinessNotifications = async (enabled) => {
+  if (!isNative) return false;
+  if (!enabled) { businessNotificationsEnabled = false; localStorage.setItem('lamset-business-notifications','false'); return true; }
+  const permission = await LocalNotifications.checkPermissions();
+  const granted = permission.display === 'granted' ? permission : await LocalNotifications.requestPermissions();
+  if (granted.display !== 'granted') return false;
+  businessNotificationsEnabled = true; localStorage.setItem('lamset-business-notifications','true'); return true;
+};
+window.lamsetBusinessAlert = async (title, body) => {
+  if (!isNative || !businessNotificationsEnabled) return;
+  const permission = await LocalNotifications.checkPermissions();
+  if (permission.display !== 'granted') return;
+  await LocalNotifications.schedule({ notifications: [{ id: Math.floor(Date.now() % 2000000000), title: String(title || 'تنبيه لمسة فن'), body: String(body || 'يوجد تحديث جديد داخل التطبيق.'), schedule: { at: new Date(Date.now() + 1000) } }] });
+};
 function showLockScreen() {
   let panel = document.getElementById('lamset-lock-screen');
   if (!panel) {
