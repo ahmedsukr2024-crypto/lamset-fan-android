@@ -16,13 +16,13 @@ window.lamsetNativeBackup = async (json) => {
 
 let businessNotificationsEnabled = false;
 try { businessNotificationsEnabled = localStorage.getItem('lamset-business-notifications') === 'true'; } catch {}
+window.lamsetGetBusinessNotifications = async () => { if (!isNative) return { enabled: false, permission: 'unsupported' }; const p = await LocalNotifications.checkPermissions(); return { enabled: businessNotificationsEnabled && p.display === 'granted', permission: p.display }; };
 window.lamsetSetBusinessNotifications = async (enabled) => {
   if (!isNative) return false;
-  if (!enabled) { businessNotificationsEnabled = false; localStorage.setItem('lamset-business-notifications','false'); return true; }
-  const permission = await LocalNotifications.checkPermissions();
-  const granted = permission.display === 'granted' ? permission : await LocalNotifications.requestPermissions();
+  if (!enabled) { businessNotificationsEnabled = false; localStorage.setItem('lamset-business-notifications','false'); await LocalNotifications.cancel({ notifications: [{ id: 7311 }] }); return true; }
+  const p = await LocalNotifications.checkPermissions(); const granted = p.display === 'granted' ? p : await LocalNotifications.requestPermissions();
   if (granted.display !== 'granted') return false;
-  businessNotificationsEnabled = true; localStorage.setItem('lamset-business-notifications','true'); return true;
+  businessNotificationsEnabled = true; localStorage.setItem('lamset-business-notifications','true'); await scheduleBackupReminder(); return true;
 };
 window.lamsetBusinessAlert = async (title, body) => {
   if (!isNative || !businessNotificationsEnabled) return;
@@ -110,5 +110,5 @@ if (isNative) {
       showLockScreen();
     }
   });
-  scheduleBackupReminder();
+  if (businessNotificationsEnabled) scheduleBackupReminder();
 }
