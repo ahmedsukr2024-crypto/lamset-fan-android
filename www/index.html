@@ -114,7 +114,7 @@
 const KEY='lamset_fan_business_manager_v1';
 let db={products:[],orders:[],customers:[],productions:[],offers:[{threshold:10,bonus:1},{threshold:50,bonus:6},{threshold:100,bonus:12}],costLines:[]};
 const $=id=>document.getElementById(id), n=id=>Math.max(0,Number($(id).value)||0), money=x=>(Number(x)||0).toLocaleString('ar-EG',{maximumFractionDigits:2})+' ج.م';
-function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&typeof x==='object')db={...db,...x}}catch(e){}}
+function load(){try{let raw=localStorage.getItem(KEY);if(raw===null)return;let x=JSON.parse(raw);if(!x||typeof x!=='object'||Array.isArray(x)){alert('تعذر تحميل البيانات المحفوظة: صيغة البيانات غير صالحة. لم يتم استبدال قاعدة البيانات الافتراضية.');return}db={...db,...x}}catch(e){alert('تعذر قراءة البيانات المحفوظة. لم يتم حذف الملف أو الكتابة فوقه؛ أنشئ نسخة احتياطية أو استعد نسخة سليمة قبل متابعة العمل.')}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db));$('saveStatus').textContent='آخر حفظ: '+new Date().toLocaleString('ar-EG');return true}catch(e){$('saveStatus').textContent='تعذر الحفظ: مساحة التخزين ممتلئة أو غير متاحة';return false}}
 function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function tab(t){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===t));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));renderAll()}
