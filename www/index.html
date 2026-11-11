@@ -159,7 +159,7 @@ list.innerHTML=rows.length?rows.map(r=>'<div class="customer-history"><b>'+esc(r
 function saveReturnExchange(){
 let o=(db.orders||[]).find(x=>x.id===$('returnOrder').value);if(!o)return alert('اختر الطلب الأصلي');
 let qty=Math.floor(Number($('returnQty').value)),already=returnedQtyForOrder(o.id),available=(Number(o.qty)||0)-already,type=$('returnType').value,condition=$('returnCondition').value,refund=Number($('returnRefund').value)||0,unitPrice=Number(o.price)||0;
-if(!['return','exchange'].includes(type))return alert('نوع العملية غير صحيح');
+if(!['refund','exchange'].includes(type))return alert('نوع العملية غير صحيح');
 if(!['good','damaged'].includes(condition))return alert('حالة المنتج المرتجع غير صحيحة');
 if(!Number.isInteger(qty)||qty<1||qty>available)return alert('الكمية غير صحيحة أو تتجاوز الكمية التي لم تُرجع');
 if(refund<0||refund>qty*unitPrice)return alert('قيمة الاسترداد غير صحيحة');
