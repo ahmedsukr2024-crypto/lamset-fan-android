@@ -136,4 +136,6 @@ function restore(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();
 function resetData(){if(confirm('تحذير: سيتم حذف جميع المنتجات والطلبات والتكاليف. هل أنت متأكد؟')&&confirm('تأكيد أخير: لا يمكن التراجع.')){localStorage.removeItem(KEY);db={products:[],orders:[],productions:[],offers:[{threshold:10,bonus:1},{threshold:50,bonus:6},{threshold:100,bonus:12}],costLines:[]};renderAll()}}
 function renderAll(){let opts=productOptions();['costProduct','prodProduct','orderProduct','offerProduct'].forEach(k=>{let old=$(k).value;$(k).innerHTML=opts;if(db.products.some(p=>p.id===old))$(k).value=old});renderProducts();renderCostLines();renderStock();renderOrders();renderOffers();renderReports();renderCustomers();renderDatabase();renderDash();orderTotal();calcPrice();if($('offerProduct').value)offerProductChanged()}
 load();if(!Array.isArray(db.customers))db.customers=[];db.products.forEach(p=>{if(!p.unitsPerCarton)p.unitsPerCarton=1});db.orders.forEach(o=>{let p=db.products.find(x=>x.id===o.productId);if(o.stockUnits==null)o.stockUnits=o.qty*(o.unitType==='carton'?(p?.unitsPerCarton||1):1);if(!o.customerId){let c=db.customers.find(x=>(o.phone&&x.phone===o.phone)||(!o.phone&&x.name===o.customer));if(!c){c={id:id(),name:o.customer||'عميل سابق',phone:o.phone||'',area:o.area||''};db.customers.push(c)}o.customerId=c.id}});save();$('today').textContent=new Date().toLocaleDateString('ar-EG');renderAll();
-</script></body></html>
+</script>
+<script type="module" src="./mobile-bridge.js"></script>
+</body></html>
