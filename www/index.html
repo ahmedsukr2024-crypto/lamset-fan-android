@@ -239,7 +239,7 @@ let p=db.products.find(x=>x.id===ps.value);
 $('consStockHint').textContent=p?'المتاح بالمخزون: '+(Number(p.stock)||0)+' قطعة · '+Math.max(1,Number(p.unitsPerCarton)||1)+' قطعة بالكرتونة.':'أضف منتجًا أولًا';
 let open=(db.consignments||[]).filter(x=>x.status!=='closed');
 $('consOpenCount').textContent=open.length+' عهدة';
-$('consignmentList').innerHTML=open.length?open.slice().reverse().map(x=>'<div class="card"><b>'+esc(x.customerName)+'</b> · '+esc(x.productName)+'<p class="muted">رقم العهدة: '+esc(x.id)+' · المتبقي: '+x.remaining+' قطعة · المباع: '+x.sold+' قطعة</p><p>قيمة المباع: '+money(x.soldValue)+' · المحصل: '+money(x.paid)+' · المستحق: <b>'+money(Math.max(0,x.soldValue-x.paid))+'</b></p><button class="smallbtn" onclick="openConsignmentCount(\''+x.id+'\')">جرد / تسوية</button></div>').join(''):'<p class="muted">لا توجد عهد مفتوحة.</p>';
+$('consignmentList').innerHTML=open.length?open.slice().reverse().map(x=>'<div class="card"><b>'+esc(x.customerName)+'</b> · '+esc(x.productName)+'<p class="muted">رقم العهدة: '+esc(x.id)+' · المتبقي: '+x.remaining+' قطعة · المباع: '+x.sold+' قطعة</p><p>قيمة المباع: '+money(x.soldValue)+' · المحصل: '+money(x.paid)+' · المستحق: <b>'+money(Math.max(0,x.soldValue-x.paid))+'</b></p><button class="smallbtn" onclick="openConsignmentCount(\''+x.id+'\')">جرد / تسوية</button> <button class="smallbtn" onclick="closeConsignment(\\''+x.id+'\\')">مراجعة وإغلاق العهدة</button></div>').join(''):'<p class="muted">لا توجد عهد مفتوحة.</p>';
 renderConsignmentAccount();
 let hist=(db.consignmentVisits||[]).slice().reverse();
 $('consignmentHistory').innerHTML=hist.length?hist.map(v=>'<div class="card"><b>'+esc(v.customerName)+' · '+esc(v.productName)+'</b><p class="muted">'+new Date(v.date).toLocaleString('ar-EG')+' · مباع '+v.sold+' · مرتجع '+v.returned+' · تالف '+v.damaged+' · مفقود '+v.missing+'</p><p>قيمة المباع '+money(v.soldValue)+' · التحصيل '+money(v.payment)+'</p></div>').join(''):'<p class="muted">لا توجد عمليات سابقة.</p>';
@@ -280,6 +280,17 @@ save();$('consQty').value=1;$('consPrice').value='';renderAll();alert('تم تس
 }
 function consignmentPaid(x){return Number(x.paid)||0}
 function addConsignmentPayment(){let x=(db.consignments||[]).find(v=>v.id===$('consPayAccount').value),amount=Number($('consPayAmount').value);if(!x)return alert('اختر عهدة أولًا');let due=Math.max(0,Number(x.soldValue)-consignmentPaid(x));if(!Number.isFinite(amount)||amount<=0||amount>due)return alert('المبلغ غير صحيح أو أكبر من المستحق '+money(due));(db.consignmentPayments||(db.consignmentPayments=[])).push({id:id(),consignmentId:x.id,customerId:x.customerId,customerName:x.customerName,productName:x.productName,date:new Date().toISOString(),amount,method:$('consPayMethod').value,note:$('consPayNote').value.trim()});x.paid=consignmentPaid(x)+amount;save();$('consPayAmount').value='';$('consPayNote').value='';renderAll();alert('تم تسجيل دفعة الأمانة بشكل مستقل');}
+function closeConsignment(cid){
+let x=(db.consignments||[]).find(v=>v.id===cid);if(!x)return;
+let due=Math.max(0,Number(x.soldValue)-consignmentPaid(x));
+if(Number(x.remaining)!==0)return alert('لا يمكن إغلاق العهدة قبل تسوية كل القطع المتبقية. المتبقي: '+x.remaining+' قطعة.');
+if(due>0)return alert('لا يمكن إغلاق العهدة قبل تحصيل قيمة المباع بالكامل. المستحق: '+money(due));
+let msg='مراجعة نهائية للعهدة رقم '+x.id+'\\nالمنتج: '+x.productName+'\\nالمسلم: '+x.delivered+' قطعة\\nالمباع: '+x.sold+' قطعة\\nالمرتجع الصالح: '+x.returned+' قطعة\\nالتالف: '+x.damaged+' قطعة\\nالمفقود: '+x.missing+' قطعة\\nالمتبقي: '+x.remaining+' قطعة\\nقيمة المباع: '+money(x.soldValue)+'\\nالمحصل: '+money(consignmentPaid(x))+'\\nالمستحق: '+money(due)+'\\n\\nهل راجعت الأرقام وتؤكد الإغلاق؟';
+if(!confirm(msg))return;
+x.status='closed';x.closedAt=new Date().toISOString();x.closureSnapshot={delivered:Number(x.delivered)||0,sold:Number(x.sold)||0,returned:Number(x.returned)||0,damaged:Number(x.damaged)||0,missing:Number(x.missing)||0,remaining:Number(x.remaining)||0,soldValue:Number(x.soldValue)||0,paid:consignmentPaid(x),due};
+(db.consignmentClosures||(db.consignmentClosures=[])).push({id:id(),consignmentId:x.id,customerId:x.customerId,customerName:x.customerName,productName:x.productName,date:x.closedAt,snapshot:x.closureSnapshot});
+save();renderAll();alert('تم إغلاق العهدة وحفظ ملخص التسوية النهائي.');
+}
 function openConsignmentCount(cid){
 let x=(db.consignments||[]).find(v=>v.id===cid);if(!x)return;
 let sold=prompt('عدد القطع المباعة منذ آخر جرد','0');if(sold===null)return;sold=Number(sold);
@@ -291,7 +302,7 @@ let value=sold*Number(x.unitPrice),due=Math.max(0,Number(x.soldValue)-consignmen
 let payment=Number(prompt('تحصيل من قيمة المباع فقط. المستحق بعد الجرد: '+money(due),'0'));if(!Number.isFinite(payment)||payment<0||payment>due)return alert('قيمة التحصيل غير صحيحة');
 let before={remaining:Number(x.remaining)||0,sold:Number(x.sold)||0,returned:Number(x.returned)||0,damaged:Number(x.damaged)||0,missing:Number(x.missing)||0};x.sold+=sold;x.returned+=returned;x.damaged+=damaged;x.missing+=missing;x.remaining-=vals.reduce((a,b)=>a+b,0);x.soldValue+=value;
 let p=db.products.find(v=>v.id===x.productId);if(p&&returned)p.stock=(Number(p.stock)||0)+returned;
-if(x.remaining===0)x.status='closed';
+x.status='open';
 if(payment>0)(db.consignmentPayments||(db.consignmentPayments=[])).push({id:id(),consignmentId:x.id,customerId:x.customerId,customerName:x.customerName,productName:x.productName,date:new Date().toISOString(),amount:payment,method:'تحصيل أثناء الجرد',note:''});x.paid=consignmentPaid(x);(db.consignmentVisits||(db.consignmentVisits=[])).push({id:id(),consignmentId:x.id,date:new Date().toISOString(),customerName:x.customerName,productName:x.productName,sold,returned,damaged,missing,soldValue:value,payment,remaining:x.remaining,beforeRemaining:before.remaining,beforeSold:before.sold,beforeReturned:before.returned,beforeDamaged:before.damaged,beforeMissing:before.missing,unitPrice:x.unitPrice,unitsPerCarton:x.unitsPerCarton});
 save();renderAll();alert('تم حفظ الجرد. المتبقي لدى العميل ليس مديونية؛ المستحق قيمة المباع فقط.');
 }
