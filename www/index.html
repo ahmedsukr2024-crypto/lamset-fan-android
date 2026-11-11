@@ -88,7 +88,17 @@
 </div>
 <div class="card"><h3>شرائح البونص</h3><div class="row"><div class="field"><label>عند شراء (كراتين)</label><input id="offerThreshold" type="number" min="1" value="10"></div><div class="field"><label>عدد الكراتين المجانية</label><input id="offerBonus" type="number" min="0" value="1"></div></div><button onclick="addOffer()">إضافة شريحة</button><div id="offerList"></div></div>
 </section>
-<section id="reports" class="panel"><div class="sectionhead"><h2>التقارير</h2></div><div class="card" id="reportBox"></div><div class="actions"><button onclick="exportCSV()">تصدير تقرير CSV</button><button class="ghost" onclick="window.print()">طباعة / PDF</button></div></section>
+<section id="reports" class="panel">
+<div class="sectionhead"><div><h2>مركز التحليلات</h2><p class="muted">قراءة فعلية لأداء النشاط من البيانات المسجلة</p></div></div>
+<div class="card"><div class="row"><div class="field"><label>الفترة الزمنية</label><select id="analyticsPeriod" onchange="renderReports()"><option value="30">آخر 30 يومًا</option><option value="7">آخر 7 أيام</option><option value="90">آخر 90 يومًا</option><option value="365">آخر 12 شهرًا</option><option value="all">كل الفترات</option></select></div><div class="field"><label>من تاريخ</label><input id="analyticsFrom" type="date" onchange="renderReports()"></div><div class="field"><label>إلى تاريخ</label><input id="analyticsTo" type="date" onchange="renderReports()"></div></div><p class="muted" id="analyticsRange"></p></div>
+<div class="grid dash-metrics" id="analyticsKpis"></div>
+<div class="card"><h3>اتجاه المبيعات</h3><div id="analyticsSalesChart"></div></div>
+<div class="card"><h3>تحليل المنتجات</h3><div id="analyticsProducts"></div></div>
+<div class="card"><h3>تحليل العملاء</h3><div id="analyticsCustomers"></div></div>
+<div class="card"><h3>التحصيل والمديونيات</h3><div id="analyticsCollections"></div></div>
+<div class="card"><h3>المخزون والإنتاج</h3><div id="analyticsOperations"></div></div>
+<div class="card"><h3>الأمانة والمصروفات</h3><div id="analyticsLimits"></div></div>
+<div class="actions"><button onclick="exportCSV()">تصدير تقرير CSV</button><button class="ghost" onclick="window.print()">طباعة / PDF</button></div></section>
 <section id="backup" class="panel"><div class="sectionhead"><h2>النسخ الاحتياطي</h2></div><div class="card"><p>يتم حفظ البيانات داخل مساحة تطبيق LAMSET FAN على الهاتف. سيصلك تذكير أسبوعي لإنشاء نسخة احتياطية JSON. احتفظ بالنسخة خارج الهاتف، لأن حذف التطبيق أو مسح بياناته أو فورمات الهاتف قد يؤدي لفقد البيانات.</p><div class="actions"><button onclick="backup()">تنزيل نسخة احتياطية JSON</button><button class="ghost" onclick="document.getElementById('restoreFile').click()">استعادة نسخة</button><input id="restoreFile" class="hidden" type="file" accept=".json,application/json" onchange="restore(event)"></div><p class="muted" id="saveStatus">الحفظ المحلي مفعّل</p><button class="danger" onclick="resetData()">مسح كل البيانات</button></div></section>
 <div class="footer">LAMSET FAN BUSINESS MANAGER · إصدار محلي أولي · البيانات محفوظة على جهازك</div>
 </main>
@@ -137,7 +147,34 @@ function calcOffer(){let q=Math.max(0,Math.floor(n('offerQty'))),p=db.products.f
 function addOffer(){let t=n('offerThreshold'),b=n('offerBonus');if(t<1)return alert('الحد الأدنى يجب أن يكون 1');db.offers.push({threshold:t,bonus:b});db.offers.sort((a,b)=>a.threshold-b.threshold);save();renderOffers()}
 function renderOffers(){$('offerList').innerHTML=db.offers.map((o,i)=>`<div class="row"><div class="card">عند ${o.threshold} كرتونة ← ${o.bonus} هدية</div><button class="danger smallbtn" onclick="deleteOffer(${i})">حذف</button></div>`).join('');calcOffer()}
 function deleteOffer(i){db.offers.splice(i,1);save();renderOffers()}
-function renderReports(){let sales=db.orders.reduce((s,o)=>s+o.qty*o.price,0),cost=db.orders.reduce((s,o)=>{let p=db.products.find(p=>p.id===o.productId);return s+(o.stockUnits??(o.qty*(o.unitType==='carton'?(p?.unitsPerCarton||1):1)))*(p?.cost||0)},0),paid=db.orders.reduce((s,o)=>s+o.deposit,0),stock=db.products.reduce((s,p)=>s+(p.stock||0)*(p.cost||0),0);$('reportBox').innerHTML=`<p>إجمالي قيمة الطلبات: <b>${money(sales)}</b></p><p>التكلفة التقديرية للطلبات: <b>${money(cost)}</b></p><p>الربح التقديري قبل المصروفات: <b>${money(sales-cost)}</b></p><p>المبالغ المحصلة كعربون: <b>${money(paid)}</b></p><p>المبالغ المتبقية: <b>${money(Math.max(0,sales-paid))}</b></p><p>قيمة المخزون بالتكلفة: <b>${money(stock)}</b></p>`}
+function renderReports(){
+const now=new Date(),period=$('analyticsPeriod')?.value||'30',fromValue=$('analyticsFrom')?.value,toValue=$('analyticsTo')?.value;
+const from=fromValue?new Date(fromValue+'T00:00:00'):period==='all'?new Date(0):new Date(now.getTime()-Number(period)*86400000);
+const to=toValue?new Date(toValue+'T23:59:59.999'):now;
+if(from>to){$('analyticsRange').textContent='تاريخ البداية يجب أن يسبق تاريخ النهاية.';return}
+const inRange=value=>{const d=new Date(value||0);return !isNaN(d)&&d>=from&&d<=to};
+const orders=(db.orders||[]).filter(o=>inRange(o.date||o.createdAt));
+const total=o=>(Number(o.qty)||0)*(Number(o.price)||0);
+const sales=orders.reduce((v,o)=>v+total(o),0);
+const cost=orders.reduce((v,o)=>{const p=db.products.find(x=>x.id===o.productId),units=Number(o.stockUnits??((Number(o.qty)||0)*(o.unitType==='carton'?(p?.unitsPerCarton||1):1)));return v+units*(Number(p?.cost)||0)},0);
+const paid=orders.reduce((v,o)=>v+paidOnOrder(o),0),due=orders.reduce((v,o)=>v+orderDue(o),0),profit=sales-cost,margin=sales?profit/sales*100:null;
+$('analyticsRange').textContent='الفترة: '+from.toLocaleDateString('ar-EG')+' — '+to.toLocaleDateString('ar-EG')+' · '+orders.length+' طلب';
+const cards=[['قيمة المبيعات',money(sales)],['عدد الطلبات',orders.length],['التكلفة التقديرية',money(cost)],['الربح التقديري قبل المصروفات',money(profit)],['هامش الربح',margin===null?'—':margin.toFixed(1)+'%'],['المحصل',money(paid)],['المتبقي',money(due)],['متوسط الطلب',orders.length?money(sales/orders.length):'—']];
+$('analyticsKpis').innerHTML=cards.map(x=>'<div class="card metric"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join('');
+const buckets={};orders.forEach(o=>{const d=new Date(o.date||o.createdAt),key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');buckets[key]=(buckets[key]||0)+total(o)});
+const points=Object.entries(buckets).sort((x,y)=>x[0].localeCompare(y[0])).slice(-8),max=Math.max(1,...points.map(x=>x[1]));
+$('analyticsSalesChart').innerHTML=points.length?'<div style="display:flex;align-items:end;gap:8px;height:170px;padding:12px 2px">'+points.map(([k,v])=>'<div style="flex:1;text-align:center;min-width:0"><div style="font-size:10px;color:var(--muted)">'+money(v)+'</div><div style="height:'+Math.max(5,v/max*105)+'px;background:linear-gradient(180deg,var(--purple),var(--purple-dark));border-radius:8px 8px 2px 2px;margin:5px auto;width:75%"></div><small>'+k+'</small></div>').join('')+'</div>':'<p class="muted">لا توجد مبيعات مسجلة في الفترة المحددة.</p>';
+const products={};orders.forEach(o=>{const key=o.productId||o.productCode||o.productName||'غير محدد',p=db.products.find(x=>x.id===o.productId),x=products[key]||(products[key]={name:o.productSnapshot?.name||o.productName||p?.name||'منتج غير معروف',qty:0,sales:0,cost:0});x.qty+=Number(o.stockUnits??o.qty)||0;x.sales+=total(o);x.cost+=(Number(o.stockUnits??o.qty)||0)*(Number(p?.cost)||0)});
+const topProducts=Object.values(products).sort((x,y)=>y.sales-x.sales).slice(0,6);
+$('analyticsProducts').innerHTML=topProducts.length?topProducts.map(p=>'<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0"><span><b>'+esc(p.name)+'</b><small class="muted"> · '+p.qty+' وحدة</small></span><span>'+money(p.sales)+'<small class="muted"> · ربح تقديري '+money(p.sales-p.cost)+'</small></span></div>').join(''):'<p class="muted">لا توجد بيانات منتجات في هذه الفترة.</p>';
+const customers={};orders.forEach(o=>{const key=o.customerId||o.phone||o.customer||'unknown',x=customers[key]||(customers[key]={name:o.customer||'عميل',sales:0,count:0});x.sales+=total(o);x.count++});
+const topCustomers=Object.values(customers).sort((x,y)=>y.sales-x.sales).slice(0,5);
+$('analyticsCustomers').innerHTML=topCustomers.length?topCustomers.map(c=>'<p>'+esc(c.name)+' · '+c.count+' طلب · <b>'+money(c.sales)+'</b></p>').join(''):'<p class="muted">لا توجد تعاملات عملاء في الفترة.</p>';
+$('analyticsCollections').innerHTML='<p>إجمالي المحصل من الطلبات المحددة: <b>'+money(paid)+'</b></p><p>المتبقي على الطلبات المحددة: <b>'+money(due)+'</b></p><p>نسبة التحصيل: <b>'+(sales?(paid/sales*100).toFixed(1)+'%':'—')+'</b></p>';
+const production=(db.productions||[]).filter(x=>inRange(x.date)),produced=production.reduce((v,x)=>v+(Number(x.net)||0),0),damaged=production.reduce((v,x)=>v+(Number(x.damaged)||0),0),stockUnits=(db.products||[]).reduce((v,p)=>v+(Number(p.stock)||0),0),stockValue=(db.products||[]).reduce((v,p)=>v+(Number(p.stock)||0)*(Number(p.cost)||0),0);
+$('analyticsOperations').innerHTML='<p>الكمية المنتجة السليمة خلال الفترة: <b>'+produced+' وحدة</b></p><p>التالف المسجل في الإنتاج: <b>'+damaged+' وحدة</b></p><p>رصيد المخزون الحالي: <b>'+stockUnits+' وحدة</b></p><p>قيمة المخزون الحالية بالتكلفة: <b>'+money(stockValue)+'</b></p>';
+$('analyticsLimits').innerHTML='<p>لا توجد حاليًا سجلات مستقلة مكتملة للأمانة أو المصروفات؛ لذلك لا نعرض أرقامًا تقديرية أو نفترض قيمًا.</p><p class="muted">ستُربط تحليلات الأمانة والمصروفات عند إضافة سجلاتهما الفعلية.</p>';
+}
 let editingCustomerId='';
 const customerCodes=[['20','مصر +20'],['966','السعودية +966'],['971','الإمارات +971'],['965','الكويت +965'],['974','قطر +974'],['973','البحرين +973'],['968','عُمان +968'],['962','الأردن +962'],['961','لبنان +961'],['964','العراق +964'],['212','المغرب +212'],['213','الجزائر +213'],['216','تونس +216'],['218','ليبيا +218'],['249','السودان +249'],['1','أمريكا/كندا +1'],['44','بريطانيا +44'],['49','ألمانيا +49'],['33','فرنسا +33']];
 function customerFormMarkup(c){let d=String(c&&c.phone||'').replace(/[^0-9]/g,'');let found=customerCodes.find(x=>d.startsWith(x[0]))||customerCodes[0];let local=d.startsWith(found[0])?d.slice(found[0].length):d;return '<div class="card"><h3>'+(c?'تعديل بيانات العميل':'إضافة عميل جديد')+'</h3><label>اسم العميل *</label><input id="cName" value="'+esc(c&&c.name||'')+'"><label>كود الدولة</label><select id="cCountryCode">'+customerCodes.map(x=>'<option value="'+x[0]+'" '+(x[0]===found[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select><label>رقم الهاتف</label><input id="cPhone" value="'+local+'" type="tel"><label>المنطقة</label><input id="cArea" value="'+esc(c&&c.area||'')+'"><label>ملاحظات</label><textarea id="cNote">'+esc(c&&c.note||'')+'</textarea><button onclick="saveCustomerForm()">حفظ</button><button class="ghost" onclick="cancelCustomerForm()">إلغاء</button></div>'}
