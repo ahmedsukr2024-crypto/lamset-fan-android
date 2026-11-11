@@ -12,7 +12,7 @@
 <body><main class="wrap">
 <header class="top"><h1>LAMSET FAN</h1><p>BUSINESS MANAGER · إدارة الإنتاج والتكاليف والأرباح</p></header>
 <nav class="nav" id="nav" aria-label="التنقل الرئيسي">
-<button class="active" data-tab="dashboard"><span>⌂</span>الرئيسية</button><button data-tab="orders"><span>▤</span>الطلبات</button><button data-tab="customers"><span>♙</span>العملاء</button><button data-tab="production"><span>▦</span>المخزون</button><button data-tab="more"><span>⋯</span>المزيد</button>
+<button type="button" class="active" data-tab="dashboard" onclick="tab('dashboard')"><span>⌂</span>الرئيسية</button><button type="button" data-tab="orders" onclick="tab('orders')"><span>▤</span>الطلبات</button><button type="button" data-tab="customers" onclick="tab('customers')"><span>♙</span>العملاء</button><button type="button" data-tab="production" onclick="tab('production')"><span>▦</span>المخزون</button><button type="button" data-tab="more" onclick="tab('more')"><span>⋯</span>المزيد</button>
 </nav>
 <section id="dashboard" class="panel active">
 <div class="dash-welcome"><div><small>أهلاً بيك في</small><h2>لمسة فن</h2><p>إدارة نشاطك في مكان واحد</p></div><button class="iconbtn" onclick="tab('alerts')" aria-label="التنبيهات">♧</button></div>
