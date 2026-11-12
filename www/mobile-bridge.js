@@ -7,7 +7,7 @@ window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
 };
 import { App } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
@@ -79,6 +79,7 @@ window.lamsetNativeBackup = async (json) => {
     path: 'LAMSET-FAN/' + filename,
     data: json,
     directory: Directory.Cache,
+    encoding: Encoding.UTF8,
     recursive: true
   });
   if (!saved?.uri) throw new Error('تم إنشاء الملف دون الحصول على مسار صالح لمشاركته.');
