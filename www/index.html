@@ -649,6 +649,7 @@ function changeOrderStatus(id){
 let o=db.orders.find(x=>x.id===id);if(!o)return;
 let allowed=['جديد','قيد التجهيز','جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم','ملغي'],s=prompt('اختر حالة من الحالات المعتمدة:\n'+allowed.join(' / '),o.status);
 if(s===null)return;s=s.trim();if(!allowed.includes(s))return alert('الحالة غير معتمدة. اختر حالة من القائمة المعروضة.');
+if(['جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(s)&&orderPendingProductionUnits(o)>0)return alert('لا يمكن نقل الطلب إلى مرحلة الشحن أو التسليم قبل اكتمال التصنيع. توجد '+orderPendingProductionUnits(o)+' قطعة ناقصة في صفحة التصنيع المطلوب.');
 let previous=o.status;if(s===previous)return;
 const cancelling=s==='ملغي'&&previous!=='ملغي',reactivating=previous==='ملغي'&&s!=='ملغي';
 if(cancelling&&(db.returns||[]).some(r=>r.orderId===o.id))return alert('لا يمكن إلغاء الطلب آليًا لوجود مرتجعات أو استبدالات مرتبطة به. راجع حركة المخزون والتسويات أولاً.');
