@@ -390,7 +390,7 @@ if(!replacement||replacement.active===false)return alert('اختر منتجًا 
 if(!Number.isFinite(replacementPrice)||replacementPrice<0)return alert('سعر المنتج البديل غير صحيح');
 const replacementPerUnit=line.unitType==='carton'?Math.max(1,Number(replacement.unitsPerCarton)||1):1;
 replacementUnits=qty*replacementPerUnit;replacementValue=qty*replacementPrice;
-if((Number(replacement.stock)||0)<replacementUnits)return alert('مخزون المنتج البديل غير كافٍ؛ المتاح '+(Number(replacement.stock)||0)+' قطعة والمطلوب '+replacementUnits+' قطعة');
+const availableReplacement=(Number(replacement.stock)||0)+(replacement.id===originalProduct.id&&condition==='good'?returnedUnits:0);if(availableReplacement<replacementUnits)return alert('مخزون المنتج البديل غير كافٍ؛ المتاح بعد احتساب المرتجع الصالح '+availableReplacement+' قطعة والمطلوب '+replacementUnits+' قطعة');
 priceDifference=Math.max(0,replacementValue-returnedValue);
 refundDue=Math.max(0,returnedValue-replacementValue);
 }else{
@@ -440,7 +440,7 @@ function analyticsItemUnits(item,o){const qty=Number(item.qty)||0;if(item.stockU
 function analyticsOrderCostNet(o){
 const items=analyticsItems(o),returnedByLine=items.map(()=>0),returns=(db.returns||[]).filter(r=>r.orderId===o.id&&r.condition==='good');
 returns.filter(r=>r.orderItemKey!==undefined&&r.orderItemKey!==null).forEach(r=>{const i=Number(r.orderItemKey);if(Number.isInteger(i)&&i>=0&&i<items.length&&items[i].productId===r.productId)returnedByLine[i]+=Math.max(0,Number(r.stockUnits)||Number(r.qty)||0)});
-returns.filter(r=>r.orderItemKey===undefined||r.orderItemKey===null).forEach(r=>{let left=Math.max(0,Number(r.stockUnits)||Number(r.qty)||0);for(let i=0;i<items.length&&left>0;i++){if(items[i].productId!==r.productId)continue;const capacity=Math.max(0,analyticsItemUnits(items[i],o)-returnedByLine[i]),take=Math.min(capacity,left);returnedByLine[i]+=take;left-=take}});
+returns.filter(r=>r.orderItemKey===undefined||r.orderItemKey===null||r.orderItemKey==='legacy').forEach(r=>{let left=Math.max(0,Number(r.stockUnits)||Number(r.qty)||0);for(let i=0;i<items.length&&left>0;i++){if(items[i].productId!==r.productId)continue;const capacity=Math.max(0,analyticsItemUnits(items[i],o)-returnedByLine[i]),take=Math.min(capacity,left);returnedByLine[i]+=take;left-=take}});
 return items.reduce((v,item,i)=>{const p=db.products.find(z=>z.id===item.productId),units=analyticsItemUnits(item,o),cost=Number(item.productSnapshot?.cost??p?.cost)||0;return v+Math.max(0,units-returnedByLine[i])*cost},0)
 }
 function renderReports(){
