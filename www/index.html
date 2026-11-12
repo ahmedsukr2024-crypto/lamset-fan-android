@@ -25,7 +25,7 @@ async function printDocumentPreview(){
  try{
   const doc=frame.contentDocument||frame.contentWindow?.document;
   if(!doc?.documentElement)throw new Error('محتوى المعاينة غير جاهز.');
-  const html='<!doctype html>\\n'+doc.documentElement.outerHTML;
+  const html='<!doctype html>'+doc.documentElement.outerHTML;
   if(window.Capacitor?.isNativePlatform?.()&&typeof window.lamsetNativeExport==='function'){
    const stamp=new Date().toISOString().replace(/[:.]/g,'-');
    await window.lamsetNativeExport(html,'lamset-fan-print-'+stamp+'.html','text/html');
