@@ -615,6 +615,7 @@ try{
 if(!Array.isArray(db.returns))db.returns=[];
 db.returns.push(record);
 if(type==='exchange'&&priceDifference>0){if(!Array.isArray(db.returnTransactions))db.returnTransactions=[];db.returnTransactions.push({id:id(),returnId:record.id,orderId:order.id,customerId:record.customerId,customerName:record.customerName,amount:priceDifference,direction:'in_due',type:'exchange_due',method:'',note:'فرق استبدال مستحق',date})}
+if(refundDue>0){if(!Array.isArray(db.returnTransactions))db.returnTransactions=[];db.returnTransactions.push({id:id(),returnId:record.id,orderId:order.id,customerId:record.customerId,customerName:record.customerName,amount:refundDue,direction:'out_due',type:type==='exchange'?'exchange_refund':'return_refund',method:'',note:type==='exchange'?'رصيد مستحق للعميل من فرق الاستبدال':'مبلغ مرتجع مستحق للعميل',date})}
 if(condition==='good')originalProduct.stock=(Number(originalProduct.stock)||0)+returnedUnits;
 if(type==='exchange')replacement.stock=Math.max(0,(Number(replacement.stock)||0)-replacementUnits);
 if(!save()){db=before;return alert('تعذر حفظ المرتجع؛ تم التراجع عن المخزون والسجلات المالية بالكامل.')}
