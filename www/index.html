@@ -738,7 +738,7 @@ x.status='closed';x.closedAt=new Date().toISOString();x.closureSnapshot={deliver
 if(!save()){db=before;return alert('تعذر حفظ إغلاق العهدة؛ تم التراجع عن حالة الإغلاق والسجل.')}renderAll();alert('تم إغلاق العهدة وحفظ ملخص التسوية النهائي.');
 }
 function openConsignmentCount(cid){
-let before=JSON.parse(JSON.stringify(db)),x=(db.consignments||[]).find(v=>v.id===cid);if(!x)return;if(x.status==='closed')return alert('لا يمكن إجراء جرد لعهدة مغلقة.');
+let previousDb=JSON.parse(JSON.stringify(db)),x=(db.consignments||[]).find(v=>v.id===cid);if(!x)return;if(x.status==='closed')return alert('لا يمكن إجراء جرد لعهدة مغلقة.');
 let sold=prompt('عدد القطع المباعة منذ آخر جرد','0');if(sold===null)return;sold=Number(sold);
 let returned=prompt('عدد القطع المرتجعة الصالحة للمخزن','0');if(returned===null)return;returned=Number(returned);
 let damaged=prompt('عدد القطع التالفة','0');if(damaged===null)return;damaged=Number(damaged);
@@ -750,7 +750,7 @@ let before={remaining:Number(x.remaining)||0,sold:Number(x.sold)||0,returned:Num
 let p=db.products.find(v=>v.id===x.productId);if(p&&returned)p.stock=(Number(p.stock)||0)+returned;
 x.status='open';
 if(payment>0)(db.consignmentPayments||(db.consignmentPayments=[])).push({id:id(),consignmentId:x.id,customerId:x.customerId,customerName:x.customerName,productName:x.productName,date:new Date().toISOString(),amount:payment,method:'تحصيل أثناء الجرد',note:''});x.paid=consignmentPaid(x);(db.consignmentVisits||(db.consignmentVisits=[])).push({id:id(),consignmentId:x.id,date:new Date().toISOString(),customerName:x.customerName,productName:x.productName,sold,returned,damaged,missing,soldValue:value,payment,remaining:x.remaining,beforeRemaining:before.remaining,beforeSold:before.sold,beforeReturned:before.returned,beforeDamaged:before.damaged,beforeMissing:before.missing,unitPrice:x.unitPrice,unitsPerCarton:x.unitsPerCarton});
-if(!save()){db=before;return alert('تعذر حفظ الجرد؛ تم التراجع عن الكميات والمخزون والتحصيل بالكامل.')}renderAll();alert('تم حفظ الجرد. المتبقي لدى العميل ليس مديونية؛ المستحق قيمة المباع فقط.');
+if(!save()){db=previousDb;return alert('تعذر حفظ الجرد؛ تم التراجع عن الكميات والمخزون والتحصيل بالكامل.')}renderAll();alert('تم حفظ الجرد. المتبقي لدى العميل ليس مديونية؛ المستحق قيمة المباع فقط.');
 }
 function renderAll(){let opts=productOptions();['costProduct','prodProduct','orderProduct','offerProduct'].forEach(k=>{let old=$(k).value;$(k).innerHTML=opts;if(db.products.some(p=>p.id===old))$(k).value=old});filterOrderProductOptions();renderProducts();if($('costProduct')?.value)costProductChanged();else renderCostLines();renderStock();renderOrders();renderConsignment();renderOffers();renderReports();renderCustomers();renderOrderCustomerOptions();renderDatabase();renderDash();renderSettings();renderCatalogProducts();orderTotal();calcPrice();updateProductionHint();if($('offerProduct').value)offerProductChanged()}
 load();if(!Array.isArray(db.customers))db.customers=[];db.products.forEach(p=>{if(!p.unitsPerCarton)p.unitsPerCarton=1});db.orders.forEach(o=>{let p=db.products.find(x=>x.id===o.productId);if(o.stockUnits==null)o.stockUnits=o.qty*(o.unitType==='carton'?(p?.unitsPerCarton||1):1);if(!o.customerId){let c=db.customers.find(x=>(o.phone&&x.phone===o.phone)||(!o.phone&&x.name===o.customer));if(!c){c={id:id(),name:o.customer||'عميل سابق',phone:o.phone||'',area:o.area||''};db.customers.push(c)}o.customerId=c.id}});save();$('today').textContent=new Date().toLocaleDateString('ar-EG');renderAll();
