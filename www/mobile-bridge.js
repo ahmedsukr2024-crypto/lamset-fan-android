@@ -1,9 +1,30 @@
 window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
+  if (typeof data !== 'string' || !data.length) throw new Error('محتوى التقرير فارغ.');
   const safeName = String(filename || 'lamset-fan-report.csv').replace(/[^a-zA-Z0-9._-]/g, '-');
   const encoded = btoa(unescape(encodeURIComponent(data)));
-  const saved = await Filesystem.writeFile({ path: 'LAMSET-FAN/' + safeName, data: encoded, directory: Directory.Documents, recursive: true });
-  await Share.share({ title: 'تقرير لمسة فن', text: 'تقرير التحليلات من LAMSET FAN', url: saved.uri, dialogTitle: 'حفظ أو مشاركة التقرير' });
-  return saved;
+  const saved = await Filesystem.writeFile({
+    path: 'LAMSET-FAN/' + safeName,
+    data: encoded,
+    directory: Directory.Documents,
+    recursive: true
+  });
+  if (!saved?.uri) throw new Error('تعذر حفظ التقرير على الهاتف.');
+  // Android FileProvider exposes the cache directory by default. Keep the
+  // permanent copy in Documents and share a cache copy as a real attachment.
+  const shareCopy = await Filesystem.writeFile({
+    path: 'LAMSET-FAN/Shared/' + safeName,
+    data: encoded,
+    directory: Directory.Cache,
+    recursive: true
+  });
+  if (!shareCopy?.uri) throw new Error('تم حفظ التقرير، لكن تعذر تجهيز نسخة المشاركة.');
+  await Share.share({
+    title: 'تقرير لمسة فن',
+    text: 'تقرير التحليلات من LAMSET FAN',
+    files: [shareCopy.uri],
+    dialogTitle: 'حفظ أو مشاركة التقرير'
+  });
+  return { ...saved, shareUri: shareCopy.uri, mimeType };
 };
 import { App } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -117,11 +138,21 @@ window.lamsetNativeBackup = async (json) => {
   const retention = await pruneLamsetLocalBackups();
   let shareError = '';
   try {
+    // Keep the durable backup in Documents, but share a cache copy so
+    // Android FileProvider can grant receiving apps access to the attachment.
+    const shareCopy = await Filesystem.writeFile({
+      path: 'LAMSET-FAN/Shared/' + filename,
+      data: json,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+      recursive: true
+    });
+    if (!shareCopy?.uri) throw new Error('تعذر تجهيز ملف النسخة للمشاركة.');
     await Share.share({
       title: 'نسخة LAMSET FAN الاحتياطية',
-      text: 'تم حفظ نسخة على الهاتف. اختر Google Drive من قائمة المشاركة لرفع نسخة سحابية.',
-      url: saved.uri,
-      dialogTitle: 'نسخة محفوظة على الهاتف — مشاركة إلى Google Drive'
+      text: 'نسخة احتياطية من بيانات لمسة فن.',
+      files: [shareCopy.uri],
+      dialogTitle: 'مشاركة النسخة الاحتياطية'
     });
   } catch (error) {
     shareError = String(error?.message || error);
