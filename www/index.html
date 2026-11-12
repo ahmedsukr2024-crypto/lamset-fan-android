@@ -648,6 +648,8 @@ if(s===null)return;s=s.trim();if(!allowed.includes(s))return alert('الحالة
 let previous=o.status;if(s===previous)return;
 const cancelling=s==='ملغي'&&previous!=='ملغي',reactivating=previous==='ملغي'&&s!=='ملغي';
 if(cancelling&&(db.returns||[]).some(r=>r.orderId===o.id))return alert('لا يمكن إلغاء الطلب آليًا لوجود مرتجعات أو استبدالات مرتبطة به. راجع حركة المخزون والتسويات أولاً.');
+if(cancelling&&paidOnOrder(o)>0)return alert('لا يمكن إلغاء طلب عليه عربون أو تحصيلات مسجلة؛ حتى لا تختفي المبالغ من المبيعات دون تسجيل ردّها. سجّل رد المبلغ وتسويته أولاً ثم ألغِ الطلب.');
+if(cancelling&&(db.orderCreditSettlements||[]).some(x=>x.orderId===o.id))return alert('لا يمكن إلغاء طلب له تسويات رصيد مسجلة؛ راجع سجل الصرف قبل تغيير حالته.');
 const stockLines=Array.isArray(o.items)&&o.items.length?o.items.map(x=>({productId:x.productId,units:Number(x.stockUnits)||0})): [{productId:o.productId,units:Number(o.stockUnits)||((Number(o.qty)||0)*(o.unitType==='carton'?Math.max(1,Number(o.productSnapshot?.unitsPerCarton)||1):1))}];
 for(const line of stockLines){if(!db.products.some(x=>x.id===line.productId))return alert('تعذر تحديث حالة الطلب؛ أحد المنتجات غير موجود في المخزون.');}
 if(reactivating&&o.stockReturnedOnCancel===true){
