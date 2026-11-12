@@ -530,7 +530,7 @@ lines.forEach(x=>{x.p.stock=Math.max(0,(Number(x.p.stock)||0)-x.pieces);(db.cons
 if(!save()){db=JSON.parse(previous);return alert('تعذر حفظ التسليم؛ تم التراجع عن العملية.');}
 $('consignmentItems').innerHTML='';addConsignmentItem();renderAll();alert('تم تسجيل جميع المنتجات في فاتورة أمانة واحدة رقم '+invoiceId);
 }
-function consignmentPaid(x){return Number(x.paid)||0}
+function consignmentPaid(x){let stored=Number(x.paid)||0,ledger=(db.consignmentPayments||[]).filter(p=>p.consignmentId===x.id).reduce((n,p)=>n+(Number(p.amount)||0),0);return Math.max(stored,ledger)}
 function consignmentInvoiceRows(invoiceId,customerId){return (db.consignments||[]).filter(x=>consignmentInvoiceKey(x)===invoiceId&&(!customerId||x.customerId===customerId))}
 function consignmentInvoiceDue(invoiceId,customerId){return consignmentInvoiceRows(invoiceId,customerId).reduce((n,x)=>n+Math.max(0,Number(x.soldValue)-consignmentPaid(x)),0)}
 function renderConsignmentPaymentInvoices(){
