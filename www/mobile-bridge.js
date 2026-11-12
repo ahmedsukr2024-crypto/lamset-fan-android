@@ -9,9 +9,16 @@ let authenticated = false;
 let authInProgress = false;
 
 window.lamsetNativeBackup = async (json) => {
-  const filename = `lamset-fan-backup-${new Date().toISOString().slice(0, 10)}.json`;
-  const saved = await Filesystem.writeFile({ path: filename, data: json, directory: Directory.Cache, recursive: true });
-  await Share.share({ title: 'نسخة LAMSET FAN الاحتياطية', text: 'احتفظ بهذا الملف لاستعادة بيانات التطبيق لاحقًا.', url: saved.uri, dialogTitle: 'حفظ النسخة الاحتياطية' });
+  const filename = `lamset-fan-backup-${new Date().toISOString().slice(0, 10)}-${Date.now()}.json`;
+  const saved = await Filesystem.writeFile({ path: filename, data: json, directory: Directory.Documents, recursive: true });
+  await Share.share({ title: 'نسخة LAMSET FAN الاحتياطية', text: 'احتفظ بهذا الملف لاستعادة بيانات التطبيق لاحقًا.', url: saved.uri, dialogTitle: 'حفظ أو مشاركة النسخة الاحتياطية' });
+};
+window.lamsetRequireBiometric = async (reason = 'تأكيد العملية الحساسة') => {
+  if (!isNative) return false;
+  const availability = await BiometricAuth.checkBiometry();
+  if (!availability.isAvailable) throw new Error('لا توجد بصمة مسجلة ومتاحة للتطبيق. سجّل بصمة في إعدادات الهاتف أولاً.');
+  await BiometricAuth.authenticate({ reason, cancelTitle: 'إلغاء', allowDeviceCredential: false, iosFallbackTitle: '', androidTitle: 'تأكيد بالبصمة', androidSubtitle: 'يلزم التحقق بالبصمة لمسح البيانات', androidConfirmationRequired: true, androidBiometryStrength: 'weak' });
+  return true;
 };
 
 let businessNotificationsEnabled = false;
