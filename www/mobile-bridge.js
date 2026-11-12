@@ -13,6 +13,15 @@ import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
 const isNative = !!window.Capacitor?.isNativePlatform?.();
+window.lamsetGetAppInfo = async () => {
+  if (!isNative) return { name: 'LAMSET FAN', version: '1.0.0', build: 'web' };
+  const info = await App.getInfo();
+  return {
+    name: info?.name || 'LAMSET FAN',
+    version: info?.version || '1.0.0',
+    build: info?.build || ''
+  };
+};
 window.lamsetCheckForUpdate = async () => {
   if (!isNative) return { supported: false };
   const [latest, current] = await Promise.all([
@@ -215,7 +224,7 @@ function mountLamsetAboutAndUpdates() {
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0">
       <div style="padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--lavender-2)">
         <small class="muted">الإصدار الأساسي</small>
-        <strong style="display:block;margin-top:5px">1.0.0</strong>
+        <strong id="lamsetAppVersion" style="display:block;margin-top:5px">جارٍ قراءة الإصدار...</strong>
       </div>
       <div style="padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--lavender-2)">
         <small class="muted">بياناتك</small>
@@ -231,6 +240,12 @@ function mountLamsetAboutAndUpdates() {
     <small class="muted">احتفظ بنسخة احتياطية خارج الهاتف قبل أي تحديث كبير. التحديث لا يُفترض أن يمسح بياناتك، لكن النسخة الاحتياطية تظل ضرورية.</small>
   `;
   settings.appendChild(card);
+  const versionLabel = card.querySelector('#lamsetAppVersion');
+  if (versionLabel && typeof window.lamsetGetAppInfo === 'function') {
+    window.lamsetGetAppInfo().then(info => {
+      versionLabel.textContent = String(info?.version || '1.0.0') + (info?.build ? ' · ' + String(info.build) : '');
+    }).catch(() => { versionLabel.textContent = '1.0.0'; });
+  }
 
   const checkButton = card.querySelector('#lamsetCheckUpdate');
   const installButton = card.querySelector('#lamsetInstallUpdate');
