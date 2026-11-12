@@ -212,11 +212,48 @@ html[data-font-scale="large"] body{font-size:18px}
 html[data-reduce-motion="true"] *,html[data-reduce-motion="true"] *:before,html[data-reduce-motion="true"] *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
 .appearance-card .sectionhead{margin-top:0}.appearance-card .notify-setting{margin:10px 0}.appearance-card .actions button{flex:0 1 auto}
 </style>
+<style id="lamset-ui-kit">
+/* LAMSET FAN UI Kit — local, RTL-first components inspired by Lucide and modern admin patterns. */
+:root{--lf-ease:cubic-bezier(.2,.75,.25,1);--lf-shadow:0 12px 30px rgba(45,24,82,.075);--lf-focus:0 0 0 3px color-mix(in srgb,var(--purple) 20%,transparent)}
+html{scroll-behavior:smooth;scroll-padding-top:18px}
+button,a,[role=button]{-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:0;box-shadow:var(--lf-focus)!important}
+.lf-icon{display:inline-block;width:21px;height:21px;flex:0 0 21px;vertical-align:middle;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav button{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-width:0}
+.nav button .lf-icon{width:22px;height:22px;flex-basis:22px}
+.nav button b{font-size:10px;line-height:1.2;font-weight:800}
+.nav button.active{transform:translateY(-1px)}
+.dash-shortcuts button{gap:8px;transition:transform .2s var(--lf-ease),border-color .2s,box-shadow .2s}
+.dash-shortcuts button .lf-icon{width:25px;height:25px;flex-basis:25px}
+.card,.customer-card,.metric,.more-list button{transition:transform .2s var(--lf-ease),box-shadow .2s var(--lf-ease),border-color .2s}
+@media(hover:hover) and (min-width:700px){.card:hover,.customer-card:hover{transform:translateY(-2px);box-shadow:var(--lf-shadow)}.dash-shortcuts button:hover,.more-list button:hover{transform:translateY(-2px);border-color:var(--purple);box-shadow:var(--lf-shadow)}}
+.panel.active{animation:lf-panel-in .24s var(--lf-ease) both}
+@keyframes lf-panel-in{from{opacity:.55;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.lf-toast-region{position:fixed;z-index:2147483000;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;display:flex;flex-direction:column;align-items:stretch;gap:8px;pointer-events:none}
+.lf-toast{display:flex;align-items:center;gap:10px;max-width:520px;margin-inline:auto;width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:16px;background:var(--surface,#fff);color:var(--ink);box-shadow:0 12px 36px #1d12312b;font-size:13px;font-weight:750;animation:lf-toast-in .22s var(--lf-ease) both}
+.lf-toast[data-kind=success]{border-inline-start:4px solid #26966d}.lf-toast[data-kind=error]{border-inline-start:4px solid #c34d68}.lf-toast[data-kind=info]{border-inline-start:4px solid var(--purple)}
+.lf-toast .lf-icon{color:var(--purple);width:19px;height:19px;flex-basis:19px}
+@keyframes lf-toast-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.lf-toast.is-leaving{opacity:0;transform:translateY(-6px);transition:opacity .18s,transform .18s}
+.lf-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:28px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:17px;background:var(--surface)}
+.lf-empty .lf-icon{width:34px;height:34px;color:var(--purple)}
+@media(min-width:900px){
+ body{min-height:100vh}
+ .wrap{max-width:1440px;width:calc(100% - 112px);margin:0 auto 0 0;padding:24px 26px 48px}
+ .nav{position:fixed;z-index:50;top:50%;right:16px;left:auto;bottom:auto;transform:translateY(-50%);width:78px;display:flex;flex-direction:column;gap:7px;padding:12px 8px calc(12px + env(safe-area-inset-bottom));border:1px solid var(--line);border-radius:23px;background:var(--surface,#fff);box-shadow:0 12px 38px #24133b1c}
+ .nav button{width:100%;min-height:62px;border-radius:15px;font-size:10px}
+ .nav button b{font-size:10px}
+ .nav button.active{transform:none}
+ .top{padding:24px 26px}
+}
+html[data-theme=dark] .lf-toast{background:#241d31;color:#f1ecfa;border-color:#403653}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.panel.active{animation:none}.card,.customer-card,.metric,.more-list button,.dash-shortcuts button{transition:none}}
+</style>
 </head>
 <body><main class="wrap">
 <header class="top"><h1><img id="appBrandLogoPreview" class="brand-mark-img hidden" alt="شعار لمسة فن"><span id="appBrandMark" class="brand-mark">🎨</span> لمسة فن <small>LAMSET FAN</small></h1><p>إدارة الإنتاج والطلبات والعملاء والمخزون</p></header>
 <nav class="nav" id="nav" aria-label="التنقل الرئيسي">
-<button type="button" class="active" data-tab="dashboard" onclick="tab('dashboard')"><span>⌂</span>الرئيسية</button><button type="button" data-tab="orders" onclick="tab('orders')"><span>🛒</span>الطلبات</button><button type="button" data-tab="customers" onclick="tab('customers')"><span>♟</span>العملاء</button><button type="button" data-tab="products" onclick="tab('products')"><span>▣</span>المنتجات</button><button type="button" data-tab="reports" onclick="tab('reports')"><span>▥</span>التقارير</button><button type="button" data-tab="more" onclick="tab('more')"><span>⚙</span>المزيد</button>
+<button type="button" class="active" data-tab="dashboard" onclick="tab('dashboard')" aria-label="الرئيسية"><span data-lucide="house" aria-hidden="true"></span><b>الرئيسية</b></button><button type="button" data-tab="orders" onclick="tab('orders')" aria-label="الطلبات"><span data-lucide="shopping-cart" aria-hidden="true"></span><b>الطلبات</b></button><button type="button" data-tab="customers" onclick="tab('customers')" aria-label="العملاء"><span data-lucide="users" aria-hidden="true"></span><b>العملاء</b></button><button type="button" data-tab="products" onclick="tab('products')" aria-label="المنتجات"><span data-lucide="package" aria-hidden="true"></span><b>المنتجات</b></button><button type="button" data-tab="reports" onclick="tab('reports')" aria-label="التقارير"><span data-lucide="chart-no-axes-combined" aria-hidden="true"></span><b>التقارير</b></button><button type="button" data-tab="more" onclick="tab('more')" aria-label="المزيد"><span data-lucide="grid-2x2" aria-hidden="true"></span><b>المزيد</b></button>
 </nav>
 <section id="dashboard" class="panel active">
 <div class="dash-welcome"><div><small>أهلاً بيك في</small><h2>لمسة فن</h2><p>إدارة نشاطك في مكان واحد</p></div><button class="iconbtn" onclick="tab('alerts')" aria-label="التنبيهات">♧</button></div>
@@ -228,7 +265,7 @@ html[data-reduce-motion="true"] *,html[data-reduce-motion="true"] *:before,html[
 <div class="card metric"><small>قيد التجهيز</small><strong id="mPreparing">0</strong></div>
 </div>
 <div class="sectionhead"><h3>اختصارات سريعة</h3></div>
-<div class="dash-shortcuts"><button onclick="tab('orders')"><span>＋</span>طلب جديد</button><button onclick="tab('customers')"><span>♙</span>العملاء</button><button onclick="tab('collections')"><span>⇧</span>التحصيلات</button></div>
+<div class="dash-shortcuts"><button onclick="tab('orders')"><span data-lucide="plus-circle" aria-hidden="true"></span>طلب جديد</button><button onclick="tab('customers')"><span data-lucide="users" aria-hidden="true"></span>العملاء</button><button onclick="tab('collections')"><span data-lucide="wallet" aria-hidden="true"></span>التحصيلات</button></div>
 <div class="card"><div class="sectionhead"><h3>متابعة الطلبات</h3><button class="textbtn" onclick="tab('orders')">عرض الكل</button></div><div id="dashSummary"></div></div>
 <div class="card"><div class="sectionhead"><h3>تنبيهات ومتابعة</h3><button class="textbtn" onclick="tab('alerts')">مركز التنبيهات</button></div><div id="dashAlerts"></div></div>
 </section>
@@ -797,4 +834,34 @@ async function refreshStorageUsage(){let el=$('storageUsage');if(!el)return;try{
 async function saveBusinessProfile(){let previous=db,previousProfile=db.businessProfile||{},bp={...previousProfile};[['bizName','name'],['bizAddress','address'],['bizPhone','phone'],['bizWhatsapp','whatsapp'],['bizPhone2','phone2'],['bizWhatsapp2','whatsapp2'],['bizEmail','email'],['bizFacebook','facebook'],['bizInstagram','instagram'],['bizWebsite','website'],['bizHours','hours'],['bizNote','note']].forEach(([el,key])=>bp[key]=$(el).value.trim());try{let file=$('bizLogo').files[0];if(file)bp.logo=await resizeImage(file);db.businessProfile=bp;if(!save()){db=previous;$('bizSaveStatus').textContent='تعذر الحفظ؛ بيانات المصنع السابقة محفوظة';alert('تعذر حفظ بيانات المصنع بسبب مساحة التخزين أو خطأ في الحفظ. لم يتم اعتماد التعديل.');return} $('bizSaveStatus').textContent=file?'تم حفظ بيانات المصنع واللوجو':'تم حفظ بيانات المصنع';}catch(e){db=previous;$('bizSaveStatus').textContent='تعذر تجهيز اللوجو أو الحفظ';alert('تعذر تجهيز اللوجو أو حفظ بيانات المصنع. لم يتم اعتماد التعديل؛ البيانات السابقة محفوظة.')}}
 function togglePhoneNotifications(enabled){if(!window.lamsetSetBusinessNotifications){$('phoneNotifications').checked=false;$('notifyStatus').textContent='متاح في نسخة Android';return}window.lamsetSetBusinessNotifications(enabled).then(ok=>{$('phoneNotifications').checked=!!ok;$('notifyStatus').textContent=ok?'مفعّلة':'متوقفة';$('notifyHelp').textContent=ok?'ستصلك تنبيهات النشاط على الهاتف.':'لم يتم منح إذن الإشعارات.'}).catch(()=>{$('phoneNotifications').checked=false;$('notifyStatus').textContent='تعذر التفعيل'})}
 load();applyLamsetAppearance();if(!Array.isArray(db.customers))db.customers=[];db.products.forEach(p=>{if(!p.unitsPerCarton)p.unitsPerCarton=1});db.orders.forEach(o=>{let p=db.products.find(x=>x.id===o.productId);if(o.stockUnits==null)o.stockUnits=o.qty*(o.unitType==='carton'?(p?.unitsPerCarton||1):1);if(!o.customerId){let c=db.customers.find(x=>(o.phone&&x.phone===o.phone)||(!o.phone&&x.name===o.customer));if(!c){c={id:id(),name:o.customer||'عميل سابق',phone:o.phone||'',area:o.area||''};db.customers.push(c)}o.customerId=c.id}});save();$('today').textContent=new Date().toLocaleDateString('ar-EG');renderAll();
-</script><script type="module" src="./mobile-bridge.bundle.js"></script></body></html>
+</script>
+<!-- Local UI primitives: selected Lucide SVG paths (ISC license), no remote runtime or network dependency. -->
+<script>
+(function(){
+'use strict';
+const paths={
+ house:'<path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/>',
+ 'shopping-cart':'<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+ package:'<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/>',
+ 'chart-no-axes-combined':'<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-5 5"/>',
+ 'grid-2x2':'<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>',
+ 'plus-circle':'<circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>',
+ wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 8h18M16 14h2"/><path d="M3 5V4a2 2 0 0 1 2-2h13"/>',
+ bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+ settings:'<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.8Z"/>',
+ check:'<path d="m5 12 4 4L19 6"/>',
+ info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+ alert:'<path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>'
+};
+function svg(name,size){const p=paths[name];if(!p)return '';return '<svg class="lf-icon" xmlns="http://www.w3.org/2000/svg" width="'+(size||22)+'" height="'+(size||22)+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+p+'</svg>'}
+function icon(name,size){return svg(name,size)}
+function mountIcons(root){(root||document).querySelectorAll('[data-lucide]').forEach(el=>{const name=el.getAttribute('data-lucide');if(paths[name]&&!el.querySelector('svg'))el.innerHTML=svg(name);});}
+function toast(message,kind){const region=document.getElementById('lfToastRegion')||(()=>{const el=document.createElement('div');el.id='lfToastRegion';el.className='lf-toast-region';el.setAttribute('role','status');el.setAttribute('aria-live','polite');document.body.appendChild(el);return el})();const item=document.createElement('div');item.className='lf-toast';item.dataset.kind=['success','error','info'].includes(kind)?kind:'info';item.innerHTML=svg(kind==='success'?'check':kind==='error'?'alert':'info',19);const text=document.createElement('span');text.textContent=String(message||'');item.appendChild(text);region.appendChild(item);while(region.children.length>3)region.firstElementChild.remove();const duration=kind==='error'?5000:3200;setTimeout(()=>{item.classList.add('is-leaving');setTimeout(()=>item.remove(),220)},duration);return item}
+function emptyState(title,description){return '<div class="lf-empty">'+svg('package',34)+'<strong>'+String(title||'لا توجد بيانات')+'</strong><span>'+String(description||'')+'</span></div>'}
+window.LamsetUI=Object.freeze({icon,mountIcons,toast,emptyState,version:'1.0.0'});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>mountIcons(),{once:true});else mountIcons();
+})();
+</script>
+<script type="module" src="./mobile-bridge.bundle.js"></script></body></html>
