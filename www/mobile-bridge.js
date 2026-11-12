@@ -17,9 +17,25 @@ let authenticated = false;
 let authInProgress = false;
 
 window.lamsetNativeBackup = async (json) => {
+  if (typeof json !== 'string' || !json.trim()) throw new Error('بيانات النسخة الاحتياطية فارغة.');
   const filename = `lamset-fan-backup-${new Date().toISOString().slice(0, 10)}-${Date.now()}.json`;
-  const saved = await Filesystem.writeFile({ path: filename, data: json, directory: Directory.Documents, recursive: true });
-  await Share.share({ title: 'نسخة LAMSET FAN الاحتياطية', text: 'احتفظ بهذا الملف لاستعادة بيانات التطبيق لاحقًا.', url: saved.uri, dialogTitle: 'حفظ أو مشاركة النسخة الاحتياطية' });
+  // Use the app-private cache directory: Android scoped storage does not
+  // require broad Documents/storage permissions for a temporary share file.
+  // The Android share sheet lets the user save a persistent copy to Files/Drive.
+  const saved = await Filesystem.writeFile({
+    path: 'LAMSET-FAN/' + filename,
+    data: json,
+    directory: Directory.Cache,
+    recursive: true
+  });
+  if (!saved?.uri) throw new Error('تم إنشاء الملف دون الحصول على مسار صالح لمشاركته.');
+  await Share.share({
+    title: 'نسخة LAMSET FAN الاحتياطية',
+    text: 'اختر «حفظ في الملفات» أو Google Drive للاحتفاظ بالنسخة واستعادتها لاحقًا.',
+    url: saved.uri,
+    dialogTitle: 'حفظ النسخة الاحتياطية'
+  });
+  return saved;
 };
 window.lamsetRequireBiometric = async (reason = 'تأكيد العملية الحساسة') => {
   if (!isNative) return false;
