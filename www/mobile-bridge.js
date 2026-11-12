@@ -196,3 +196,107 @@ if (isNative && appLockEnabled) {
 }
 
 if (isNative && businessNotificationsEnabled) scheduleBackupReminder();
+
+
+/* LAMSET SETTINGS: About & OTA update controls */
+function mountLamsetAboutAndUpdates() {
+  const settings = document.getElementById('settings');
+  if (!settings || document.getElementById('lamsetAboutUpdates')) return;
+
+  const card = document.createElement('section');
+  card.id = 'lamsetAboutUpdates';
+  card.className = 'card';
+  card.setAttribute('aria-labelledby', 'lamsetAboutTitle');
+  card.innerHTML = `
+    <div class="sectionhead">
+      <h3 id="lamsetAboutTitle">حول التطبيق والتحديثات</h3>
+      <span class="pill">LAMSET FAN</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0">
+      <div style="padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--lavender-2)">
+        <small class="muted">الإصدار الأساسي</small>
+        <strong style="display:block;margin-top:5px">1.0.0</strong>
+      </div>
+      <div style="padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--lavender-2)">
+        <small class="muted">بياناتك</small>
+        <strong style="display:block;margin-top:5px">محفوظة على الجهاز</strong>
+      </div>
+    </div>
+    <p class="muted">تحقق من توفر تحديثات التطبيق. التحديث الهوائي متاح في نسخة Android عند نشر حزمة تحديث معتمدة. لا تحذف التطبيق لإجراء التحديث.</p>
+    <div class="actions">
+      <button type="button" id="lamsetCheckUpdate">التحقق من وجود تحديث</button>
+      <button type="button" class="ghost" id="lamsetInstallUpdate" hidden>تنزيل وتثبيت التحديث</button>
+    </div>
+    <p id="lamsetUpdateStatus" class="muted" role="status" aria-live="polite">لم يتم التحقق بعد.</p>
+    <small class="muted">احتفظ بنسخة احتياطية خارج الهاتف قبل أي تحديث كبير. التحديث لا يُفترض أن يمسح بياناتك، لكن النسخة الاحتياطية تظل ضرورية.</small>
+  `;
+  settings.appendChild(card);
+
+  const checkButton = card.querySelector('#lamsetCheckUpdate');
+  const installButton = card.querySelector('#lamsetInstallUpdate');
+  const status = card.querySelector('#lamsetUpdateStatus');
+  let updateAvailable = false;
+
+  const setStatus = message => { status.textContent = String(message || ''); };
+  checkButton.addEventListener('click', async () => {
+    checkButton.disabled = true;
+    installButton.hidden = true;
+    setStatus('جارٍ التحقق من التحديثات...');
+    try {
+      const result = await window.lamsetCheckForUpdate();
+      if (!result?.supported) {
+        setStatus('التحقق من التحديثات الهوائية متاح داخل نسخة Android فقط.');
+        return;
+      }
+      if (result.available) {
+        updateAvailable = true;
+        setStatus('يتوفر تحديث جديد: ' + result.latestVersion + (result.message ? ' — ' + result.message : ''));
+        installButton.hidden = false;
+      } else {
+        updateAvailable = false;
+        setStatus('أنت تستخدم أحدث حزمة متاحة (' + (result.currentVersion || 'الحالية') + ').');
+      }
+    } catch (error) {
+      updateAvailable = false;
+      setStatus('تعذر التحقق من التحديثات: ' + String(error?.message || error));
+    } finally {
+      checkButton.disabled = false;
+    }
+  });
+
+  installButton.addEventListener('click', async () => {
+    if (!updateAvailable) return;
+    installButton.disabled = true;
+    checkButton.disabled = true;
+    setStatus('جارٍ تنزيل التحديث...');
+    try {
+      const result = await window.lamsetInstallUpdate();
+      if (result?.available) {
+        setStatus('تم تنزيل التحديث وتجهيزه. قد يعيد التطبيق تشغيل نفسه لتطبيق الحزمة الجديدة.');
+      } else {
+        setStatus('لا يوجد تحديث جديد للتثبيت.');
+        installButton.hidden = true;
+      }
+    } catch (error) {
+      setStatus('تعذر تثبيت التحديث: ' + String(error?.message || error));
+    } finally {
+      installButton.disabled = false;
+      checkButton.disabled = false;
+    }
+  });
+
+  window.addEventListener('lamset-ota-progress', event => {
+    const percent = Math.max(0, Math.min(100, Number(event.detail?.percent) || 0));
+    setStatus('جارٍ تنزيل التحديث... ' + Math.round(percent) + '%');
+  });
+  window.addEventListener('lamset-ota-failed', () => {
+    setStatus('فشل تنزيل التحديث. لم يتم استبدال الحزمة الحالية؛ حاول مرة أخرى لاحقًا.');
+    installButton.disabled = false;
+    checkButton.disabled = false;
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', mountLamsetAboutAndUpdates, { once: true });
+} else {
+  mountLamsetAboutAndUpdates();
+}
