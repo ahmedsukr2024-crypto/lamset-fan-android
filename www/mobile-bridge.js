@@ -175,10 +175,10 @@ try { businessNotificationsEnabled = localStorage.getItem('lamset-business-notif
 window.lamsetGetBusinessNotifications = async () => { if (!isNative) return { enabled: false, permission: 'unsupported' }; const p = await LocalNotifications.checkPermissions(); return { enabled: businessNotificationsEnabled && p.display === 'granted', permission: p.display }; };
 window.lamsetSetBusinessNotifications = async (enabled) => {
   if (!isNative) return false;
-  if (!enabled) { businessNotificationsEnabled = false; localStorage.setItem('lamset-business-notifications','false'); await LocalNotifications.cancel({ notifications: [{ id: 7311 }] }); return true; }
+  if (!enabled) { businessNotificationsEnabled = false; localStorage.setItem('lamset-business-notifications','false'); return true; }
   const p = await LocalNotifications.checkPermissions(); const granted = p.display === 'granted' ? p : await LocalNotifications.requestPermissions();
   if (granted.display !== 'granted') return false;
-  businessNotificationsEnabled = true; localStorage.setItem('lamset-business-notifications','true'); await scheduleBackupReminder(); return true;
+  businessNotificationsEnabled = true; localStorage.setItem('lamset-business-notifications','true'); return true;
 };
 window.lamsetBusinessAlert = async (title, body) => {
   if (!isNative || !businessNotificationsEnabled) return;
@@ -231,28 +231,6 @@ async function authenticate() {
   }
 }
 
-async function scheduleBackupReminder() {
-  if (!isNative) return;
-  try {
-    const perm = await LocalNotifications.checkPermissions();
-    const granted = perm.display === 'granted' ? perm : await LocalNotifications.requestPermissions();
-    if (granted.display !== 'granted') return;
-    const pending = await LocalNotifications.getPending();
-    if (pending.notifications.some(n => n.id === 7311)) return;
-    const first = new Date();
-    first.setDate(first.getDate() + 7);
-    first.setHours(11, 0, 0, 0);
-    await LocalNotifications.schedule({ notifications: [{
-      id: 7311,
-      title: 'نسخة LAMSET FAN الاحتياطية',
-      body: 'حان وقت حفظ نسخة احتياطية من بيانات المنتجات والعملاء والطلبات.',
-      schedule: { at: first, repeats: true, every: 'week' },
-      extra: { action: 'backup-reminder' }
-    }] });
-  } catch (e) {
-    console.warn('Backup reminder could not be scheduled', e);
-  }
-}
 
 if (isNative && appLockEnabled) {
   document.documentElement.classList.add('app-locked');
@@ -276,7 +254,7 @@ if (isNative && appLockEnabled) {
   });
 }
 
-if (isNative && businessNotificationsEnabled) scheduleBackupReminder();
+// Automatic backups run silently when the app is active and a backup is due.
 
 
 /* LAMSET SETTINGS: About & OTA update controls */
@@ -387,3 +365,8 @@ if (document.readyState === 'loading') {
 } else {
   mountLamsetAboutAndUpdates();
 }
+
+App.addListener('appStateChange', ({ isActive }) => {
+  if (isActive) window.dispatchEvent(new Event('lamset-app-resumed'));
+}).catch(error => console.warn('LAMSET resume listener unavailable', error));
+window.dispatchEvent(new Event('lamset-native-bridge-ready'));
