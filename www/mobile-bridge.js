@@ -139,6 +139,7 @@ window.lamsetNativeBackup = async (json) => {
   if (!saved?.uri) throw new Error('تم إنشاء الملف دون الحصول على مسار صالح لحفظه.');
   const retention = await pruneLamsetLocalBackups();
   let shareError = '';
+  if (options?.share === false) return { ...saved, filename, retention, shareError };
   try {
     // Keep the durable backup in Documents, but share a cache copy so
     // Android FileProvider can grant receiving apps access to the attachment.
