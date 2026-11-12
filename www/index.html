@@ -19,7 +19,7 @@
       box.append(title,intro,detail,close);(document.body||document.documentElement).appendChild(box);
     }catch(_){}
   }
-  window.addEventListener('error',function(e){report('JavaScript',e.message,e.filename,e.lineno,e.colno)},true);
+  window.addEventListener('error',function(e){var target=e.target;if(target&&target!==window&&(target.src||target.href||target.tagName)){var resource=target.currentSrc||target.src||target.href||'';report('تحميل مورد',String(target.tagName||'عنصر')+(resource?' تعذر تحميله: '+resource:' تعذر تحميله')+(target.id?' | id: '+target.id:''),'',0,0);return;}var detail=e.message||(e.error&&(e.error.stack||e.error.message))||'حدث خطأ JavaScript بدون رسالة تفصيلية';report('JavaScript',detail,e.filename,e.lineno,e.colno)},true);
   window.addEventListener('unhandledrejection',function(e){var r=e.reason;report('Promise',r&&r.stack?r.stack:(r&&r.message)||r,'',0,0)});
   document.addEventListener('click',function(e){
     var t=e.target&&e.target.closest?e.target.closest('button,[role="button"],a'):null;
