@@ -6,7 +6,7 @@ const { spawnSync } = require('node:child_process');
 
 const htmlPath = path.resolve('www/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
-const scriptTag = /<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi;
+const scriptTag = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
 const checked = [];
 let match;
 let index = 0;
@@ -15,9 +15,9 @@ let failed = false;
 while ((match = scriptTag.exec(html)) !== null) {
   const attrs = match[1] || '';
   const source = match[2] || '';
-  if (/\\bsrc\\s*=/i.test(attrs)) continue;
+  if (/\bsrc\s*=/i.test(attrs)) continue;
 
-  const typeMatch = attrs.match(/\\btype\\s*=\\s*["']([^"']+)["']/i);
+  const typeMatch = attrs.match(/\btype\s*=\s*["']([^"']+)["']/i);
   const type = typeMatch ? typeMatch[1].toLowerCase().trim() : '';
   if (type && !['module', 'text/javascript', 'application/javascript', 'text/ecmascript', 'application/ecmascript'].includes(type)) continue;
   if (!source.trim()) continue;
@@ -29,8 +29,8 @@ while ((match = scriptTag.exec(html)) !== null) {
   checked.push(index);
   if (result.status !== 0) {
     failed = true;
-    const lineInScript = (result.stderr || result.stdout || 'Unknown syntax error').match(/:(\\d+)(?::\\d+)?\\s*\\n/);
-    const htmlLine = html.slice(0, match.index).split('\\n').length;
+    const lineInScript = (result.stderr || result.stdout || 'Unknown syntax error').match(/:(\d+)(?::\d+)?\s*\n/);
+    const htmlLine = html.slice(0, match.index).split('\n').length;
     console.error('JavaScript syntax error in inline script #' + index +
       ' (HTML starts near line ' + htmlLine +
       (lineInScript ? ', script line ' + lineInScript[1] : '') + '):');
