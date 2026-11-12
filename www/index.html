@@ -605,6 +605,37 @@ html[data-theme="dark"] .lf-empty strong{color:#f0eafa}
 html[data-theme="dark"] .more-list .more-icon,html[data-theme="dark"] .settings-entry .more-icon{background:#342947;border-color:#594875}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 html[data-reduce-motion="true"] *,html[data-reduce-motion="true"] *:before,html[data-reduce-motion="true"] *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+/* Refined customer form layout */
+.customer-form{padding:clamp(15px,3vw,24px);border:1px solid #e7d2f8;border-radius:22px;box-shadow:0 10px 28px #54208b12}
+.customer-form-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:17px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.customer-form-heading h3{margin:5px 0;font-size:21px;font-weight:900;color:var(--ink)}
+.customer-form-heading p{margin:0;color:var(--muted);font-size:12px}
+.customer-form-eyebrow{font-size:10px;font-weight:900;letter-spacing:.5px;color:var(--purple)}
+.customer-form-heading-icon{width:48px;height:48px;flex:0 0 48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(145deg,#f3e3ff,#e7ccff);color:var(--purple);font-size:27px}
+.customer-form-section{margin:0 0 19px}
+.customer-form-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.customer-form-section-title span{font-size:14px;font-weight:900;color:#4b1685}
+.customer-form-section-title small{font-size:10px;color:var(--muted)}
+.customer-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.customer-field{min-width:0}
+.customer-field-wide{grid-column:1/-1}
+.customer-form .customer-field label{display:block;margin:0 0 6px;font-size:12px;font-weight:800;color:#4d3568}
+.customer-form .customer-field label b{color:#c52c4b}
+.customer-form .customer-field>input,.customer-form .customer-field>select,.customer-form .customer-field>textarea{width:100%;min-width:0;margin:0;padding:12px 13px;border:1px solid #dfc8f2;border-radius:12px;background:#fff;color:var(--ink);font:inherit;font-size:13px;outline:none;box-sizing:border-box;transition:border-color .18s,box-shadow .18s}
+.customer-form .customer-field>input:focus,.customer-form .customer-field>select:focus,.customer-form .customer-field>textarea:focus,.customer-form .phone-entry input:focus,.customer-form .phone-entry select:focus{border-color:var(--purple);box-shadow:0 0 0 3px #7625dc18}
+.customer-form .customer-field>textarea{resize:vertical;min-height:82px}
+.customer-form .phone-entry{display:grid;grid-template-columns:minmax(118px,36%) minmax(0,1fr);gap:8px;direction:rtl}
+.customer-form .phone-entry select,.customer-form .phone-entry input{width:100%;min-width:0;margin:0;padding:12px 9px;border:1px solid #dfc8f2;border-radius:12px;background:#fff;color:var(--ink);font:inherit;font-size:13px;box-sizing:border-box}
+.customer-field-hint{display:block;margin-top:6px;color:var(--muted);font-size:10px}
+.customer-form .customer-photo-picker{display:flex;align-items:center;gap:13px;padding:12px;border:1px dashed #c99aef;border-radius:16px;background:linear-gradient(135deg,#fff,#f8f0ff);margin:0}
+.customer-photo-copy{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.customer-photo-copy strong{font-size:12px;color:var(--ink)}
+.customer-photo-copy small{font-size:10px;color:var(--muted)}
+.customer-form .customer-photo-picker .photo-upload{margin:3px 0 0;padding:8px 12px;font-size:11px}
+.customer-form-actions{display:flex;gap:9px;padding-top:14px;border-top:1px solid var(--line)}
+.customer-form-actions button{flex:1;min-height:44px;border-radius:12px;font-weight:800}
+@media(max-width:520px){.customer-form-grid{grid-template-columns:minmax(0,1fr);gap:11px}.customer-field-wide{grid-column:auto}.customer-form-heading h3{font-size:18px}.customer-form .phone-entry{grid-template-columns:minmax(112px,39%) minmax(0,1fr);gap:6px}.customer-form .phone-entry select,.customer-form .phone-entry input{font-size:12px;padding:11px 7px}.customer-form-actions{position:sticky;bottom:0;background:var(--bg);padding:12px 0 calc(8px + env(safe-area-inset-bottom));z-index:2}}
+
 </style></head>
 <body><main class="wrap">
 <header class="top"><h1><img id="appBrandLogoPreview" class="brand-mark-img hidden" alt="شعار لمسة فن"><span id="appBrandMark" class="brand-mark">🎨</span> لمسة فن <small>LAMSET FAN</small></h1><p>إدارة الإنتاج والطلبات والعملاء والمخزون</p></header>
@@ -1261,36 +1292,6 @@ function consignmentAccountHtml(c){
 let items=(db.consignments||[]).filter(x=>x.customerId===c.id),ids=new Set(items.map(x=>x.id)),visits=(db.consignmentVisits||[]).filter(v=>ids.has(v.consignmentId)).sort((a,b)=>new Date(a.date)-new Date(b.date));
 let sum=k=>items.reduce((n,x)=>n+(Number(x[k])||0),0),value=sum('soldValue'),paid=items.reduce((n,x)=>n+consignmentPaid(x),0);
 return '<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>كشف أمانة - لمسة فن</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,Tahoma,sans-serif;color:#29243b}h1,h2{color:#5034a0}.box{border:1px solid #ddd8eb;border-radius:9px;padding:10px;margin:10px 0}.muted{color:#666;font-size:12px}table{width:100%;border-collapse:collapse;font-size:12px}td,th{border-bottom:1px solid #ddd;padding:8px;text-align:right}
-/* Refined customer form layout */
-.customer-form{padding:clamp(15px,3vw,24px);border:1px solid #e7d2f8;border-radius:22px;box-shadow:0 10px 28px #54208b12}
-.customer-form-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:17px;border-bottom:1px solid var(--line);margin-bottom:18px}
-.customer-form-heading h3{margin:5px 0;font-size:21px;font-weight:900;color:var(--ink)}
-.customer-form-heading p{margin:0;color:var(--muted);font-size:12px}
-.customer-form-eyebrow{font-size:10px;font-weight:900;letter-spacing:.5px;color:var(--purple)}
-.customer-form-heading-icon{width:48px;height:48px;flex:0 0 48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(145deg,#f3e3ff,#e7ccff);color:var(--purple);font-size:27px}
-.customer-form-section{margin:0 0 19px}
-.customer-form-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.customer-form-section-title span{font-size:14px;font-weight:900;color:#4b1685}
-.customer-form-section-title small{font-size:10px;color:var(--muted)}
-.customer-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
-.customer-field{min-width:0}
-.customer-field-wide{grid-column:1/-1}
-.customer-form .customer-field label{display:block;margin:0 0 6px;font-size:12px;font-weight:800;color:#4d3568}
-.customer-form .customer-field label b{color:#c52c4b}
-.customer-form .customer-field>input,.customer-form .customer-field>select,.customer-form .customer-field>textarea{width:100%;min-width:0;margin:0;padding:12px 13px;border:1px solid #dfc8f2;border-radius:12px;background:#fff;color:var(--ink);font:inherit;font-size:13px;outline:none;box-sizing:border-box;transition:border-color .18s,box-shadow .18s}
-.customer-form .customer-field>input:focus,.customer-form .customer-field>select:focus,.customer-form .customer-field>textarea:focus,.customer-form .phone-entry input:focus,.customer-form .phone-entry select:focus{border-color:var(--purple);box-shadow:0 0 0 3px #7625dc18}
-.customer-form .customer-field>textarea{resize:vertical;min-height:82px}
-.customer-form .phone-entry{display:grid;grid-template-columns:minmax(118px,36%) minmax(0,1fr);gap:8px;direction:rtl}
-.customer-form .phone-entry select,.customer-form .phone-entry input{width:100%;min-width:0;margin:0;padding:12px 9px;border:1px solid #dfc8f2;border-radius:12px;background:#fff;color:var(--ink);font:inherit;font-size:13px;box-sizing:border-box}
-.customer-field-hint{display:block;margin-top:6px;color:var(--muted);font-size:10px}
-.customer-form .customer-photo-picker{display:flex;align-items:center;gap:13px;padding:12px;border:1px dashed #c99aef;border-radius:16px;background:linear-gradient(135deg,#fff,#f8f0ff);margin:0}
-.customer-photo-copy{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
-.customer-photo-copy strong{font-size:12px;color:var(--ink)}
-.customer-photo-copy small{font-size:10px;color:var(--muted)}
-.customer-form .customer-photo-picker .photo-upload{margin:3px 0 0;padding:8px 12px;font-size:11px}
-.customer-form-actions{display:flex;gap:9px;padding-top:14px;border-top:1px solid var(--line)}
-.customer-form-actions button{flex:1;min-height:44px;border-radius:12px;font-weight:800}
-@media(max-width:520px){.customer-form-grid{grid-template-columns:minmax(0,1fr);gap:11px}.customer-field-wide{grid-column:auto}.customer-form-heading h3{font-size:18px}.customer-form .phone-entry{grid-template-columns:minmax(112px,39%) minmax(0,1fr);gap:6px}.customer-form .phone-entry select,.customer-form .phone-entry input{font-size:12px;padding:11px 7px}.customer-form-actions{position:sticky;bottom:0;background:var(--bg);padding:12px 0 calc(8px + env(safe-area-inset-bottom));z-index:2}}
 </style><h1>لمسة فن - كشف حساب الأمانة</h1><h2>'+esc(c.name)+'</h2><p>تاريخ الكشف: '+new Date().toLocaleString('ar-EG')+'</p><div class="box">إجمالي المسلم: '+sum('delivered')+' قطعة · المباع: '+sum('sold')+' · المتبقي: '+sum('remaining')+' · المرتجع: '+sum('returned')+' · التالف: '+sum('damaged')+' · المفقود: '+sum('missing')+'<hr>قيمة المباع: '+money(value)+' · المحصل: '+money(paid)+' · المستحق: '+money(Math.max(0,value-paid))+'</div><h3>العهد</h3><table><tr><th>المنتج</th><th>تاريخ التسليم</th><th>الكمية</th><th>سعر القطعة وقت التسليم</th><th>المباع</th><th>المتبقي</th><th>المستحق</th></tr>'+items.map(x=>'<tr><td>'+esc(x.productName)+'</td><td>'+new Date(x.date).toLocaleDateString('ar-EG')+'</td><td>'+x.delivered+'</td><td>'+money(x.unitPrice)+'</td><td>'+x.sold+'</td><td>'+x.remaining+'</td><td>'+money(Math.max(0,Number(x.soldValue)-consignmentPaid(x)))+'</td></tr>').join('')+'</table><h3>زيارات الجرد</h3><table><tr><th>التاريخ</th><th>المنتج</th><th>مباع</th><th>مرتجع</th><th>تالف</th><th>مفقود</th><th>التحصيل</th></tr>'+visits.map(v=>'<tr><td>'+new Date(v.date).toLocaleString('ar-EG')+'</td><td>'+esc(v.productName)+'</td><td>'+v.sold+'</td><td>'+v.returned+'</td><td>'+v.damaged+'</td><td>'+v.missing+'</td><td>'+money(v.payment)+'</td></tr>').join('')+'</table><p class="muted">المتبقي لدى العميل ليس مديونية. المستحق هو قيمة المباع غير المحصلة فقط.</p><script>window.onload=()=>window.print()<\/script></html>';
 }
 function printConsignmentAccount(){
