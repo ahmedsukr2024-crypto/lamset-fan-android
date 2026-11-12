@@ -126,6 +126,17 @@ window.lamsetGetLocalBackups = async () => {
   }
 };
 
+window.lamsetExportTransferBackup = async (json) => {
+  if (!isNative) throw new Error('نقل البيانات المباشر متاح داخل تطبيق Android فقط.');
+  if (typeof json !== 'string' || !json.trim()) throw new Error('بيانات النقل فارغة.');
+  const filename = 'lamset-fan-transfer-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
+  const saved = await Filesystem.writeFile({ path: 'LAMSET-FAN/Exports/' + filename, data: json, directory: Directory.Documents, encoding: Encoding.UTF8, recursive: true });
+  if (!saved?.uri) throw new Error('تعذر حفظ ملف النقل على الهاتف.');
+  const shareCopy = await Filesystem.writeFile({ path: 'LAMSET-FAN/Shared/' + filename, data: json, directory: Directory.Cache, encoding: Encoding.UTF8, recursive: true });
+  if (!shareCopy?.uri) throw new Error('تم حفظ الملف، لكن تعذر تجهيز مرفق الإرسال.');
+  await Share.share({ title: 'نقل بيانات لمسة فن إلى هاتف جديد', text: 'نسخة كاملة من بيانات لمسة فن تشمل المنتجات والعملاء والطلبات والمخزون والإعدادات والصور. على الهاتف الجديد ثبّت التطبيق واختر استعادة نسخة على هذا الهاتف.', files: [shareCopy.uri], dialogTitle: 'إرسال نسخة لمسة فن إلى الهاتف الجديد' });
+  return { ...saved, filename, shareUri: shareCopy.uri };
+};
 window.lamsetNativeBackup = async (json, options = {}) => {
   if (typeof json !== 'string' || !json.trim()) throw new Error('بيانات النسخة الاحتياطية فارغة.');
   const filename = LAMSET_BACKUP_PREFIX + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
