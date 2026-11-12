@@ -248,6 +248,43 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 }
 html[data-theme=dark] .lf-toast{background:#241d31;color:#f1ecfa;border-color:#403653}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.panel.active{animation:none}.card,.customer-card,.metric,.more-list button,.dash-shortcuts button{transition:none}}
+
+/* Analytics chart v2 — inline SVG, accessible labels, no chart runtime dependency. */
+.lf-chart-summary{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px 12px;padding:4px 2px 12px}
+.lf-chart-summary span{font-size:12px;color:var(--muted)}
+.lf-chart-summary strong{font-size:20px;color:var(--purple-dark);font-weight:900}
+.lf-chart-summary small{width:100%;font-size:11px;color:var(--muted)}
+.lf-chart-scroll{width:100%;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin}
+.lf-sales-svg{display:block;width:100%;min-width:520px;height:auto;overflow:visible}
+.lf-chart-grid line{stroke:var(--line);stroke-width:1;stroke-dasharray:3 5}
+.lf-chart-grid text{fill:var(--muted);font-size:10px}
+.lf-chart-column rect{fill:url(#lfSalesGradient);transition:opacity .18s,filter .18s}
+.lf-chart-column:hover rect{opacity:.82;filter:brightness(1.12)}
+.lf-chart-value{fill:var(--muted);font-size:10px;font-weight:700}
+.lf-chart-label{fill:var(--ink);font-size:11px;font-weight:800}
+.lf-chart-accessible{padding-top:8px;color:var(--muted);font-size:10px;line-height:1.8}
+.analytics-panel{min-width:0}
+.analytics-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.analytics-panel-head h3{margin:0}
+.analytics-panel-head small{color:var(--muted)}
+/* Dense business tables stay readable on touch screens. */
+.tablewrap,.table-wrap,.data-table{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin}
+.tablewrap table,.table-wrap table,.data-table table{border-collapse:separate;border-spacing:0}
+.tablewrap th,.table-wrap th,.data-table th{position:sticky;top:0;z-index:1;background:var(--lavender-2);white-space:nowrap}
+.tablewrap td,.table-wrap td,.data-table td{vertical-align:middle}
+.tablewrap tbody tr:nth-child(even),.table-wrap tbody tr:nth-child(even),.data-table tbody tr:nth-child(even){background:color-mix(in srgb,var(--lavender-2) 48%,transparent)}
+.tablewrap tbody tr:last-child td,.table-wrap tbody tr:last-child td,.data-table tbody tr:last-child td{border-bottom:0}
+.field input,.field select,.field textarea{min-height:44px;transition:border-color .18s,box-shadow .18s,background .18s}
+.field textarea{resize:vertical;min-height:88px}
+button{transition:transform .16s var(--lf-ease),filter .16s,box-shadow .16s}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.25);transform:none}
+.card{min-width:0}
+#invoicePreview .preview-shell,.product-detail-shell{overscroll-behavior:contain}
+.product-detail-modal,#invoicePreview{padding-bottom:max(10px,env(safe-area-inset-bottom))}
+@media(max-width:420px){.lf-chart-summary strong{font-size:18px}.lf-sales-svg{min-width:500px}.analytics-panel{padding:12px}.analytics-panel-head h3{font-size:15px}}
+@media(prefers-reduced-motion:reduce){button,.lf-chart-column rect,.field input,.field select,.field textarea{transition:none}}
+
 </style>
 </head>
 <body><main class="wrap">
@@ -593,7 +630,13 @@ $('analyticsKpis').innerHTML=cards.map((x,i)=>'<div class="card metric analytics
 if(missingCostUnits)$('analyticsKpis').insertAdjacentHTML('afterend','<p class="muted" style="color:#b45309">تنبيه: لا يمكن اعتماد الربح أو هامش الربح؛ توجد '+missingCostUnits+' وحدة مباعة بدون تكلفة مسجلة. سجّل تكلفة المنتجات لظهور نتيجة دقيقة.</p>');
 const buckets={};orders.forEach(o=>{let d=new Date(o.date||o.createdAt);if(!isNaN(d)){let key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');buckets[key]=(buckets[key]||0)+orderNetTotal(o)}});
 const points=Object.entries(buckets).sort((x,y)=>x[0].localeCompare(y[0])).slice(-8),max=Math.max(1,...points.map(x=>x[1]));
-$('analyticsSalesChart').innerHTML=points.length?'<div class="analytics-chart">'+points.map(([k,v])=>'<div class="analytics-bar-wrap"><b>'+money(v)+'</b><div class="analytics-bar" style="height:'+Math.max(8,v/max*130)+'px"></div><small>'+k+'</small></div>').join('')+'</div>':'<p class="muted">لا توجد مبيعات مسجلة في الفترة المحددة.</p>';
+if(points.length){
+const chartW=720,chartH=236,left=62,right=16,top=18,bottom=190,plotW=chartW-left-right,plotH=bottom-top,step=plotW/points.length,barW=Math.min(42,step*.58),fmt=v=>money(v);
+const grid=[0,.25,.5,.75,1].map(r=>{const y=bottom-plotH*r,val=max*r;return '<g class="lf-chart-grid"><line x1="'+left+'" y1="'+y+'" x2="'+(chartW-right)+'" y2="'+y+'"/><text x="'+(left-9)+'" y="'+(y+4)+'" text-anchor="end">'+esc(fmt(val))+'</text></g>'}).join('');
+const bars=points.map(([k,v],i)=>{const h=Math.max(3,plotH*v/max),x=left+i*step+(step-barW)/2,y=bottom-h,label=k.slice(5)+'/'+k.slice(2,4);return '<g class="lf-chart-column"><title>'+esc(k)+' · '+esc(fmt(v))+' جنيه</title><rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="7"/><text class="lf-chart-value" x="'+(x+barW/2).toFixed(1)+'" y="'+Math.max(12,y-7).toFixed(1)+'" text-anchor="middle">'+esc(fmt(v))+'</text><text class="lf-chart-label" x="'+(x+barW/2).toFixed(1)+'" y="213" text-anchor="middle">'+esc(label)+'</text></g>'}).join('');
+const total=points.reduce((sum,p)=>sum+p[1],0);
+$('analyticsSalesChart').innerHTML='<div class="lf-chart-summary"><span>إجمالي الفترة المعروضة</span><strong>'+money(total)+' جنيه</strong><small>'+points.length+' أشهر · أعلى شهر '+esc(points.reduce((a,b)=>b[1]>a[1]?b:a)[0])+'</small></div><div class="lf-chart-scroll"><svg class="lf-sales-svg" viewBox="0 0 720 236" role="img" aria-label="رسم بياني لاتجاه المبيعات الشهرية؛ إجمالي الفترة '+esc(money(total))+' جنيه" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lfSalesGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--purple)"/><stop offset="100%" stop-color="var(--purple-dark)"/></linearGradient></defs>'+grid+bars+'</svg></div><div class="lf-chart-accessible">'+points.map(([k,v])=>'<span>'+esc(k)+': '+esc(fmt(v))+' جنيه</span>').join(' · ')+'</div>';
+}else $('analyticsSalesChart').innerHTML='<div class="lf-empty">'+window.LamsetUI.icon('chart-no-axes-combined',34)+'<strong>لا توجد مبيعات في الفترة المحددة</strong><span>جرّب اختيار فترة زمنية أخرى لعرض اتجاه المبيعات.</span></div>';
 const products={};orders.forEach(o=>{const items=analyticsItems(o),returnedByLine=items.map(()=>0),returnedValueByLine=items.map(()=>0),returns=(db.returns||[]).filter(r=>r.orderId===o.id);returns.forEach(r=>{let left=Math.max(0,Number(r.qty)||0),valueLeft=Math.max(0,Number(r.qty)||0)*(Number(r.unitPrice??r.refundUnitPrice??0)||0),indices=[];if(r.orderItemKey!==undefined&&r.orderItemKey!==null&&r.orderItemKey!=='legacy'){const i=Number(r.orderItemKey);if(Number.isInteger(i)&&i>=0&&i<items.length&&items[i].productId===r.productId)indices=[i]}else indices=items.map((it,i)=>it.productId===r.productId?i:-1).filter(i=>i>=0);indices.forEach(i=>{if(left<=0)return;const capacity=Math.max(0,(Number(items[i].qty)||0)-returnedByLine[i]),take=Math.min(capacity,left),unitPrice=Number(items[i].price)||0;returnedByLine[i]+=take;returnedValueByLine[i]+=Math.min(take*unitPrice,valueLeft||take*unitPrice);left-=take;valueLeft=Math.max(0,valueLeft-take*unitPrice)})});items.forEach((item,i)=>{let key=item.productId||item.productCode||item.productName||'unknown',p=db.products.find(x=>x.id===item.productId),x=products[key]||(products[key]={name:item.productSnapshot?.name||item.productName||p?.name||'منتج غير معروف',qty:0,sales:0,cost:0});const q=analyticsItemUnits(item,o),gross=(Number(item.qty)||0)*(Number(item.price)||0),goodReturned=returns.filter(r=>r.condition==='good').reduce((v,r)=>v,0),goodQty=returns.filter(r=>r.condition==='good').reduce((v,r)=>v,0);const returnedGoodUnits=Math.min(q,(()=>{let n=0;returns.forEach(r=>{if(r.condition==='good'&&r.productId===item.productId&&(r.orderItemKey===String(i)||r.orderItemKey===undefined||r.orderItemKey===null||r.orderItemKey==='legacy'))n+=Math.max(0,Number(r.stockUnits)||Number(r.qty)||0)});return n})());const returnedGoodQty=Math.min(Number(item.qty)||0,(()=>returns.filter(r=>r.condition==='good'&&r.productId===item.productId&&(r.orderItemKey===String(i)||r.orderItemKey===undefined||r.orderItemKey===null||r.orderItemKey==='legacy')).reduce((v,r)=>v+(Number(r.qty)||0),0))());x.qty+=Math.max(0,q-returnedGoodUnits);x.sales+=Math.max(0,gross-returnedGoodQty*(Number(item.price)||0));x.cost+=Math.max(0,q-returnedGoodUnits)*(Number(item.productSnapshot?.cost??p?.cost)||0)})});
 const topProducts=Object.values(products).sort((x,y)=>(y.sales-y.cost)-(x.sales-x.cost)).slice(0,7),maxProduct=Math.max(1,...topProducts.map(x=>x.sales));
 $('analyticsProducts').innerHTML=topProducts.length?'<div class="analytics-ranking">'+topProducts.map(p=>'<div class="analytics-rank-row"><div class="analytics-rank-head"><b>'+esc(p.name)+'</b><strong>'+money(p.sales)+'</strong></div><div class="analytics-rank-track"><i style="width:'+(p.sales/maxProduct*100)+'%"></i></div><small>'+p.qty+' قطعة صافية · ربح تقديري '+money(p.sales-p.cost)+'</small></div>').join('')+'</div>':'<p class="muted">لا توجد بيانات منتجات في هذه الفترة.</p>';
