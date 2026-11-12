@@ -19,9 +19,26 @@ function closeDocumentPreview(){
  if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body></body></html>'}
  document.body.classList.remove('lf-modal-open');
 }
-function printDocumentPreview(){
+async function printDocumentPreview(){
  const frame=$('lamsetDocumentFrame');
- try{frame.contentWindow.focus();frame.contentWindow.print()}catch(e){alert('تعذرت الطباعة من المعاينة الحالية. حاول مرة أخرى.')}
+ if(!frame)return alert('معاينة المستند غير متاحة.');
+ try{
+  const doc=frame.contentDocument||frame.contentWindow?.document;
+  if(!doc?.documentElement)throw new Error('محتوى المعاينة غير جاهز.');
+  const html='<!doctype html>\\n'+doc.documentElement.outerHTML;
+  if(window.Capacitor?.isNativePlatform?.()&&typeof window.lamsetNativeExport==='function'){
+   const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+   await window.lamsetNativeExport(html,'lamset-fan-print-'+stamp+'.html','text/html');
+   return;
+  }
+  const printWindow=frame.contentWindow;
+  if(!printWindow||typeof printWindow.print!=='function')throw new Error('الطباعة غير مدعومة في نافذة المعاينة الحالية.');
+  printWindow.focus();
+  setTimeout(()=>{try{printWindow.print()}catch(error){console.error('Document print failed',error);alert('تعذرت الطباعة من المعاينة. جرّب فتح التقرير في المتصفح ثم الطباعة.')}},180);
+ }catch(error){
+  console.error('Document preview print failed',error);
+  alert(window.Capacitor?.isNativePlatform?.()?'تعذر تجهيز ملف المستند للمشاركة أو الطباعة. تحقق من صلاحية التخزين ثم حاول مرة أخرى.':'تعذرت الطباعة من المعاينة الحالية. حاول فتح الصفحة في متصفح يدعم الطباعة.');
+ }
 }
 function closeTopmostModal(){
  const doc=$('lamsetDocumentPreview'),invoice=$('invoicePreview'),product=$('productDetailModal');
