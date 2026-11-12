@@ -373,6 +373,40 @@ if(type==='exchange'&&replacement){let base=Number(replacement.prices?.shop)||0;
 $('returnReplacement').disabled=type!=='exchange';$('returnReplacementPrice').disabled=type!=='exchange';$('returnQty').max=qty;
 $('returnHint').textContent=o&&line?'الصنف: '+line.productName+' · الكمية الأصلية: '+line.qty+' · المرتجع سابقًا: '+already+' · المتاح: '+qty+' · إجمالي المستحقات المالية للطلب: '+money(orderRefundTotal(o.id)):'اختر طلبًا وصنفًا';
 }
+function saveReturnExchange(){
+const order=(db.orders||[]).find(x=>x.id===$('returnOrder').value),lineKey=$('returnOrderItem')?.value,line=order&&orderReturnLines(order).find(x=>x.key===lineKey),qty=Number($('returnQty').value),condition=$('returnCondition').value,type=$('returnType').value,refundInput=Number($('returnRefund').value)||0,replacementId=$('returnReplacement').value,replacementPrice=Number($('returnReplacementPrice').value)||0;
+if(!order||!line)return alert('اختر طلبًا وصنفًا صحيحًا');
+if(!Number.isInteger(qty)||qty<1)return alert('أدخل كمية مرتجعة صحيحة');
+const already=returnedQtyForOrder(order.id,line.productId,line.key),available=Math.max(0,line.qty-already);
+if(qty>available)return alert('الكمية أكبر من المتاح للمرتجع: '+available);
+const originalProduct=db.products.find(p=>p.id===line.productId);
+if(!originalProduct)return alert('تعذر العثور على المنتج الأصلي في المخزون');
+const originalUnits=line.stockUnits>0?line.stockUnits/Math.max(1,line.qty): (line.unitType==='carton'?Math.max(1,Number(line.productSnapshot?.unitsPerCarton)||Number(originalProduct.unitsPerCarton)||1):1);
+const returnedUnits=qty*originalUnits,returnedValue=qty*line.price;
+let replacement=null,replacementUnits=0,replacementValue=0,refundDue=refundInput,priceDifference=0;
+if(type==='exchange'){
+replacement=db.products.find(p=>p.id===replacementId);
+if(!replacement||replacement.active===false)return alert('اختر منتجًا بديلًا صالحًا');
+if(!Number.isFinite(replacementPrice)||replacementPrice<0)return alert('سعر المنتج البديل غير صحيح');
+const replacementPerUnit=line.unitType==='carton'?Math.max(1,Number(replacement.unitsPerCarton)||1):1;
+replacementUnits=qty*replacementPerUnit;replacementValue=qty*replacementPrice;
+if((Number(replacement.stock)||0)<replacementUnits)return alert('مخزون المنتج البديل غير كافٍ؛ المتاح '+(Number(replacement.stock)||0)+' قطعة والمطلوب '+replacementUnits+' قطعة');
+priceDifference=Math.max(0,replacementValue-returnedValue);
+refundDue=Math.max(0,returnedValue-replacementValue);
+}else{
+if(!Number.isFinite(refundInput)||refundInput<0||refundInput>returnedValue)return alert('قيمة الاسترداد يجب ألا تتجاوز قيمة الصنف المرتجع: '+money(returnedValue));
+}
+const before=JSON.parse(JSON.stringify(db)),date=new Date().toISOString(),record={id:id(),orderId:order.id,orderItemKey:line.key,customerId:order.customerId||order.invoiceSnapshot?.customer?.id||'',customerName:order.customer||'',productId:line.productId,productName:line.productName,qty,unitType:line.unitType,stockUnits:returnedUnits,unitPrice:line.price,condition,type,refundDue,priceDifference,replacementProductId:replacement?.id||'',replacementName:replacement?.name||'',replacementQty:type==='exchange'?qty:0,replacementStockUnits:replacementUnits,replacementUnitPrice:type==='exchange'?replacementPrice:0,note:$('returnNote').value.trim(),date};
+try{
+if(!Array.isArray(db.returns))db.returns=[];
+db.returns.push(record);
+if(condition==='good')originalProduct.stock=(Number(originalProduct.stock)||0)+returnedUnits;
+if(type==='exchange')replacement.stock=Math.max(0,(Number(replacement.stock)||0)-replacementUnits);
+if(!save()){db=before;return alert('تعذر حفظ المرتجع؛ تم التراجع عن المخزون والسجلات المالية بالكامل.')}
+$('returnQty').value=1;$('returnRefund').value=0;$('returnNote').value='';renderAll();
+alert(type==='exchange'?'تم تسجيل الاستبدال وتحديث المخزون. '+(priceDifference>0?'فرق مستحق على العميل: '+money(priceDifference):refundDue>0?'رصيد مستحق للعميل: '+money(refundDue):'لا يوجد فرق مالي.'):'تم تسجيل المرتجع وتحديث المخزون. قيمة الاسترداد المستحقة: '+money(refundDue));
+}catch(err){db=before;save();console.error(err);alert('تعذر تسجيل العملية؛ تم إلغاء جميع التغييرات.')}
+}
 function renderReturnExchange(){
 let sel=$('returnOrder');if(sel){let old=sel.value,os=(db.orders||[]).filter(o=>o.status!=='ملغي'&&orderReturnLines(o).some(line=>line.qty>returnedQtyForOrder(o.id,line.productId,line.key)));sel.innerHTML=os.map(o=>'<option value="'+esc(o.id)+'">'+esc(o.customer)+' · '+(Array.isArray(o.items)?o.items.length:1)+' أصناف · '+o.id+'</option>').join('')||'<option value="">لا توجد طلبات قابلة للمرتجع</option>';if(os.some(o=>o.id===old))sel.value=old;updateReturnForm()}
 let list=$('returnHistory');if(!list)return;let rows=(db.returns||[]).slice().reverse();
