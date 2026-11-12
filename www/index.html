@@ -218,7 +218,7 @@ html[data-reduce-motion="true"] *,html[data-reduce-motion="true"] *:before,html[
 html{scroll-behavior:smooth;scroll-padding-top:18px}
 button,a,[role=button]{-webkit-tap-highlight-color:transparent}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:0;box-shadow:var(--lf-focus)!important}
-.lf-icon{display:inline-block;width:21px;height:21px;flex:0 0 21px;vertical-align:middle;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lf-section-icon{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:34px;height:34px;margin-inline-end:8px;border-radius:11px;background:var(--lavender-2);color:var(--purple)}.lf-section-icon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.lf-icon{display:inline-block;width:21px;height:21px;flex:0 0 21px;vertical-align:middle;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nav button{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-width:0}
 .nav button .lf-icon{width:22px;height:22px;flex-basis:22px}
 .nav button b{font-size:10px;line-height:1.2;font-weight:800}
@@ -956,8 +956,11 @@ function icon(name,size){return svg(name,size)}
 function mountIcons(root){(root||document).querySelectorAll('[data-lucide]').forEach(el=>{const name=el.getAttribute('data-lucide');if(paths[name]&&!el.querySelector('svg'))el.innerHTML=svg(name);});}
 function toast(message,kind){const region=document.getElementById('lfToastRegion')||(()=>{const el=document.createElement('div');el.id='lfToastRegion';el.className='lf-toast-region';el.setAttribute('role','status');el.setAttribute('aria-live','polite');document.body.appendChild(el);return el})();const item=document.createElement('div');item.className='lf-toast';item.dataset.kind=['success','error','info'].includes(kind)?kind:'info';item.innerHTML=svg(kind==='success'?'check':kind==='error'?'alert':'info',19);const text=document.createElement('span');text.textContent=String(message||'');item.appendChild(text);region.appendChild(item);while(region.children.length>3)region.firstElementChild.remove();const duration=kind==='error'?5000:3200;setTimeout(()=>{item.classList.add('is-leaving');setTimeout(()=>item.remove(),220)},duration);return item}
 function emptyState(title,description){return '<div class="lf-empty">'+svg('package',34)+'<strong>'+String(title||'لا توجد بيانات')+'</strong><span>'+String(description||'')+'</span></div>'}
-window.LamsetUI=Object.freeze({icon,mountIcons,toast,emptyState,version:'1.0.0'});
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>mountIcons(),{once:true});else mountIcons();
+window.LamsetUI=Object.freeze({icon,mountIcons,toast,emptyState,version:'1.1.0'});
+const sectionIconMap={dashboard:'house',more:'grid-2x2',consignment:'truck',catalogs:'book-open',settings:'settings',alerts:'bell',collections:'wallet-cards',products:'package',costs:'calculator',production:'factory',orders:'receipt',customers:'contact',database:'hard-drive',offers:'gift',reports:'chart-line',backup:'hard-drive'};
+function mountSectionIcons(){Object.entries(sectionIconMap).forEach(([id,name])=>{const section=document.getElementById(id),heading=section?.querySelector('h2, .sectionhead h3');if(!heading||heading.querySelector('.lf-section-icon'))return;const mark=document.createElement('span');mark.className='lf-section-icon';mark.setAttribute('aria-hidden','true');mark.innerHTML=svg(name,20);heading.prepend(mark)})}
+function mountAllIcons(){mountIcons();mountSectionIcons()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountAllIcons,{once:true});else mountAllIcons();
 })();
 </script>
 <script type="module" src="./mobile-bridge.bundle.js"></script></body></html>
