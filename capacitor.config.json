@@ -5,5 +5,13 @@
   "bundledWebRuntime": false,
   "android": {
     "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorUpdater": {
+      "appId": "com.lamsetfan.businessmanager",
+      "defaultChannel": "production",
+      "autoUpdate": "atBackground",
+      "appReadyTimeout": 20000
+    }
   }
 }
