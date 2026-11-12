@@ -1,9 +1,6 @@
 name: Build Android APK
 
 on:
-  push:
-    branches:
-      - work/lamset-fan-ui-and-business-upgrade
   workflow_dispatch:
 
 jobs:
