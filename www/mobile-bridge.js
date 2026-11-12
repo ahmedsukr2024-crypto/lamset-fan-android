@@ -126,7 +126,7 @@ window.lamsetGetLocalBackups = async () => {
   }
 };
 
-window.lamsetNativeBackup = async (json) => {
+window.lamsetNativeBackup = async (json, options = {}) => {
   if (typeof json !== 'string' || !json.trim()) throw new Error('بيانات النسخة الاحتياطية فارغة.');
   const filename = LAMSET_BACKUP_PREFIX + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
   const saved = await Filesystem.writeFile({
