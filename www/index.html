@@ -649,8 +649,9 @@ let previous=o.status;if(s===previous)return;
 const cancelling=s==='ملغي'&&previous!=='ملغي',reactivating=previous==='ملغي'&&s!=='ملغي';
 if(cancelling&&(db.returns||[]).some(r=>r.orderId===o.id))return alert('لا يمكن إلغاء الطلب آليًا لوجود مرتجعات أو استبدالات مرتبطة به. راجع حركة المخزون والتسويات أولاً.');
 const stockLines=Array.isArray(o.items)&&o.items.length?o.items.map(x=>({productId:x.productId,units:Number(x.stockUnits)||0})): [{productId:o.productId,units:Number(o.stockUnits)||((Number(o.qty)||0)*(o.unitType==='carton'?Math.max(1,Number(o.productSnapshot?.unitsPerCarton)||1):1))}];
+for(const line of stockLines){if(!db.products.some(x=>x.id===line.productId))return alert('تعذر تحديث حالة الطلب؛ أحد المنتجات غير موجود في المخزون.');}
 if(reactivating&&o.stockReturnedOnCancel===true){
-for(const line of stockLines){const p=db.products.find(x=>x.id===line.productId);if(!p)return alert('تعذر إعادة تفعيل الطلب؛ أحد المنتجات غير موجود في المخزون.');if((Number(p.stock)||0)<line.units)return alert('لا يمكن إعادة تفعيل الطلب؛ مخزون '+p.name+' غير كافٍ. المتاح '+(Number(p.stock)||0)+' قطعة والمطلوب '+line.units+' قطعة.');}
+for(const line of stockLines){const p=db.products.find(x=>x.id===line.productId);if((Number(p.stock)||0)<line.units)return alert('لا يمكن إعادة تفعيل الطلب؛ مخزون '+p.name+' غير كافٍ. المتاح '+(Number(p.stock)||0)+' قطعة والمطلوب '+line.units+' قطعة.');}
 }
 const before=JSON.parse(JSON.stringify(db));
 try{
