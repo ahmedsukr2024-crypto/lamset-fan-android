@@ -1,11 +1,11 @@
 window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
   if (typeof data !== 'string' || !data.length) throw new Error('محتوى التقرير فارغ.');
   const safeName = String(filename || 'lamset-fan-report.csv').replace(/[^a-zA-Z0-9._-]/g, '-');
-  const encoded = btoa(unescape(encodeURIComponent(data)));
   const saved = await Filesystem.writeFile({
     path: 'LAMSET-FAN/' + safeName,
-    data: encoded,
+    data,
     directory: Directory.Documents,
+    encoding: Encoding.UTF8,
     recursive: true
   });
   if (!saved?.uri) throw new Error('تعذر حفظ التقرير على الهاتف.');
@@ -13,8 +13,9 @@ window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
   // permanent copy in Documents and share a cache copy as a real attachment.
   const shareCopy = await Filesystem.writeFile({
     path: 'LAMSET-FAN/Shared/' + safeName,
-    data: encoded,
+    data,
     directory: Directory.Cache,
+    encoding: Encoding.UTF8,
     recursive: true
   });
   if (!shareCopy?.uri) throw new Error('تم حفظ التقرير، لكن تعذر تجهيز نسخة المشاركة.');
