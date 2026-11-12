@@ -12,6 +12,7 @@ import { Share } from '@capacitor/share';
 import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 
 const isNative = !!window.Capacitor?.isNativePlatform?.();
+const appLockEnabled = (() => { try { const saved = JSON.parse(localStorage.getItem('lamset_fan_business_manager_v1') || '{}'); return saved?.appSettings?.lockApp !== false; } catch { return true; } })();
 let authenticated = false;
 let authInProgress = false;
 
@@ -112,7 +113,7 @@ async function scheduleBackupReminder() {
   }
 }
 
-if (isNative) {
+if (isNative && appLockEnabled) {
   document.documentElement.classList.add('app-locked');
   document.addEventListener('DOMContentLoaded', () => { showLockScreen(); authenticate(); }, { once: true });
   App.addListener('appStateChange', ({ isActive }) => {
@@ -132,5 +133,6 @@ if (isNative) {
     // Authenticate only when returning from a real background transition.
     if (!authenticated) authenticate();
   });
-  if (businessNotificationsEnabled) scheduleBackupReminder();
 }
+
+if (isNative && businessNotificationsEnabled) scheduleBackupReminder();
