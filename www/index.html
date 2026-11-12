@@ -929,7 +929,7 @@ let damaged=prompt('عدد القطع التالفة','0');if(damaged===null)ret
 let missing=prompt('عدد القطع المفقودة','0');if(missing===null)return;missing=Number(missing);
 let vals=[sold,returned,damaged,missing];if(vals.some(v=>!Number.isInteger(v)||v<0)||vals.reduce((a,b)=>a+b,0)>Number(x.remaining))return alert('الأعداد غير صحيحة أو تتجاوز المتبقي بالعهدة');
 let value=sold*Number(x.unitPrice),due=Math.max(0,Number(x.soldValue)-consignmentPaid(x))+value;
-let payment=Number(prompt('تحصيل من قيمة المباع فقط. المستحق بعد الجرد: '+money(due),'0'));if(!Number.isFinite(payment)||payment<0||payment>due)return alert('قيمة التحصيل غير صحيحة');
+let paymentInput=prompt('تحصيل من قيمة المباع فقط. المستحق بعد الجرد: '+money(due),'0');if(paymentInput===null)return;let payment=Number(paymentInput);if(paymentInput.trim()===''||!Number.isFinite(payment)||payment<0||payment>due)return alert('قيمة التحصيل غير صحيحة');
 let before={remaining:Number(x.remaining)||0,sold:Number(x.sold)||0,returned:Number(x.returned)||0,damaged:Number(x.damaged)||0,missing:Number(x.missing)||0};x.sold+=sold;x.returned+=returned;x.damaged+=damaged;x.missing+=missing;x.remaining-=vals.reduce((a,b)=>a+b,0);x.soldValue+=value;
 let p=db.products.find(v=>v.id===x.productId);if(p&&returned)p.stock=(Number(p.stock)||0)+returned;
 x.status='open';
