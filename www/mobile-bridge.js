@@ -69,27 +69,65 @@ const appLockEnabled = (() => { try { const saved = JSON.parse(localStorage.getI
 let authenticated = false;
 let authInProgress = false;
 
+const LAMSET_BACKUP_DIR = 'LAMSET-FAN/Backups';
+const LAMSET_BACKUP_PREFIX = 'lamset-fan-backup-';
+const LAMSET_BACKUP_RETENTION = 10;
+
+async function pruneLamsetLocalBackups() {
+  try {
+    const listing = await Filesystem.readdir({ path: LAMSET_BACKUP_DIR, directory: Directory.Documents });
+    const files = (listing.files || [])
+      .filter(item => item.type === 'file' && item.name.startsWith(LAMSET_BACKUP_PREFIX) && item.name.endsWith('.json'))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    const expired = files.slice(0, Math.max(0, files.length - LAMSET_BACKUP_RETENTION));
+    for (const file of expired) {
+      await Filesystem.deleteFile({ path: LAMSET_BACKUP_DIR + '/' + file.name, directory: Directory.Documents });
+    }
+    return { kept: Math.min(files.length, LAMSET_BACKUP_RETENTION), removed: expired.length };
+  } catch (error) {
+    console.warn('LAMSET backup retention cleanup skipped', error);
+    return { kept: null, removed: 0 };
+  }
+}
+
+window.lamsetGetLocalBackups = async () => {
+  if (!isNative) return { supported: false, files: [] };
+  try {
+    const listing = await Filesystem.readdir({ path: LAMSET_BACKUP_DIR, directory: Directory.Documents });
+    const files = (listing.files || [])
+      .filter(item => item.type === 'file' && item.name.startsWith(LAMSET_BACKUP_PREFIX) && item.name.endsWith('.json'))
+      .sort((a, b) => b.name.localeCompare(a.name));
+    return { supported: true, files: files.map(item => ({ name: item.name, size: item.size || 0 })) };
+  } catch (error) {
+    return { supported: true, files: [], error: String(error?.message || error) };
+  }
+};
+
 window.lamsetNativeBackup = async (json) => {
   if (typeof json !== 'string' || !json.trim()) throw new Error('بيانات النسخة الاحتياطية فارغة.');
-  const filename = `lamset-fan-backup-${new Date().toISOString().slice(0, 10)}-${Date.now()}.json`;
-  // Use the app-private cache directory: Android scoped storage does not
-  // require broad Documents/storage permissions for a temporary share file.
-  // The Android share sheet lets the user save a persistent copy to Files/Drive.
+  const filename = LAMSET_BACKUP_PREFIX + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
   const saved = await Filesystem.writeFile({
-    path: 'LAMSET-FAN/' + filename,
+    path: LAMSET_BACKUP_DIR + '/' + filename,
     data: json,
-    directory: Directory.Cache,
+    directory: Directory.Documents,
     encoding: Encoding.UTF8,
     recursive: true
   });
-  if (!saved?.uri) throw new Error('تم إنشاء الملف دون الحصول على مسار صالح لمشاركته.');
-  await Share.share({
-    title: 'نسخة LAMSET FAN الاحتياطية',
-    text: 'اختر «حفظ في الملفات» أو Google Drive للاحتفاظ بالنسخة واستعادتها لاحقًا.',
-    url: saved.uri,
-    dialogTitle: 'حفظ النسخة الاحتياطية'
-  });
-  return saved;
+  if (!saved?.uri) throw new Error('تم إنشاء الملف دون الحصول على مسار صالح لحفظه.');
+  const retention = await pruneLamsetLocalBackups();
+  let shareError = '';
+  try {
+    await Share.share({
+      title: 'نسخة LAMSET FAN الاحتياطية',
+      text: 'تم حفظ نسخة على الهاتف. اختر Google Drive من قائمة المشاركة لرفع نسخة سحابية.',
+      url: saved.uri,
+      dialogTitle: 'نسخة محفوظة على الهاتف — مشاركة إلى Google Drive'
+    });
+  } catch (error) {
+    shareError = String(error?.message || error);
+    console.warn('LAMSET backup share sheet was not completed', error);
+  }
+  return { ...saved, filename, retention, shareError };
 };
 window.lamsetRequireBiometric = async (reason = 'تأكيد العملية الحساسة') => {
   if (!isNative) return false;
