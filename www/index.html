@@ -547,7 +547,7 @@ let cid=$('consPayCustomer').value,invoiceId=$('consPayInvoice').value,amount=Nu
 if(!invoiceId||due<=0)return alert('اختر فاتورة عليها مستحقات');
 if(!Number.isFinite(amount)||amount<=0||amount>due)return alert('المبلغ غير صحيح أو أكبر من مستحق الفاتورة '+money(due));
 let previous=JSON.stringify(db),left=amount,rows=consignmentInvoiceRows(invoiceId,cid).sort((a,b)=>new Date(a.date)-new Date(b.date));
-for(let x of rows){let balance=Math.max(0,Number(x.soldValue)-consignmentPaid(x)),allocated=Math.min(left,balance);if(allocated>0){(db.consignmentPayments||(db.consignmentPayments=[])).push({id:id(),consignmentId:x.id,invoiceId,customerId:x.customerId,customerName:x.customerName,productName:x.productName,date:new Date().toISOString(),amount:allocated,method:$('consPayMethod').value,note:$('consPayNote').value.trim()});x.paid=consignmentPaid(x)+allocated;left-=allocated;}if(left<=0)break;}
+for(let x of rows){let balance=Math.max(0,Number(x.soldValue)-consignmentPaid(x)),allocated=Math.min(left,balance);if(allocated>0){(db.consignmentPayments||(db.consignmentPayments=[])).push({id:id(),consignmentId:x.id,invoiceId,customerId:x.customerId,customerName:x.customerName,productName:x.productName,date:new Date().toISOString(),amount:allocated,method:$('consPayMethod').value,note:$('consPayNote').value.trim()});x.paid=consignmentPaid(x);left-=allocated;}if(left<=0)break;}
 if(!save()){db=JSON.parse(previous);return alert('تعذر حفظ التحصيل؛ تم التراجع عن العملية.');}
 $('consPayAmount').value='';$('consPayNote').value='';renderAll();alert('تم تسجيل التحصيل وخصمه من الفاتورة المحددة.');
 }
