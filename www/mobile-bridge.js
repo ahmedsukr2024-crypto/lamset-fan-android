@@ -1,3 +1,10 @@
+window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
+  const safeName = String(filename || 'lamset-fan-report.csv').replace(/[^a-zA-Z0-9._-]/g, '-');
+  const encoded = btoa(unescape(encodeURIComponent(data)));
+  const saved = await Filesystem.writeFile({ path: 'LAMSET-FAN/' + safeName, data: encoded, directory: Directory.Documents, recursive: true });
+  await Share.share({ title: 'تقرير لمسة فن', text: 'تقرير التحليلات من LAMSET FAN', url: saved.uri, dialogTitle: 'حفظ أو مشاركة التقرير' });
+  return saved;
+};
 import { App } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Filesystem, Directory } from '@capacitor/filesystem';
