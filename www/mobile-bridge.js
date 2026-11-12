@@ -10,8 +10,52 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
 const isNative = !!window.Capacitor?.isNativePlatform?.();
+window.lamsetCheckForUpdate = async () => {
+  if (!isNative) return { supported: false };
+  const [latest, current] = await Promise.all([
+    CapacitorUpdater.getLatest(),
+    CapacitorUpdater.current()
+  ]);
+  if (latest?.error) throw new Error(latest.error);
+  const currentVersion = current?.bundle?.version || 'builtin';
+  const available = !!(latest?.url && latest?.version && latest.version !== currentVersion);
+  return {
+    supported: true,
+    available,
+    currentVersion,
+    latestVersion: latest?.version || currentVersion,
+    message: latest?.message || ''
+  };
+};
+window.lamsetInstallUpdate = async () => {
+  if (!isNative) throw new Error('التحديث الهوائي متاح داخل تطبيق Android فقط.');
+  const latest = await CapacitorUpdater.getLatest();
+  if (latest?.error) throw new Error(latest.error);
+  if (!latest?.url || !latest?.version) throw new Error('لا يوجد تحديث جاهز للتنزيل حاليًا.');
+  const current = await CapacitorUpdater.current();
+  if (latest.version === (current?.bundle?.version || 'builtin')) return { available: false };
+  const options = { url: latest.url, version: latest.version };
+  if (latest.checksum) options.checksum = latest.checksum;
+  if (latest.sessionKey) options.sessionKey = latest.sessionKey;
+  if (Array.isArray(latest.manifest)) options.manifest = latest.manifest;
+  const bundle = await CapacitorUpdater.download(options);
+  if (!bundle?.id || bundle.status === 'error') throw new Error('تعذر تنزيل حزمة التحديث.');
+  await CapacitorUpdater.set({ id: bundle.id });
+  return { available: true, version: latest.version };
+};
+if (isNative) {
+  CapacitorUpdater.addListener('download', ({ percent }) => {
+    window.dispatchEvent(new CustomEvent('lamset-ota-progress', { detail: { percent } }));
+  }).catch(error => console.warn('OTA progress listener unavailable', error));
+  CapacitorUpdater.addListener('downloadFailed', ({ version }) => {
+    window.dispatchEvent(new CustomEvent('lamset-ota-failed', { detail: { version } }));
+  }).catch(error => console.warn('OTA failure listener unavailable', error));
+  CapacitorUpdater.notifyAppReady().catch(error => console.warn('OTA app-ready notification failed', error));
+}
+
 const appLockEnabled = (() => { try { const saved = JSON.parse(localStorage.getItem('lamset_fan_business_manager_v1') || '{}'); return saved?.appSettings?.lockApp !== false; } catch { return true; } })();
 let authenticated = false;
 let authInProgress = false;
