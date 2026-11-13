@@ -1682,7 +1682,7 @@ function renderExecutiveManager(){
  const list=$('lfExecPriorityList');
  if(list){
   const unique=tasks.filter((x,i)=>tasks.findIndex(y=>y.title===x.title&&y.detail===x.detail)===i).slice(0,5);
-  list.innerHTML=unique.length?unique.map(x=>'<article class="lf-exec-task '+x.level+'"><span class="lf-exec-task-dot"></span><div><b>'+esc(x.title)+'</b><small>'+esc(x.detail)+'</small></div><button type="button" class="textbtn" data-nav-target="'+x.action+'">'+x.label+'</button></article>').join():'<div class="lf-exec-clear"><b>أمورك تحت المتابعة</b><span>لا توجد حاليًا طلبات متأخرة أو نواقص تصنيع وخامات مسجلة.</span></div>';
+  list.innerHTML=unique.length?unique.map(x=>'<article class="lf-exec-task '+x.level+'"><span class="lf-exec-task-dot"></span><div><b>'+esc(x.title)+'</b><small>'+esc(x.detail)+'</small></div><button type="button" class="textbtn" data-nav-target="'+x.action+'">'+x.label+'</button></article>').join(''):'<div class="lf-exec-clear"><b>أمورك تحت المتابعة</b><span>لا توجد حاليًا طلبات متأخرة أو نواقص تصنيع وخامات مسجلة.</span></div>';
   set('lfExecPriorityCount',unique.length?unique.length+' إجراءات مقترحة':'لا توجد إجراءات عاجلة');
  }
 }
