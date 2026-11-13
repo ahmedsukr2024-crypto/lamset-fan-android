@@ -1743,7 +1743,8 @@ window.cancelProductionBatch=function(batchId){
  for(const line of batch.allocationLines){
   const order=(db.orders||[]).find(x=>x.id===line.orderId);
   if(!order)return alert('لا يمكن الإلغاء: أحد الطلبات المرتبطة بالدفعة غير موجود.');
-  if(order.status!=='ملغي'&&/تسليم|شحن|delivered/i.test(String(order.status||'')))return alert('لا يمكن إلغاء الدفعة بأمان بعد بدء التسليم أو الشحن للطلب '+String(order.id).slice(-8)+'.');
+  if(order.status==='ملغي'||order.stockReturnedOnCancel===true)return alert('لا يمكن إلغاء الدفعة بأمان: الطلب المرتبط '+String(order.id).slice(-8)+' أُلغي وأُعيدت القطع المنتجة إلى المخزون العام. لا يمكن تحديد ما إذا كانت هذه القطع ما زالت موجودة أم صُرفت لاحقًا؛ احتفظ بالدفعة وسجلها للمراجعة.');
+  if(/تسليم|شحن|delivered/i.test(String(order.status||'')))return alert('لا يمكن إلغاء الدفعة بأمان بعد بدء التسليم أو الشحن للطلب '+String(order.id).slice(-8)+'.');
   const item=line.itemIndex===null?order:order.items?.[line.itemIndex];
   if(!item)return alert('لا يمكن الإلغاء: بند الطلب المرتبط بالدفعة غير موجود.');
   if(Number(item.productionFulfilledUnits||0)<Number(line.qty||0))return alert('بيانات تخصيص الطلب غير متطابقة؛ أوقفنا الإلغاء لحماية رصيد الطلب.');
