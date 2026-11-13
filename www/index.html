@@ -1330,7 +1330,7 @@ if(db.offers.some(x=>Number(x.threshold)===threshold))return alert('توجد ش�
 let before=JSON.parse(JSON.stringify(db));db.offers.push({threshold,bonus});db.offers.sort((a,b)=>a.threshold-b.threshold);
 if(!save()){db=before;return alert('تعذر حفظ العرض؛ لم يتم تغيير قائمة العروض.')}renderOffers()
 }
-function addOffer(){let before=JSON.parse(JSON.stringify(db)),t=n('offerThreshold'),b=n('offerBonus');if(t<1)return alert('الحد الأدنى يجب أن يكون 1');db.offers.push({threshold:t,bonus:b});db.offers.sort((a,b)=>a.threshold-b.threshold);if(!save()){db=before;return alert('تعذر حفظ العرض؛ لم يتم تغيير قائمة العروض.')}renderOffers()}
+/* Legacy duplicate addOffer removed: keep the validated implementation above. */
 function renderOffers(){$('offerList').innerHTML=db.offers.map((o,i)=>`<div class="row"><div class="card">عند ${o.threshold} كرتونة ← ${o.bonus} هدية</div><button class="danger smallbtn" onclick="deleteOffer(${i})">حذف</button></div>`).join('');calcOffer()}
 function deleteOffer(i){let before=JSON.parse(JSON.stringify(db));if(!Number.isInteger(i)||i<0||i>=db.offers.length)return;db.offers.splice(i,1);if(!save()){db=before;return alert('تعذر حفظ حذف العرض؛ تم الاحتفاظ به.')}renderOffers()}
 function analyticsRangeData(){const now=new Date(),period=$('analyticsPeriod')?.value||'30',fv=$('analyticsFrom')?.value,tv=$('analyticsTo')?.value,from=fv?new Date(fv+'T00:00:00'):period==='all'?new Date(0):new Date(now.getTime()-Number(period)*86400000),to=tv?new Date(tv+'T23:59:59.999'):now;return {from,to,valid:from<=to,orders:(db.orders||[]).filter(o=>{let d=new Date(o.date||o.createdAt||0);return !isNaN(d)&&d>=from&&d<=to&&o.status!=='ملغي'})}}
