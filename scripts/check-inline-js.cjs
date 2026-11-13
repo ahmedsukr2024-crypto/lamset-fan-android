@@ -8,6 +8,7 @@ const htmlPath = path.resolve('www/index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
 const scriptTag = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
 const checked = [];
+const classicSources = [];
 let match;
 let index = 0;
 let failed = false;
@@ -21,6 +22,8 @@ while ((match = scriptTag.exec(html)) !== null) {
   const type = typeMatch ? typeMatch[1].toLowerCase().trim() : '';
   if (type && !['module', 'text/javascript', 'application/javascript', 'text/ecmascript', 'application/ecmascript'].includes(type)) continue;
   if (!source.trim()) continue;
+
+  if (!type || type === 'text/javascript' || type === 'application/javascript' || type === 'text/ecmascript' || type === 'application/ecmascript') classicSources.push(source);
 
   const extension = type === 'module' ? '.mjs' : '.cjs';
   const tempPath = path.join(os.tmpdir(), 'lamset-inline-' + index + extension);
@@ -44,5 +47,16 @@ if (checked.length === 0) {
   console.error('No inline JavaScript blocks were found to validate.');
   process.exit(1);
 }
+if (classicSources.length > 1) {
+  const combinedPath = path.join(os.tmpdir(), 'lamset-inline-combined.cjs');
+  fs.writeFileSync(combinedPath, classicSources.join('\n;\n'), 'utf8');
+  const combinedResult = spawnSync(process.execPath, ['--check', combinedPath], { encoding: 'utf8' });
+  fs.rmSync(combinedPath, { force: true });
+  if (combinedResult.status !== 0) {
+    failed = true;
+    console.error('Cross-script JavaScript conflict detected (for example, a repeated top-level let/const declaration):');
+    console.error(combinedResult.stderr || combinedResult.stdout);
+  }
+}
 if (failed) process.exit(1);
-console.log('Validated ' + checked.length + ' inline JavaScript block(s) in www/index.html.');
+console.log('Validated ' + checked.length + ' inline JavaScript block(s) and cross-script declarations in www/index.html.');
