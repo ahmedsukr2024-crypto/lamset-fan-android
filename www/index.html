@@ -814,6 +814,7 @@ html[data-theme="dark"] .lf-order-status-history{background:var(--surface);borde
 <div class="sectionhead"><h2>تسجيل الإنتاج</h2></div>
 <div class="card"><div class="field"><label>المنتج</label><select id="prodProduct" onchange="updateProductionHint()"></select></div><div class="row"><div class="field"><label>الكمية المنتجة</label><input id="prodQty" type="number" min="1" step="1" value="1" oninput="updateProductionHint()"></div><div class="field"><label>وحدة تسجيل الإنتاج</label><select id="prodUnit" onchange="updateProductionHint()"><option value="piece">قطعة</option><option value="carton">كرتونة</option></select></div></div><div class="field"><label>التالف (بالقطعة) — اختياري</label><input id="prodDamaged" type="number" min="0" step="1" placeholder="اتركها فارغة لو مفيش تالف" oninput="updateProductionHint()"></div><div class="result" id="productionHint">إجمالي الإنتاج: قطعة واحدة · التالف: 0 · صافي الإضافة للمخزون: 1 قطعة</div><div class="actions"><button onclick="recordProduction()">تسجيل دفعة إنتاج</button></div><p class="muted">تقدر تسجل الإنتاج بالقطعة أو بالكرتونة. عدد القطع في الكرتونة يؤخذ تلقائيًا من بيانات المنتج. التالف اختياري ويُحسب بالقطعة، والمخزون يستقبل الصافي السليم فقط.</p></div>
 </section>
+<div class="card" id="lfProductionBatchAudit"><div class="sectionhead"><h3>سجل دفعات التصنيع</h3><span class="pill" id="lfProductionBatchCount">0 دفعة</span></div><div class="field"><input id="lfProductionBatchSearch" type="search" placeholder="ابحث برقم الدفعة أو اسم المنتج..." oninput="renderProductionBatchHistory()"></div><div id="productionBatchHistory"></div></div>
 <section id="orders" class="panel">
 <div class="sectionhead"><h2>طلبات العملاء والمكتبات</h2></div>
 <div class="card lf-order-customer-card"><div class="lf-order-customer-head"><div><h3>بيانات العميل</h3><p>ابحث عن عميل مسجل أو أدخل بيانات عميل جديد</p></div><span class="lf-order-customer-icon" data-lucide="contact" aria-hidden="true"></span></div><div class="lf-order-customer-grid"><div class="field lf-customer-search-field"><label for="orderCustomerSearch">البحث عن عميل</label><input id="orderCustomerSearch" placeholder="ابحث بالاسم أو رقم الهاتف..." oninput="filterOrderCustomerOptions()"></div><div class="field lf-customer-select-field"><label for="oCustomerSelect">اختيار من قاعدة العملاء</label><select id="oCustomerSelect" onchange="selectOrderCustomer(this.value)"><option value="">اختر عميلًا مسجلًا</option><option value="__new__">＋ إضافة عميل جديد</option></select><input id="oCustomerNew" class="lf-customer-new-input" placeholder="اكتب اسم العميل الجديد" style="display:none"><small class="muted" id="oCustomerHint">اختر عميلًا مسجلًا أو أضف عميلًا جديدًا.</small></div><div class="field lf-customer-phone-field"><label for="oPhone">رقم الهاتف</label><div class="phone-entry lf-phone-entry"><select id="oCountryCode" aria-label="كود الدولة"><option value="20" selected>🇪🇬 مصر +20</option><option value="966">🇸🇦 السعودية +966</option><option value="971">🇦🇪 الإمارات +971</option><option value="965">🇰🇼 الكويت +965</option><option value="974">🇶🇦 قطر +974</option><option value="973">🇧🇭 البحرين +973</option><option value="968">🇴🇲 عُمان +968</option><option value="962">🇯🇴 الأردن +962</option><option value="961">🇱🇧 لبنان +961</option><option value="964">🇮🇶 العراق +964</option><option value="212">🇲🇦 المغرب +212</option><option value="213">🇩🇿 الجزائر +213</option><option value="216">🇹🇳 تونس +216</option><option value="218">🇱🇾 ليبيا +218</option><option value="249">🇸🇩 السودان +249</option><option value="1">🇺🇸 أمريكا/كندا +1</option><option value="44">🇬🇧 بريطانيا +44</option><option value="49">🇩🇪 ألمانيا +49</option><option value="33">🇫🇷 فرنسا +33</option></select><input id="oPhone" type="tel" inputmode="tel" autocomplete="tel-national" dir="ltr" placeholder="رقم الهاتف المحلي"></div><small class="muted lf-phone-note">اختر الدولة أولًا، واكتب الرقم بدون كود الدولة.</small></div><div class="field lf-customer-area-field"><label for="oArea">المنطقة / المحافظة</label><input id="oArea" placeholder="مثال: القاهرة – مدينة نصر" autocomplete="address-level1"></div></div></div><div class="card" style="background:#faf7ff;border:1px solid #e5d9f5"><h3>منتجات الطلب</h3><div class="field"><label>ابحث عن المنتج بالاسم أو الكود</label><input id="orderProductSearch" placeholder="اكتب اسم المنتج أو الكود للبحث..." oninput="filterOrderProductOptions()"></div><div class="row"><div class="field"><label>اختر المنتج لإضافته</label><select id="orderProduct" onchange="suggestOrderPrice()"></select></div><div class="field"><label>طريقة البيع</label><select id="oUnitType" onchange="suggestOrderPrice()"><option value="piece">بالقطعة</option><option value="carton">بالكرتونة</option></select></div><div class="field"><label>الكمية</label><input id="oQty" type="number" min="1" value="1" oninput="orderTotal()"></div><div class="field"><label>سعر القطعة / الكرتونة</label><input id="oPrice" type="number" min="0" step=".01" oninput="orderTotal()"></div></div><div class="actions"><button type="button" class="ghost" onclick="addOrderItem()">＋ إضافة المنتج للطلب</button></div><div id="orderItemsList"></div><small class="muted">يمكنك إضافة أي عدد من المنتجات، وتحديد كمية وطريقة بيع وسعر مستقل لكل منتج.</small></div><div class="row"><div class="field"><label>العربون المدفوع</label><input id="oDeposit" type="number" min="0" value="0" oninput="orderTotal()"></div><div class="field"><label>موعد التسليم</label><input id="oDue" type="date"></div><div class="field"><label>حالة الطلب</label><select id="oStatus"><option>جديد</option><option>قيد التجهيز</option><option>تم التسليم</option><option>ملغي</option></select></div></div><div class="result" id="orderCalc">الإجمالي: 0 ج.م · المتبقي: 0 ج.م</div><div class="actions"><button onclick="saveOrder()">تسجيل الطلب</button></div></div><div class="card"><h3>تسجيل مرتجع أو استبدال</h3><div class="field"><label>الطلب الأصلي</label><select id="returnOrder" onchange="updateReturnForm()"></select></div><div class="field"><label>الصنف داخل الطلب</label><select id="returnOrderItem" onchange="updateReturnForm()"></select></div><div class="row"><div class="field"><label>الكمية المرتجعة</label><input id="returnQty" type="number" min="1" value="1"></div><div class="field"><label>حالة المنتج المرتجع</label><select id="returnCondition"><option value="good">صالح للبيع وإعادة المخزون</option><option value="damaged">تالف ولا يعود للمخزون</option></select></div></div><div class="row"><div class="field"><label>نوع العملية</label><select id="returnType" onchange="updateReturnForm()"><option value="refund">مرتجع</option><option value="exchange">استبدال بمنتج</option></select></div><div class="field"><label>المنتج البديل</label><select id="returnReplacement" onchange="updateReturnForm()"></select></div></div><div class="row"><div class="field"><label>قيمة الاسترداد المستحقة للعميل (لا تُسجل كدفع فعلي)</label><input id="returnRefund" type="number" min="0" step=".01" value="0"></div><div class="field"><label>سعر وحدة المنتج البديل</label><input id="returnReplacementPrice" type="number" min="0" step=".01" value="0"></div></div><div class="field"><label>سبب المرتجع / ملاحظات</label><input id="returnNote"></div><p class="muted" id="returnHint"></p><button onclick="saveReturnExchange()">حفظ العملية</button></div><div class="card"><h3>سجل المرتجعات والاستبدال</h3><div id="returnHistory"></div></div><div class="card lf-order-history-tools"><div class="lf-order-history-head"><div><h3>سجل الطلبات</h3><small id="orderHistoryCount" class="muted">0 طلب</small></div><span data-lucide="clipboard-list" aria-hidden="true"></span></div><div class="lf-order-history-filters"><label class="field"><span>بحث في الطلبات</span><input id="orderHistorySearch" type="search" placeholder="اسم العميل أو الهاتف أو رقم الطلب أو المنتج..." oninput="renderOrders()"></label><label class="field"><span>حالة الطلب</span><select id="orderHistoryStatus" onchange="renderOrders()"><option value="all">كل الحالات</option><option>جديد</option><option>قيد التجهيز</option><option>جاهز للشحن</option><option>تم تسليمه لشركة الشحن</option><option>تم التسليم للعميل</option><option>تم التسليم</option><option>ملغي</option></select></label></div></div><div id="orderList"></div>
@@ -1025,7 +1026,7 @@ function cycleProductCustomerType(pid){const sel=$('productCustomerType'),types=
 function closeProductDetail(){$('productDetailModal')?.classList.add('hidden');document.body.classList.remove('lf-modal-open')}
 async function revealProductCost(pid){let approved=db.appSettings?.protectCosts===false;if(!approved){try{approved=!!(window.lamsetRequireBiometric&&await window.lamsetRequireBiometric('عرض تكلفة المنتج'))}catch(e){}}if(!approved){$('productCostValue').textContent='لم يتم التحقق؛ التكلفة مخفية.';return}const p=db.products.find(x=>x.id===pid);if(p)$('productCostValue').textContent=money(p.cost)+' جنيه للقطعة'}
 function shareProductWhatsApp(pid){const p=db.products.find(x=>x.id===pid);if(!p)return;const type=$('productCustomerType')?.value||'distributor',price=Number(p.prices?.[type])||0,msg='🎨 '+p.name+'\nكود المنتج: '+(p.code||'—')+'\n'+(p.desc||'')+'\nالسعر: '+money(price)+' جنيه\nلمسة فن';const url='https://wa.me/?text='+encodeURIComponent(msg);window.open(url,'_blank')}
-function showProductMovements(pid){const rows=[];(db.stockMovements||[]).filter(x=>x.productId===pid).forEach(x=>rows.push({date:x.date,label:x.reason||'تعديل يدوي للمخزون',qty:(Number(x.delta)>0?'+':'')+Number(x.delta||0)+' قطعة'}));(db.productions||[]).filter(x=>x.productId===pid).forEach(x=>{const damaged=Math.max(0,Number(x.damaged)||0),produced=Math.max(0,Number(x.qty)||0),net=Math.max(0,Number(x.net??(produced-damaged))||0);rows.push({date:x.date,label:damaged?'إنتاج · إجمالي '+produced+' قطعة · تالف '+damaged+' قطعة':'إنتاج',qty:'+'+net+' قطعة'})});(db.orders||[]).forEach(o=>analyticsItems(o).filter(x=>x.productId===pid).forEach(x=>rows.push({date:o.date,label:'بيع · '+(o.customer||'عميل'),qty:'−'+analyticsItemUnits(x,o)+' قطعة'})));(db.returns||[]).forEach(x=>{if(x.productId===pid){const order=(db.orders||[]).find(o=>o.id===x.orderId),line=order&&orderReturnLines(order).find(v=>v.key===String(x.orderItemKey)),fallbackPerUnit=line?.stockUnits>0?line.stockUnits/Math.max(1,line.qty):(line?.unitType==='carton'?Math.max(1,Number(line.productSnapshot?.unitsPerCarton)||Number(db.products.find(p=>p.id===pid)?.unitsPerCarton)||1):1),units=Number.isFinite(Number(x.stockUnits))&&x.stockUnits!==null?Math.max(0,Number(x.stockUnits)):Math.max(0,Number(x.qty)||0)*fallbackPerUnit,good=x.condition==='good';rows.push({date:x.date,label:good?'مرتجع صالح · أضيف للمخزون':'مرتجع تالف · لم يُضف للمخزون',qty:(good?'+':'±')+(good?units:0)+' قطعة'})}if(x.type==='exchange'&&x.replacementProductId===pid){const units=Math.max(0,Number(x.replacementStockUnits)||0);rows.push({date:x.date,label:'صرف منتج بديل · استبدال',qty:'−'+units+' قطعة'})}});rows.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));$('productMovementList').innerHTML='<h4>سجل حركات المخزون</h4>'+(rows.length?rows.slice(0,30).map(x=>'<div class="product-movement"><b>'+esc(x.label)+'</b><span>'+esc(x.qty)+'</span><small>'+esc(x.date?new Date(x.date).toLocaleDateString('ar-EG'):'')+'</small></div>').join(''):'<p class="muted">لا توجد حركات مسجلة لهذا المنتج.</p>')}
+function showProductMovements(pid){const rows=[];(db.stockMovements||[]).filter(x=>x.productId===pid).forEach(x=>rows.push({date:x.date,label:x.reason||'تعديل يدوي للمخزون',qty:(Number(x.delta)>0?'+':'')+Number(x.delta||0)+' قطعة'}));(db.productions||[]).filter(x=>x.productId===pid&&!x.batchNo).forEach(x=>{const damaged=Math.max(0,Number(x.damaged)||0),produced=Math.max(0,Number(x.qty)||0),net=Math.max(0,Number(x.net??(produced-damaged))||0);rows.push({date:x.date,label:damaged?'إنتاج · إجمالي '+produced+' قطعة · تالف '+damaged+' قطعة':'إنتاج',qty:'+'+net+' قطعة'})});(db.orders||[]).forEach(o=>analyticsItems(o).filter(x=>x.productId===pid).forEach(x=>rows.push({date:o.date,label:'بيع · '+(o.customer||'عميل'),qty:'−'+analyticsItemUnits(x,o)+' قطعة'})));(db.returns||[]).forEach(x=>{if(x.productId===pid){const order=(db.orders||[]).find(o=>o.id===x.orderId),line=order&&orderReturnLines(order).find(v=>v.key===String(x.orderItemKey)),fallbackPerUnit=line?.stockUnits>0?line.stockUnits/Math.max(1,line.qty):(line?.unitType==='carton'?Math.max(1,Number(line.productSnapshot?.unitsPerCarton)||Number(db.products.find(p=>p.id===pid)?.unitsPerCarton)||1):1),units=Number.isFinite(Number(x.stockUnits))&&x.stockUnits!==null?Math.max(0,Number(x.stockUnits)):Math.max(0,Number(x.qty)||0)*fallbackPerUnit,good=x.condition==='good';rows.push({date:x.date,label:good?'مرتجع صالح · أضيف للمخزون':'مرتجع تالف · لم يُضف للمخزون',qty:(good?'+':'±')+(good?units:0)+' قطعة'})}if(x.type==='exchange'&&x.replacementProductId===pid){const units=Math.max(0,Number(x.replacementStockUnits)||0);rows.push({date:x.date,label:'صرف منتج بديل · استبدال',qty:'−'+units+' قطعة'})}});rows.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));$('productMovementList').innerHTML='<h4>سجل حركات المخزون</h4>'+(rows.length?rows.slice(0,30).map(x=>'<div class="product-movement"><b>'+esc(x.label)+'</b><span>'+esc(x.qty)+'</span><small>'+esc(x.date?new Date(x.date).toLocaleDateString('ar-EG'):'')+'</small></div>').join(''):'<p class="muted">لا توجد حركات مسجلة لهذا المنتج.</p>')}
 function costProductChanged(){let p=db.products.find(x=>x.id===$('costProduct').value),study=p?.costStudy||{};db.costLines=JSON.parse(JSON.stringify(study.lines||p?.lines||[]));if(!db.costLines.length)db.costLines=[{name:'الجبس والخامات الأساسية',value:0},{name:'الألوان والفرش والورق',value:0},{name:'القوالب ومستلزمات التصنيع',value:0},{name:'التغليف والملصقات والكرتونة',value:0},{name:'العمالة والتشغيل',value:0}];$('wastePct').value=study.wastePct??0;$('extraCost').value=study.extraCost??0;$('fixedBatchCost').value=study.fixedBatchCost??0;$('costBatchQty').value=study.batchQty||1;[['costPriceDistributor','distributor'],['costPriceWholesale','wholesale'],['costPriceShop','shop'],['costPriceRetail','retail']].forEach(([el,k])=>$(el).value=p?.prices?.[k]??0);$('costBonusPrice').value=(Number(p?.prices?.distributor)||0)*Math.max(1,Number(p?.unitsPerCarton)||1);renderCostLines();calcPrice()}
 function renderCostLines(){if(!$('costLines'))return;$('costLines').innerHTML=db.costLines.map((l,i)=>`<div class="row"><div class="field"><label>اسم بند التكلفة</label><input value="${esc(l.name||'')}" onchange="lineChange(${i},'name',this.value)"></div><div class="field"><label>التكلفة للقطعة (ج.م)</label><input type="number" min="0" step=".01" value="${Number(l.value)||0}" onchange="lineChange(${i},'value',this.value)"></div><div class="field"><label>إجراء</label><button class="danger smallbtn" onclick="removeLine(${i})">حذف</button></div></div>`).join('');calcCost()}
 function lineChange(i,k,v){db.costLines[i][k]=k==='value'?Math.max(0,Number(v)||0):v;calcCost()}
@@ -1674,4 +1675,121 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
 })();
 </script>
+
+<script id="LAMSET_PRODUCTION_BATCH_AUDIT_V1">
+(function(){
+'use strict';
+const originalRecordProduction=window.recordProduction;
+const originalRenderAll=window.renderAll;
+function lfClone(value){return JSON.parse(JSON.stringify(value))}
+function lfBatchNo(){
+ const day=new Date().toISOString().slice(0,10).replace(/-/g,'');
+ const count=(db.productions||[]).filter(x=>String(x.batchNo||'').startsWith('PRD-'+day+'-')).length+1;
+ return 'PRD-'+day+'-'+String(count).padStart(4,'0');
+}
+function lfAllocateProduction(productId,quantity){
+ let remaining=Math.max(0,Math.floor(Number(quantity)||0)),allocated=0,allocationLines=[];
+ const orders=(db.orders||[]).filter(o=>o.status!=='ملغي').slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+ for(const order of orders){
+  const lines=orderStockLines(order);
+  for(let index=0;index<lines.length&&remaining>0;index++){
+   const line=lines[index];
+   if(line.productId!==productId)continue;
+   const pending=Math.max(0,Number(line.item?.productionPendingUnits)||0),take=Math.min(pending,remaining);
+   if(!take)continue;
+   line.item.productionPendingUnits=pending-take;
+   line.item.productionFulfilledUnits=(Number(line.item.productionFulfilledUnits)||0)+take;
+   allocationLines.push({orderId:order.id,itemIndex:Array.isArray(order.items)&&order.items.length?index:null,qty:take});
+   remaining-=take;allocated+=take;
+  }
+ }
+ return {allocated,remaining,allocationLines};
+}
+window.recordProduction=function(){
+ const p=db.products.find(x=>x.id===$('prodProduct').value),enteredQty=Number($('prodQty').value),unit=$('prodUnit').value||'piece';
+ const units=Math.max(1,Number(p?.unitsPerCarton)||1),gross=enteredQty*(unit==='carton'?units:1);
+ const rawDamaged=$('prodDamaged').value.trim(),damaged=rawDamaged===''?0:Number(rawDamaged);
+ if(!p||!Number.isInteger(enteredQty)||enteredQty<1||!Number.isInteger(gross)||!Number.isInteger(damaged)||damaged<0||damaged>gross)return alert('راجع المنتج والكمية والتالف؛ التالف اختياري ويُحسب بالقطعة ولا يمكن أن يتجاوز إجمالي الإنتاج');
+ if(unit!=='piece'&&unit!=='carton')return alert('وحدة الإنتاج غير صحيحة؛ اختر القطعة أو الكرتونة');
+ const before=lfClone(db),batchId=id(),batchNo=lfBatchNo(),net=gross-damaged;
+ try{
+  if(!Array.isArray(db.productions))db.productions=[];
+  if(!Array.isArray(db.materialMovements))db.materialMovements=[];
+  if(!Array.isArray(db.stockMovements))db.stockMovements=[];
+  const movementStart=db.materialMovements.length;
+  const materialUse=consumeProductionMaterials(p,gross);
+  if(materialUse.error){db=before;return alert(materialUse.error+'؛ لم يتم تسجيل الدفعة أو تغيير المخزون.')}
+  db.materialMovements.slice(movementStart).forEach(m=>{m.batchNo=batchNo;m.productionBatchId=batchId;m.type=String(m.type||'استهلاك إنتاج')+' · دفعة '+batchNo});
+  const allocation=lfAllocateProduction(p.id,net);
+  p.stock=(Number(p.stock)||0)+allocation.remaining;
+  const date=new Date().toISOString();
+  const batch={id:batchId,batchNo,productId:p.id,productName:p.name||'',productCode:p.code||'',qty:gross,enteredQty,unitType:unit,unitsPerCarton:units,damaged,net,allocatedToOrders:allocation.allocated,allocationLines:allocation.allocationLines,addedToStock:allocation.remaining,consumedMaterials:materialUse.consumed,materialCost:materialUse.cost,materialUnitCost:gross?materialUse.cost/gross:0,materialsUntracked:materialUse.untracked,status:'active',date};
+  db.productions.push(batch);
+  db.stockMovements.push({id:id(),productId:p.id,delta:allocation.remaining,reason:'إنتاج دفعة '+batchNo+' · تخصيص طلبات '+allocation.allocated+' قطعة',productionBatchId:batchId,batchNo,date});
+  if(!save()){db=before;return alert('تعذر حفظ دفعة التصنيع؛ تم التراجع عن الخامات والمخزون وتوزيع الطلبات بالكامل.')}
+  renderAll();$('prodQty').value='1';$('prodDamaged').value='';updateProductionHint();
+  alert('تم تسجيل الدفعة '+batchNo+' بنجاح. صافي الإنتاج: '+net+' قطعة · للطلبات: '+allocation.allocated+' · للمخزون: '+allocation.remaining+' · تكلفة الخامات: '+money(materialUse.cost)+(materialUse.untracked?' · تنبيه: لا توجد وصفة خامات لهذا المنتج، ولم يتم خصم خامات.':''));
+ }catch(error){db=before;console.error('Production batch save failed',error);alert('تعذر تسجيل دفعة التصنيع؛ تم إلغاء التغييرات غير المحفوظة.')}
+};
+window.cancelProductionBatch=function(batchId){
+ const batch=(db.productions||[]).find(x=>x.id===batchId);
+ if(!batch)return alert('دفعة التصنيع غير موجودة.');
+ if(batch.status==='cancelled')return alert('هذه الدفعة ملغاة بالفعل.');
+ if(!Array.isArray(batch.allocationLines))return alert('لا يمكن إلغاء هذه الدفعة القديمة بأمان؛ لم يكن النظام يسجل توزيعها على الطلبات بالتفصيل.');
+ const p=(db.products||[]).find(x=>x.id===batch.productId);
+ if(!p)return alert('لا يمكن الإلغاء: المنتج المرتبط بالدفعة غير موجود.');
+ const added=Math.max(0,Number(batch.addedToStock)||0),currentStock=Math.max(0,Number(p.stock)||0);
+ if(currentStock<added)return alert('لا يمكن إلغاء الدفعة بأمان: المخزون الحالي '+currentStock+' قطعة، بينما يلزم خصم '+added+' قطعة. راجع المبيعات والمرتجعات أولاً.');
+ for(const line of batch.allocationLines){
+  const order=(db.orders||[]).find(x=>x.id===line.orderId);
+  if(!order)return alert('لا يمكن الإلغاء: أحد الطلبات المرتبطة بالدفعة غير موجود.');
+  if(order.status!=='ملغي'&&/تسليم|شحن|delivered/i.test(String(order.status||'')))return alert('لا يمكن إلغاء الدفعة بأمان بعد بدء التسليم أو الشحن للطلب '+String(order.id).slice(-8)+'.');
+  const item=line.itemIndex===null?order:order.items?.[line.itemIndex];
+  if(!item)return alert('لا يمكن الإلغاء: بند الطلب المرتبط بالدفعة غير موجود.');
+  if(order.status!=='ملغي'&&Number(item.productionFulfilledUnits||0)<Number(line.qty||0))return alert('بيانات تخصيص الطلب غير متطابقة؛ أوقفنا الإلغاء لحماية رصيد الطلب.');
+ }
+ const before=lfClone(db);
+ try{
+  p.stock=currentStock-added;
+  (db.stockMovements||(db.stockMovements=[])).push({id:id(),productId:p.id,delta:-added,reason:'عكس إنتاج وإلغاء دفعة '+batch.batchNo,productionBatchId:batch.id,batchNo:batch.batchNo,date:new Date().toISOString()});
+  for(const line of batch.allocationLines){
+   const order=db.orders.find(x=>x.id===line.orderId);
+   if(order.status==='ملغي')continue;
+   const item=line.itemIndex===null?order:order.items[line.itemIndex],qty=Math.max(0,Number(line.qty)||0);
+   item.productionPendingUnits=(Number(item.productionPendingUnits)||0)+qty;
+   item.productionFulfilledUnits=Math.max(0,(Number(item.productionFulfilledUnits)||0)-qty);
+  }
+  (batch.consumedMaterials||[]).forEach(consumed=>{
+   const material=(db.materials||[]).find(x=>x.id===consumed.materialId);
+   if(!material)throw new Error('خامة مرتبطة بالدفعة غير موجودة: '+(consumed.name||''));
+   const qty=Math.max(0,Number(consumed.qty)||0);
+   material.stock=(Number(material.stock)||0)+qty;
+   (db.materialMovements||(db.materialMovements=[])).push({id:id(),materialId:material.id,type:'استرجاع خامات من إلغاء دفعة '+batch.batchNo,qty,balance:material.stock,date:new Date().toISOString(),batchNo:batch.batchNo,productionBatchId:batch.id});
+  });
+  batch.status='cancelled';batch.cancelledAt=new Date().toISOString();batch.cancelReason='إلغاء يدوي مع عكس الحركات المرتبطة';
+  if(!save()){db=before;return alert('تعذر حفظ الإلغاء؛ تمت استعادة البيانات كما كانت دون تغيير.')}
+  renderAll();alert('تم إلغاء الدفعة '+batch.batchNo+' وعكس أثرها على مخزون المنتج والخامات ونواقص الطلبات. السجل الأصلي محفوظ للمراجعة.');
+ }catch(error){db=before;console.error('Production batch cancellation failed',error);alert('تعذر إلغاء الدفعة؛ تم التراجع عن العملية بالكامل: '+(error.message||'خطأ غير معروف'))}
+};
+window.renderProductionBatchHistory=function(){
+ const el=$('productionBatchHistory');if(!el)return;
+ const q=String($('lfProductionBatchSearch')?.value||'').trim().toLocaleLowerCase('ar');
+ const all=(db.productions||[]).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+ const rows=all.filter(x=>!q||[x.batchNo,x.productName,db.products.find(p=>p.id===x.productId)?.name].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));
+ if($('lfProductionBatchCount'))$('lfProductionBatchCount').textContent=all.length+' دفعة';
+ if(!rows.length){el.innerHTML='<div class="empty">لا توجد دفعات تصنيع مسجلة حتى الآن.</div>';return}
+ el.innerHTML=rows.map(x=>{
+  const p=db.products.find(v=>v.id===x.productId),cancelled=x.status==='cancelled',materials=Array.isArray(x.consumedMaterials)?x.consumedMaterials:[];
+  const details=materials.length?'<div class="muted">الخامات: '+materials.map(m=>esc(m.name)+' '+Number(m.qty||0).toLocaleString('en-US',{maximumFractionDigits:3})+' '+esc(m.unit||'')).join(' · ')+'</div>':(x.materialsUntracked?'<div class="muted">لم تكن هناك وصفة خامات وقت تسجيل الدفعة.</div>':'');
+  return '<article class="card" style="margin:10px 0;border-right:4px solid '+(cancelled?'var(--red)':'var(--purple)')+'"><div class="sectionhead"><b>'+esc(x.batchNo||'دفعة قديمة')+'</b><span class="pill">'+(cancelled?'ملغاة':'معتمدة')+'</span></div><b>'+esc(p?.name||x.productName||'منتج غير موجود')+'</b><div class="muted">'+new Date(x.date||Date.now()).toLocaleString('ar-EG')+' · إجمالي '+(Number(x.qty)||0)+' · تالف '+(Number(x.damaged)||0)+' · سليم '+(Number(x.net)||0)+' قطعة</div><div class="muted">تخصيص الطلبات: '+(Number(x.allocatedToOrders)||0)+' · أضيف للمخزون: '+(Number(x.addedToStock)||0)+' قطعة</div><div class="result">تكلفة الخامات: <b>'+money(Number(x.materialCost)||0)+'</b> · تكلفة القطعة المنتجة: <b>'+money(Number(x.materialUnitCost)||0)+'</b></div>'+details+(cancelled?'<small class="muted">تاريخ الإلغاء: '+new Date(x.cancelledAt||0).toLocaleString('ar-EG')+'</small>':'<div class="actions"><button type="button" class="danger smallbtn" onclick="cancelProductionBatch('+JSON.stringify(x.id)+')">مراجعة وإلغاء الدفعة</button></div>')+'</article>';
+ }).join('');
+};
+if(typeof originalRenderAll==='function'){
+ window.renderAll=function(){originalRenderAll.apply(this,arguments);window.renderProductionBatchHistory()};
+}
+if(typeof originalRecordProduction==='function'&&!window.recordProduction)window.recordProduction=originalRecordProduction;
+window.renderProductionBatchHistory();
+})();
+</script>
+
 <script type="module" src="./mobile-bridge.bundle.js"></script></body></html>
