@@ -1946,7 +1946,7 @@ window.recordProduction=function(){
   const allocation=lfAllocateProduction(p.id,net);
   p.stock=(Number(p.stock)||0)+allocation.remaining;
   const date=new Date().toISOString();
-  const batch={id:batchId,batchNo,productId:p.id,productName:p.name||'',productCode:p.code||'',qty:gross,enteredQty,unitType:unit,unitsPerCarton:units,damaged,net,allocatedToOrders:allocation.allocated,allocationLines:allocation.allocationLines,addedToStock:allocation.remaining,consumedMaterials:materialUse.consumed,materialCost:materialUse.cost,materialUnitCost:gross?materialUse.cost/gross:0,materialsUntracked:materialUse.untracked,status:'active',date};
+  const batch={id:batchId,batchNo,productId:p.id,productName:p.name||'',productCode:p.code||'',qty:gross,enteredQty,unitType:unit,unitsPerCarton:units,damaged,net,allocatedToOrders:allocation.allocated,allocationLines:allocation.allocationLines,addedToStock:allocation.remaining,consumedMaterials:materialUse.consumed,materialCost:materialUse.cost,materialUnitCost:net>0?materialUse.cost/net:0,materialsUntracked:materialUse.untracked,status:'active',date};
   db.productions.push(batch);
   db.stockMovements.push({id:id(),productId:p.id,delta:allocation.remaining,reason:'إنتاج دفعة '+batchNo+' · تخصيص طلبات '+allocation.allocated+' قطعة',productionBatchId:batchId,batchNo,date});
   if(!save()){db=before;return alert('تعذر حفظ دفعة التصنيع؛ تم التراجع عن الخامات والمخزون وتوزيع الطلبات بالكامل.')}
