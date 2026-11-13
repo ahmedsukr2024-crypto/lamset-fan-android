@@ -30,6 +30,25 @@ jobs:
       - name: Install JavaScript dependencies
         run: npm install
 
+      - name: Validate inline application JavaScript
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('www/index.html', 'utf8');
+          const scripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi)];
+          let checked = 0;
+          for (const [index, match] of scripts.entries()) {
+            if (/\\bsrc\\s*=/.test(match[1])) continue;
+            const type = (match[1].match(/\\btype\\s*=\\s*[\"']?([^\"'\\s>]+)/i) || [])[1] || 'classic';
+            if (type !== 'classic' && type !== 'module') continue;
+            try { new Function(match[2]); }
+            catch (error) { console.error(`Inline script ${index + 1} syntax error:`, error); process.exitCode = 1; }
+            checked++;
+          }
+          if (process.exitCode) process.exit(process.exitCode);
+          console.log(`Validated ${checked} inline JavaScript blocks.`);
+          NODE
+
       - name: Generate Android project when missing
         run: |
           if [ ! -f android/gradlew ]; then
