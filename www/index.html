@@ -1506,7 +1506,7 @@ if(x.action==='production'||x.action==='materials'){
   const row=$('materialsList')?.querySelector('[data-material-id="'+CSS.escape(String(material.id))+'"]');
   row?.scrollIntoView({behavior:'smooth',block:'center'});
   row?.classList.add('lf-alert-target');setTimeout(()=>row?.classList.remove('lf-alert-target'),2600);
-  if(!row)$('materialsList')?.scrollIntoView({behavior:'smooth',block:'start');
+  if(!row)$('materialsList')?.scrollIntoView({behavior:'smooth',block:'start'});
  }else{
   const order=(db.orders||[]).find(o=>String(o.id)===String(x.targetId));
   if(!order){window.LamsetUI?.toast('الطلب المرتبط بالتنبيه لم يعد موجودًا.','warning');return}
