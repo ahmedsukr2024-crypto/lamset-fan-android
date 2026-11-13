@@ -1,4 +1,5 @@
 name: Build LAMSET FAN Preview APK
+run-name: Build preview APK - ${{ github.ref_name }}
 
 on:
   push:
