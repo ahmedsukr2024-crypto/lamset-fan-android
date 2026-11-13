@@ -3,7 +3,7 @@ name: Build LAMSET FAN Android APK
 on:
   push:
     branches:
-      - work/lamset-fan-ui-and-business-upgrade
+      - test/known-good-build-18ae7b0
   workflow_dispatch:
 
 permissions:
