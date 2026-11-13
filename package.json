@@ -4,6 +4,7 @@
   "private": true,
   "description": "LAMSET FAN Business Manager Android app",
   "scripts": {
+    "check:inline-js": "node scripts/check-inline-js.cjs",
     "sync:android": "cap sync android",
     "open:android": "cap open android",
     "build:android": "npx esbuild www/mobile-bridge.js --bundle --format=esm --platform=browser --target=es2020 --outfile=www/mobile-bridge.bundle.js && cap sync android && cd android && ./gradlew assembleDebug"
