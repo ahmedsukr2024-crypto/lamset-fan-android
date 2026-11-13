@@ -7,7 +7,8 @@
     "check:inline-js": "node scripts/check-inline-js.cjs",
     "sync:android": "cap sync android",
     "open:android": "cap open android",
-    "build:android": "npx esbuild www/mobile-bridge.js --bundle --format=esm --platform=browser --target=es2020 --outfile=www/mobile-bridge.bundle.js && cap sync android && cd android && ./gradlew assembleDebug"
+    "build:android": "npx esbuild www/mobile-bridge.js --bundle --format=esm --platform=browser --target=es2020 --outfile=www/mobile-bridge.bundle.js && cap sync android && cd android && ./gradlew assembleDebug",
+    "check:all": "npm run check:inline-js && node --check www/mobile-bridge.js"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",

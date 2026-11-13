@@ -21,4 +21,4 @@ jobs:
           node-version: 22
 
       - name: Validate inline JavaScript
-        run: node scripts/check-inline-js.cjs && node --check www/mobile-bridge.js
+        run: npm run check:all
