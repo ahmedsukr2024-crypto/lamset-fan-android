@@ -1,5 +1,6 @@
 name: Build LAMSET FAN Android APK
 
+# Rebuild the current development branch, including the executive manager dashboard.
 on:
   push:
     branches:
