@@ -19,7 +19,7 @@ window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
     recursive: true
   });
   if (!shareCopy?.uri) throw new Error('تم حفظ التقرير، لكن تعذر تجهيز نسخة المشاركة.');
-  const isDocument = mimeType === 'text/html' || /\\.html?$/i.test(safeName);
+  const isDocument = mimeType === 'text/html' || /\.html?$/i.test(safeName);
   await Share.share({
     title: isDocument ? 'مستند لمسة فن' : 'تقرير لمسة فن',
     text: isDocument ? 'مستند جاهز للطباعة من LAMSET FAN' : 'تقرير من LAMSET FAN',
