@@ -1231,6 +1231,7 @@ function orderWorkflowSnapshot(o){
 let orderSectionView='open';
 function setOrderSectionView(view){
  orderSectionView=view==='archive'?'archive':'open';
+ if($('orderHistoryStatus'))$('orderHistoryStatus').value='all';
  renderOrders();
 }
 function renderOrders(){
