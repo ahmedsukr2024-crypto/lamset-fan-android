@@ -1475,7 +1475,7 @@ if(!dailySnapshot||dailySnapshot.day!==dailyDay){
  if(!save())db.appSettings=dailySettings;
 }
 window.refreshLamsetDailyAlertSummary=function(){
- const current=db.appSettings||{},active=window.LAMSET_ALERT_ITEMS||[];
+ const current=db.appSettings||{},active=items;
  const next={day:localDay(),generatedAt:new Date().toISOString(),total:active.length,urgent:active.filter(x=>x.level==='danger').length,important:active.filter(x=>x.level==='warning').length,followup:active.filter(x=>x.level==='info'||x.level==='success').length,production:active.filter(x=>x.category==='التصنيع').length,materials:active.filter(x=>x.category==='الخامات').length};
  db.appSettings={...current,alertDailySummary:next};
  if(!save()){db.appSettings=current;window.LamsetUI?.toast('تعذر تحديث الملخص اليومي.','error');return}
