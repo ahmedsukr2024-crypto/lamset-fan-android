@@ -971,6 +971,8 @@ function hideProductForm(){$('productForm').classList.add('hidden')}
 async function saveProduct(){
 let name=$('pName').value.trim();
 if(!name)return alert('اكتب اسم المنتج أولاً');
+const editingProduct=(db.products||[]).find(x=>x.id===$('pId').value),productCode=$('pCode').value.trim();
+if(productCode&&productCode!==String(editingProduct?.code||'').trim()&&(db.products||[]).some(x=>x.id!==editingProduct?.id&&String(x.code||'').trim().toLocaleLowerCase('ar')===productCode.toLocaleLowerCase('ar')))return alert('كود المنتج مستخدم بالفعل في صنف آخر. استخدم كودًا مختلفًا لتجنب تكرار الأصناف في المخزون والكتالوج.');
 const numericFields=[['pCost','تكلفة الوحدة'],['pDistributor','سعر الموزع'],['pWholesale','سعر الجملة'],['pShop','سعر المكتبة'],['pRetail','سعر المستهلك'],['pSuggestedDistributor','سعر البيع المقترح للموزع'],['pSuggestedWholesale','سعر البيع المقترح لتاجر الجملة'],['pSuggestedShop','سعر البيع المقترح للمكتبة'],['pSuggestedRetail','سعر البيع المقترح للمستهلك'],['pMin','حد تنبيه المخزون'],['pStock','الرصيد الحالي بالمخزون'],['pUnitsPerCarton','عدد القطع داخل الكرتونة']];
 const values={};
 for(const [field,label] of numericFields){const raw=$(field).value.trim(),value=raw===''?NaN:Number(raw);if(!Number.isFinite(value)||value<0)return alert('قيمة '+label+' غير صحيحة؛ أدخل رقمًا غير سالب.');values[field]=value}
