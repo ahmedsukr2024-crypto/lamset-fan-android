@@ -1746,7 +1746,7 @@ window.cancelProductionBatch=function(batchId){
   if(order.status!=='ملغي'&&/تسليم|شحن|delivered/i.test(String(order.status||'')))return alert('لا يمكن إلغاء الدفعة بأمان بعد بدء التسليم أو الشحن للطلب '+String(order.id).slice(-8)+'.');
   const item=line.itemIndex===null?order:order.items?.[line.itemIndex];
   if(!item)return alert('لا يمكن الإلغاء: بند الطلب المرتبط بالدفعة غير موجود.');
-  if(order.status!=='ملغي'&&Number(item.productionFulfilledUnits||0)<Number(line.qty||0))return alert('بيانات تخصيص الطلب غير متطابقة؛ أوقفنا الإلغاء لحماية رصيد الطلب.');
+  if(Number(item.productionFulfilledUnits||0)<Number(line.qty||0))return alert('بيانات تخصيص الطلب غير متطابقة؛ أوقفنا الإلغاء لحماية رصيد الطلب.');
  }
  const before=lfClone(db);
  try{
@@ -1754,7 +1754,6 @@ window.cancelProductionBatch=function(batchId){
   (db.stockMovements||(db.stockMovements=[])).push({id:id(),productId:p.id,delta:-added,reason:'عكس إنتاج وإلغاء دفعة '+batch.batchNo,productionBatchId:batch.id,batchNo:batch.batchNo,date:new Date().toISOString()});
   for(const line of batch.allocationLines){
    const order=db.orders.find(x=>x.id===line.orderId);
-   if(order.status==='ملغي')continue;
    const item=line.itemIndex===null?order:order.items[line.itemIndex],qty=Math.max(0,Number(line.qty)||0);
    item.productionPendingUnits=(Number(item.productionPendingUnits)||0)+qty;
    item.productionFulfilledUnits=Math.max(0,(Number(item.productionFulfilledUnits)||0)-qty);
