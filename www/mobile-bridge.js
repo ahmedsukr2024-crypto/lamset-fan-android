@@ -36,6 +36,14 @@ import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
 const isNative = !!window.Capacitor?.isNativePlatform?.();
+if (isNative) {
+  App.addListener('backButton', () => {
+    try {
+      if (typeof window.lamsetHandleBack === 'function' && window.lamsetHandleBack()) return;
+      App.exitApp();
+    } catch (error) { console.warn('LAMSET back navigation failed', error); }
+  }).catch(error => console.warn('LAMSET back listener unavailable', error));
+}
 window.lamsetGetAppInfo = async () => {
   if (!isNative) return { name: 'LAMSET FAN', version: '1.0.0', build: 'web' };
   const info = await App.getInfo();
