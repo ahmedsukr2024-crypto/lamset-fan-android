@@ -746,7 +746,7 @@ function importWhatsAppOrder(){
  const imported=[],unmatched=[];
  for(const row of lines){
   if(/^(طلب جديد من كتالوج|الإجمالي التقديري|الاسم\s*[:：]|الموبايل\s*[:：]|الهاتف\s*[:：]|رقم الهاتف\s*[:：]|العنوان\s*[:：]|ملاحظات\s*[:：])/i.test(row))continue;
-  const m=row.match(/^(.+?)\s*\(([^)]+)\)\s*:\s*(.+?)(?:\s*=\s*([\d٠-٩۰-۹,،.]+)\s*(?:ج\.?م|جنيه)?\s*)?$/i);
+  const m=row.match(/^(.+?)\s*\(([^)]*)\)\s*:\s*(.+?)(?:\s*=\s*([\d٠-٩۰-۹,،.]+)\s*(?:ج\.?م|جنيه)?\s*)?$/i);
   if(!m)continue;
   const productCode=m[2].trim(),description=m[3],product=(db.products||[]).find(p=>String(p.code||'').trim().toLocaleLowerCase('ar')===productCode.toLocaleLowerCase('ar'))||(db.products||[]).find(p=>lfWhatsAppNormalize(p.name)===lfWhatsAppNormalize(m[1]));
   if(!product){unmatched.push(m[1]+' ('+productCode+')');continue}
