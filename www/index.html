@@ -1375,8 +1375,25 @@ function openCatalogDocument(html,target){
  if(target&&target!==window){try{target.close()}catch(e){}}
  return showDocumentPreview(html,'معاينة كتالوج لمسة فن');
 }
+function catalogPreflightWarnings(rows,type){
+ const key=catalogPriceKey(type),warnings=[];
+ (rows||[]).forEach(row=>{
+  const product=(db.products||[]).find(p=>p.id===row.productId)||{};
+  const name=String(row.name||product.name||'منتج بدون اسم');
+  const price=Number(row.buy)||0,cost=Number(product.cost)||0;
+  if(!row.image&&!product.image)warnings.push(name+': لا توجد صورة للمنتج.');
+  if(!(price>0))warnings.push(name+': سعر الفئة المختارة غير مسجل أو يساوي صفرًا.');
+  if(cost>0&&price>0&&price<cost)warnings.push(name+': سعر البيع ('+money(price)+') أقل من تكلفة التصنيع ('+money(cost)+').');
+  if(!(cost>0))warnings.push(name+': تكلفة التصنيع غير مسجلة؛ تعذرت مقارنة السعر بالتكلفة.');
+ });
+ if(!warnings.length)return [];
+ const shown=warnings.slice(0,10),extra=warnings.length-shown.length;
+ alert('مراجعة الكتالوج قبل الإصدار:\n• '+shown.join('\n• ')+(extra>0?'\n• وهناك '+extra+' ملاحظات أخرى.':'')+'\n\nيمكنك المتابعة، لكن يُفضّل مراجعة هذه البيانات قبل مشاركة الكتالوج.');
+ return warnings;
+}
 async function previewCatalog(){
  let rows=catalogSnapshot();if(!rows.length)return alert('حدد منتجًا واحدًا على الأقل');
+ catalogPreflightWarnings(rows,$('catType').value);
  showDocumentPreview('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><body style="font-family:Tahoma;text-align:center;padding:40px">جارٍ تجهيز الكتالوج...</body></html>','معاينة الكتالوج');
  try{let ready=await Promise.all(rows.map(async r=>({...r,image:await lamsetResolveImage(r.productId,r.image||'')})));
   let bp={...(db.businessProfile||{})};bp.logo=await lamsetResolveImage('business-logo',bp.logo||'');
@@ -1385,6 +1402,7 @@ async function previewCatalog(){
 }
 async function printCatalog(){
  let rows=catalogSnapshot();if(!rows.length)return alert('حدد منتجًا واحدًا على الأقل');
+ catalogPreflightWarnings(rows,$('catType').value);
  let record={id:id(),date:new Date().toISOString(),type:$('catType').value,template:$('catTemplate').value,subtitle:$('catSubtitle').value,rows,businessProfile:JSON.parse(JSON.stringify(db.businessProfile||{}))};
  if(!Array.isArray(db.catalogHistory))db.catalogHistory=[];
  db.catalogHistory.unshift(record);
