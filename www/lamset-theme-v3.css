@@ -190,3 +190,35 @@ html,body{
 #analyticsSalesChart .lf-chart-label{fill:var(--lf-text)}
 #analyticsSalesChart .lf-chart-column rect{stroke:rgba(24,119,242,.12);stroke-width:1}
 @media(max-width:420px){#analyticsSalesChart .lf-chart-summary{padding:10px}#analyticsSalesChart .lf-chart-summary strong{font-size:19px}}
+
+/* Shared app-wide button loading and field validation states. */
+@keyframes lf-button-loading-spin{to{transform:rotate(360deg)}}
+button[aria-busy="true"]{cursor:progress!important;pointer-events:none!important;opacity:.88!important}
+button[aria-busy="true"]::after{
+ content:"";
+ display:inline-block;
+ width:14px;
+ height:14px;
+ margin-inline-start:8px;
+ border:2px solid currentColor;
+ border-inline-end-color:transparent;
+ border-radius:50%;
+ vertical-align:-2px;
+ animation:lf-button-loading-spin .7s linear infinite;
+}
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"],
+.field textarea[aria-invalid="true"],
+input[aria-invalid="true"]:not([type=checkbox]):not([type=radio]),
+select[aria-invalid="true"],
+textarea[aria-invalid="true"]{
+ border-color:var(--lf-danger)!important;
+ box-shadow:0 0 0 3px color-mix(in srgb,var(--lf-danger) 16%,transparent)!important;
+}
+.field input:disabled,.field select:disabled,.field textarea:disabled{
+ opacity:.62;
+ cursor:not-allowed;
+}
+@media(prefers-reduced-motion:reduce){
+ button[aria-busy="true"]::after{animation:none;opacity:.65}
+}
