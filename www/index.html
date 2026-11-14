@@ -1202,26 +1202,46 @@ function renderCatalogSelectionCount(){
  const count=catalogSelected.size;
  el.innerHTML='<span>المنتجات المختارة في الكتالوج</span><b>'+count+' منتج</b>';
 }
+function catalogProfitKey(pid,type){return type+':'+pid}
+function catalogProfitValue(p,type,base){
+ const resale=Number((p.suggestedPrices||{})[catalogPriceKey(type)])||0;
+ const key=catalogProfitKey(p.id,type);
+ return Object.prototype.hasOwnProperty.call(catalogPriceOverrides,key)?catalogPriceOverrides[key]:(resale>0?resale-base:0);
+}
 function renderCatalogProducts(){
  let el=$('catalogProductList');if(!el)return;
  let ps=catalogFiltered(),type=$('catType').value;
  el.innerHTML=ps.length?ps.map(p=>{
-  let buy=Number((p.prices||{})[catalogPriceKey(type)])||0,
+  let base=Number((p.prices||{})[catalogPriceKey(type)])||0,
       units=Math.max(1,Number(p.unitsPerCarton)||1),
-      suggest=Object.prototype.hasOwnProperty.call(catalogPriceOverrides,p.id)?catalogPriceOverrides[p.id]:(Number((p.suggestedPrices||{})[catalogPriceKey(type)])||0),
+      profit=catalogProfitValue(p,type,base),
+      resale=base+profit,
       image=p.image?'<img class="catalog-thumb" src="'+esc(p.image)+'" alt="'+esc(p.name||'صورة المنتج')+'" loading="lazy" onerror="this.style.display=\'none\'">':'<div class="catalog-thumb catalog-no-image" aria-label="لا توجد صورة">📦</div>';
-  return '<div class="catalog-item"><input type="checkbox" aria-label="تحديد المنتج: '+esc(p.name)+'" '+(catalogSelected.has(p.id)?'checked':'')+' onchange="toggleCatalogProduct(\''+p.id+'\',this.checked)">'+image+'<span style="flex:1;min-width:0"><b>'+esc(p.name)+'</b><small>'+esc(p.code||'بدون كود')+' · شراء القطعة: '+money(buy)+'</small><small>سعر البيع المقترح للقطعة</small><input type="number" min="0" step="0.01" aria-label="سعر البيع المقترح للمنتج: '+esc(p.name)+'" value="'+suggest+'" style="width:100%;max-width:190px;border:1px solid var(--line);border-radius:9px;padding:7px" oninput="updateCatalogPrice(\''+p.id+'\',this.value)"><small id="catPriceInfo_'+p.id+'">الكرتونة: '+money(suggest*units)+' · مكسب القطعة: '+(buy>0&&suggest>0?money(suggest-buy):'غير محدد')+' · مكسب الكرتونة: '+(buy>0&&suggest>0?money((suggest-buy)*units):'غير محدد')+'</small></span></div>';
+  return '<div class="catalog-item"><input type="checkbox" aria-label="تحديد المنتج: '+esc(p.name)+'" '+(catalogSelected.has(p.id)?'checked':'')+' onchange="toggleCatalogProduct(\''+p.id+'\',this.checked)">'+image+'<span style="flex:1;min-width:0"><b>'+esc(p.name)+'</b><small>'+esc(p.code||'بدون كود')+' · سعر الفئة للقطعة: '+money(base)+'</small><small>مكسب العميل المقترح للقطعة</small><input type="number" min="0" step="0.01" aria-label="مكسب العميل المقترح للقطعة: '+esc(p.name)+'" value="'+profit+'" style="width:100%;max-width:190px;border:1px solid var(--line);border-radius:9px;padding:7px" oninput="updateCatalogProfit(\''+p.id+'\',this.value)"><small id="catPriceInfo_'+p.id+'">سعر إعادة البيع المقترح: '+money(resale)+' للقطعة · '+money(resale*units)+' للكرتونة ('+units+' قطعة) · مكسب الكرتونة: '+money(profit*units)+'</small></span></div>';
  }).join(''):'<div class="empty">لا توجد منتجات مطابقة.</div>';
  renderCatalogSelectionCount();renderCatalogHistory();
 }
 function toggleCatalogProduct(pid,on){if(on)catalogSelected.add(pid);else catalogSelected.delete(pid);renderCatalogSelectionCount()}
-function selectCatalogProducts(on){
- if(on)catalogFiltered().forEach(p=>catalogSelected.add(p.id));
- else catalogSelected.clear();
- renderCatalogProducts();
+function selectCatalogProducts(on){catalogFiltered().forEach(p=>on?catalogSelected.add(p.id):catalogSelected.delete(p.id));renderCatalogProducts()}
+function updateCatalogProfit(pid,value){
+ let profit=Math.max(0,Number(value)||0);const type=$('catType').value,key=catalogProfitKey(pid,type);
+ catalogPriceOverrides[key]=profit;
+ const p=db.products.find(x=>x.id===pid),base=Number((p?.prices||{})[catalogPriceKey(type)])||0,units=Math.max(1,Number(p?.unitsPerCarton)||1),resale=base+profit,el=$('catPriceInfo_'+pid);
+ if(el)el.textContent='سعر إعادة البيع المقترح: '+money(resale)+' للقطعة · '+money(resale*units)+' للكرتونة ('+units+' قطعة) · مكسب الكرتونة: '+money(profit*units);
 }
-function updateCatalogPrice(pid,value){let price=Math.max(0,Number(value)||0);catalogPriceOverrides[pid]=price;let p=db.products.find(x=>x.id===pid),type=$('catType').value,buy=Number((p?.prices||{})[catalogPriceKey(type)])||0,units=Math.max(1,Number(p?.unitsPerCarton)||1),el=$('catPriceInfo_'+pid);if(el)el.textContent='الكرتونة: '+money(price*units)+' · مكسب القطعة: '+(buy>0&&price>0?money(price-buy):'غير محدد')+' · مكسب الكرتونة: '+(buy>0&&price>0?money((price-buy)*units):'غير محدد')}function selectCatalogProducts(on){catalogFiltered().forEach(p=>on?catalogSelected.add(p.id):catalogSelected.delete(p.id));renderCatalogProducts()}
-function catalogSnapshot(){let type=$('catType').value,profit=$('catShowProfit').checked;return catalogFiltered().filter(p=>catalogSelected.has(p.id)).map(p=>{let units=Math.max(1,Number(p.unitsPerCarton)||1),buy=Number((p.prices||{})[catalogPriceKey(type)])||0,suggest=Object.prototype.hasOwnProperty.call(catalogPriceOverrides,p.id)?catalogPriceOverrides[p.id]:(Number((p.suggestedPrices||{})[catalogPriceKey(type)])||0);return{name:p.name||'',code:p.code||'',desc:p.desc||'',contents:p.contents||'',cartonType:p.cartonType||'',productId:p.id,image:p.image||'',units,buy,suggest,buyCarton:buy*units,suggestCarton:suggest*units,unitProfit:buy>0&&suggest>0?suggest-buy:null,cartonProfit:buy>0&&suggest>0?(suggest-buy)*units:null,showProfit:profit}})}
+function catalogSnapshot(){
+ let type=$('catType').value,profit=$('catShowProfit').checked;
+ return catalogFiltered().filter(p=>catalogSelected.has(p.id)).map(p=>{
+  let units=Math.max(1,Number(p.unitsPerCarton)||1),
+      buy=Number((p.prices||{})[catalogPriceKey(type)])||0,
+      resale=Number((p.suggestedPrices||{})[catalogPriceKey(type)])||0,
+      key=catalogProfitKey(p.id,type),
+      unitProfit=Object.prototype.hasOwnProperty.call(catalogPriceOverrides,key)?catalogPriceOverrides[key]:(resale>0?resale-buy:0);
+  if(Object.prototype.hasOwnProperty.call(catalogPriceOverrides,key))resale=buy+unitProfit;
+  else if(!(resale>0))resale=buy;
+  return{name:p.name||'',code:p.code||'',desc:p.desc||'',contents:p.contents||'',cartonType:p.cartonType||'',productId:p.id,image:p.image||'',units,buy,suggest:resale,buyCarton:buy*units,suggestCarton:resale*units,unitProfit,cartonProfit:unitProfit*units,showProfit:profit,suggestedResale:resale};
+ });
+}
 let lastCatalogInteractiveHtml='';
 function makeInteractiveCatalog(html,rows,bp){const waDigits=String(bp.whatsapp||bp.phone||'').replace(/\D/g,'');
  const wa=waDigits.startsWith('0')?'20'+waDigits.slice(1):waDigits;
@@ -1236,10 +1256,10 @@ async function shareInteractiveCatalog(){if(!lastCatalogInteractiveHtml)return a
 function catalogHtml(rows,type,template,subtitle,bp){const labels={distributor:'الموزع',trader:'التاجر',wholesale:'تاجر الجملة',shop:'المكتبة أو المحل',retail:'القطاعي'},audience=labels[type]||'قائمة الأسعار',date=new Date().toLocaleDateString('ar-EG');
  const raw=String(bp.whatsapp||bp.phone||'').replace(/\D/g,''),wa=raw.startsWith('0')?'20'+raw.slice(1):raw,waLink=wa?'<a href="https://wa.me/'+wa+'">'+esc(bp.whatsapp||bp.phone)+'</a>':esc(bp.whatsapp||bp.phone||'غير محدد'),logo=bp.catalogLogo||bp.logo||'';
  const contact=[bp.address,bp.phone,bp.email,bp.website].filter(Boolean).map(esc).join(' • ');
- const card=(r,i,compact)=>'<article class="lf-card '+(compact?'compact':'')+'"><div class="lf-photo">'+(r.image?'<img src="'+r.image+'" alt="'+esc(r.name)+'">':'<b>LF</b>')+'<small>'+(i+1)+'</small></div><div class="lf-info"><div class="lf-name"><h3>'+esc(r.name)+'</h3><small>'+esc(r.code||'')+'</small></div>'+(r.desc?'<p>'+esc(r.desc)+'</p>':'')+(r.contents?'<p><b>المحتويات:</b> '+esc(r.contents)+'</p>':'')+'<div class="lf-pack">العبوة: <b>'+esc(r.cartonType||'كرتونة')+' · '+r.units+' قطعة</b></div><div class="lf-prices"><div><small>توريد القطعة</small><b>'+money(r.buy)+'</b></div><div><small>توريد الكرتونة</small><b>'+money(r.buyCarton)+'</b></div><div><small>بيع مقترح / قطعة</small><b>'+(r.suggest?money(r.suggest):'—')+'</b></div><div><small>بيع مقترح / كرتونة</small><b>'+(r.suggest?money(r.suggestCarton):'—')+'</b></div></div>'+(r.showProfit?'<div class="lf-profit">ربح التاجر: قطعة '+(r.unitProfit===null?'—':money(r.unitProfit))+' · كرتونة '+(r.cartonProfit===null?'—':money(r.cartonProfit))+'</div>':'')+'</div></article>';
+ const card=(r,i,compact)=>'<article class="lf-card '+(compact?'compact':'')+'"><div class="lf-photo">'+(r.image?'<img src="'+r.image+'" alt="'+esc(r.name)+'">':'<b>LF</b>')+'<small>'+(i+1)+'</small></div><div class="lf-info"><div class="lf-name"><h3>'+esc(r.name)+'</h3><small>'+esc(r.code||'')+'</small></div>'+(r.desc?'<p>'+esc(r.desc)+'</p>':'')+(r.contents?'<p><b>المحتويات:</b> '+esc(r.contents)+'</p>':'')+'<div class="lf-pack">العبوة: <b>'+esc(r.cartonType||'كرتونة')+' · '+r.units+' قطعة</b></div><div class="lf-prices"><div><small>سعر الفئة / القطعة</small><b>'+money(r.buy)+'</b></div><div><small>سعر الفئة / الكرتونة</small><b>'+money(r.buyCarton)+'</b></div><div><small>إعادة البيع المقترحة / قطعة</small><b>'+(r.suggest?money(r.suggest):'—')+'</b></div><div><small>إعادة البيع المقترحة / كرتونة</small><b>'+(r.suggest?money(r.suggestCarton):'—')+'</b></div></div>'+(r.showProfit?'<div class="lf-profit">مكسب العميل المتوقع: قطعة '+(r.unitProfit===null?'—':money(r.unitProfit))+' · كرتونة '+(r.cartonProfit===null?'—':money(r.cartonProfit))+'</div>':'')+'</div></article>';
  const photo=rows.map((r,i)=>card(r,i,false)).join(''),compact=rows.map((r,i)=>card(r,i,true)).join('');
  const hasProfit=rows.some(r=>r.showProfit);
- const table='<div class="lf-table-wrap"><table><thead><tr><th>المنتج</th><th>العبوة</th><th>سعر التوريد</th><th>البيع المقترح</th>'+(hasProfit?'<th>ربح التاجر</th>':'')+'</tr></thead><tbody>'+rows.map(r=>'<tr><td class="lf-product">'+(r.image?'<img src="'+r.image+'" alt="">':'')+'<span><b>'+esc(r.name)+'</b><small>'+esc(r.code||'')+' '+esc(r.desc||'')+'</small></span></td><td>'+esc(r.cartonType||'كرتونة')+'<small>'+r.units+' قطعة</small></td><td><b>'+money(r.buy)+'</b><small>قطعة</small><b>'+money(r.buyCarton)+'</b><small>كرتونة</small></td><td class="lf-blue"><b>'+(r.suggest?money(r.suggest):'—')+'</b><small>قطعة</small><b>'+(r.suggest?money(r.suggestCarton):'—')+'</b><small>كرتونة</small></td>'+(hasProfit?'<td class="lf-green"><b>'+(r.unitProfit===null?'—':money(r.unitProfit))+'</b><small>قطعة</small><b>'+(r.cartonProfit===null?'—':money(r.cartonProfit))+'</b><small>كرتونة</small></td>':'')+'</tr>').join('')+'</tbody></table></div>';
+ const table='<div class="lf-table-wrap"><table><thead><tr><th>المنتج</th><th>العبوة</th><th>سعر الفئة</th><th>إعادة البيع المقترحة</th>'+(hasProfit?'<th>مكسب العميل المتوقع</th>':'')+'</tr></thead><tbody>'+rows.map(r=>'<tr><td class="lf-product">'+(r.image?'<img src="'+r.image+'" alt="">':'')+'<span><b>'+esc(r.name)+'</b><small>'+esc(r.code||'')+' '+esc(r.desc||'')+'</small></span></td><td>'+esc(r.cartonType||'كرتونة')+'<small>'+r.units+' قطعة</small></td><td><b>'+money(r.buy)+'</b><small>قطعة</small><b>'+money(r.buyCarton)+'</b><small>كرتونة</small></td><td class="lf-blue"><b>'+(r.suggest?money(r.suggest):'—')+'</b><small>قطعة</small><b>'+(r.suggest?money(r.suggestCarton):'—')+'</b><small>كرتونة</small></td>'+(hasProfit?'<td class="lf-green"><b>'+(r.unitProfit===null?'—':money(r.unitProfit))+'</b><small>قطعة</small><b>'+(r.cartonProfit===null?'—':money(r.cartonProfit))+'</b><small>كرتونة</small></td>':'')+'</tr>').join('')+'</tbody></table></div>';
  const section=(n,en,title,desc,body)=>'<section class="lf-edition"><div class="lf-section"><div><small>'+n+' / '+en+'</small><h2>'+title+'</h2><p>'+desc+'</p></div><b>'+n+'</b></div>'+body+'</section>';
  const photoEdition=section('01','PHOTO COLLECTION','الإصدار المصوّر','صور المنتجات وتفاصيل الأطقم والأسعار','<div class="lf-grid">'+photo+'</div>');
  const compactEdition=section('02','QUICK LOOK','الإصدار المختصر','عرض سريع ومنظم لمجموعة المنتجات','<div class="lf-compact-grid">'+compact+'</div>');
