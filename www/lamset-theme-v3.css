@@ -407,3 +407,129 @@ html[data-theme="dark"] .nav{
 .stock-stat.need strong{color:var(--lf-warning)!important}
 .stock-stat.low strong{color:var(--lf-danger)!important}
 html[data-theme="dark"] .nav .nav-create-order{border-color:var(--lf-bg)!important}
+
+
+/* v3.2 — refined Lucide header, drawer state, neutral dark mode and semantic metrics */
+:root{
+ --lf-blue:#1877F2;--lf-blue-hover:#166FE5;--lf-blue-soft:#E7F3FF;
+ --lf-bg:#F0F2F5;--lf-surface:#FFFFFF;--lf-surface-2:#F7F8FA;
+ --lf-text:#1C1E21;--lf-muted:#65676B;--lf-border:#DADDE1;
+ --lf-success:#31A24C;--lf-warning:#D68A00;--lf-danger:#E41E3F;
+}
+html[data-theme="dark"]{
+ color-scheme:dark;
+ --lf-blue:#4599FF;--lf-blue-hover:#5AA5FF;--lf-blue-soft:#202B38;
+ --lf-bg:#000000;--lf-surface:#111111;--lf-surface-2:#1B1B1B;
+ --lf-text:#F5F5F5;--lf-muted:#A8A8A8;--lf-border:#303030;
+ --lf-success:#55C878;--lf-warning:#FFC65C;--lf-danger:#FF667A;
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] .wrap{background:#000!important;color:#F5F5F5!important}
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .metric,
+html[data-theme="dark"] .customer-card,
+html[data-theme="dark"] .product-tile,
+html[data-theme="dark"] .lf-app-header,
+html[data-theme="dark"] .nav,
+html[data-theme="dark"] .lf-side-drawer,
+html[data-theme="dark"] .analytics-hero,
+html[data-theme="dark"] .analytics-panel,
+html[data-theme="dark"] .lf-alert-card,
+html[data-theme="dark"] .lf-order-card{
+ background:#111!important;color:#F5F5F5!important;border-color:#303030!important;
+}
+html[data-theme="dark"] .field input,
+html[data-theme="dark"] .field select,
+html[data-theme="dark"] .field textarea,
+html[data-theme="dark"] input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea{
+ background:#1B1B1B!important;color:#F5F5F5!important;border-color:#383838!important;color-scheme:dark;
+}
+html[data-theme="dark"] .result,
+html[data-theme="dark"] .collection-total,
+html[data-theme="dark"] .notify-setting,
+html[data-theme="dark"] .lf-drawer-current,
+html[data-theme="dark"] .lf-executive-focus,
+html[data-theme="dark"] .stock-summary>div,
+html[data-theme="dark"] #alertSummary>div{
+ background:#1B1B1B!important;color:#F5F5F5!important;border-color:#303030!important;
+}
+html[data-theme="dark"] th,
+html[data-theme="dark"] thead th{background:#1B1B1B!important;color:#A8A8A8!important}
+html[data-theme="dark"] td{color:#F5F5F5!important;border-color:#303030!important}
+html[data-theme="dark"] tbody tr:nth-child(even){background:#171717!important}
+html[data-theme="dark"] .lf-drawer-link,
+html[data-theme="dark"] .more-list button,
+html[data-theme="dark"] .settings-entry,
+html[data-theme="dark"] .dash-shortcuts button{background:transparent!important;color:#F5F5F5!important;border-color:#303030!important}
+html[data-theme="dark"] .lf-drawer-link.active,
+html[data-theme="dark"] .nav button.active{background:#202B38!important;color:#69AFFF!important}
+html[data-theme="dark"] .lf-alert-filter.active,
+html[data-theme="dark"] .customer-filter-row button.active{background:#1877F2!important;color:#fff!important}
+
+/* Remove the extra top spacer; respect the Android safe area once, inside the header. */
+.wrap{padding-top:0!important}
+.lf-app-header{
+ top:0!important;min-height:calc(62px + env(safe-area-inset-top,0px))!important;
+ padding:calc(7px + env(safe-area-inset-top,0px)) 14px 7px!important;
+ margin-top:0!important;gap:10px!important;
+}
+.lf-header-actions{display:flex!important;align-items:center!important;gap:13px!important;flex:0 0 auto!important}
+.lf-header-actions button,
+.lf-header-actions button:hover,
+.lf-header-actions button:focus{
+ display:grid!important;place-items:center!important;
+ width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+ padding:0!important;margin:0!important;border:0!important;border-radius:0!important;
+ background:transparent!important;color:var(--lf-text)!important;box-shadow:none!important;
+}
+.lf-header-actions button [data-lucide],
+.lf-header-actions button svg{display:block!important;width:23px!important;height:23px!important;stroke:currentColor!important;fill:none!important;stroke-width:1.8!important}
+.lf-header-alert-count{border:2px solid var(--lf-surface)!important;border-radius:50%!important;background:var(--lf-danger)!important;color:#fff!important}
+.lf-header-menu .lf-menu-glyph{display:none!important}
+body.lf-drawer-open .lf-app-header{
+ visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+ transform:translateY(-110%)!important;
+}
+.lf-side-drawer{z-index:320!important}
+.lf-drawer-backdrop{z-index:310!important}
+
+/* Icons remain simple Lucide outlines, without decorative square containers. */
+.lf-drawer-link span{
+ width:28px!important;height:28px!important;flex:0 0 28px!important;
+ display:grid!important;place-items:center!important;padding:0!important;
+ border:0!important;border-radius:0!important;background:transparent!important;
+ color:var(--lf-muted)!important;
+}
+.lf-drawer-link span svg{width:20px!important;height:20px!important;stroke-width:1.8!important}
+.lf-drawer-link.active span{background:transparent!important;color:var(--lf-blue)!important}
+.lf-section-icon{
+ width:27px!important;height:27px!important;margin-inline-end:5px!important;
+ border:0!important;border-radius:0!important;background:transparent!important;
+ color:var(--lf-muted)!important;
+}
+.lf-section-icon svg,.more-icon svg,.lf-order-history-head>span svg{stroke-width:1.8!important}
+.more-icon,.lf-order-customer-icon,.analytics-hero-mark,
+.lf-order-history-head>span{
+ background:transparent!important;border:0!important;border-radius:0!important;
+ box-shadow:none!important;color:var(--lf-muted)!important;
+}
+.lf-header-menu svg,.lf-header-alerts svg,.lf-header-settings svg{
+ width:23px;height:23px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+}
+
+/* Keep operational figures semantic in both themes. */
+#mSales{color:var(--lf-success)!important}
+#mPending,#mPreparing,#lfExecOpenOrders{color:var(--lf-blue)!important}
+#mReceivables,#lfExecProduction{color:var(--lf-warning)!important}
+#lfExecMaterials,#lfExecOverdue{color:var(--lf-danger)!important}
+html[data-theme="dark"] .metric strong{color:var(--lf-blue)!important}
+html[data-theme="dark"] #mSales{color:var(--lf-success)!important}
+html[data-theme="dark"] #mPending,
+html[data-theme="dark"] #mPreparing,
+html[data-theme="dark"] #lfExecOpenOrders{color:var(--lf-blue)!important}
+html[data-theme="dark"] #mReceivables,
+html[data-theme="dark"] #lfExecProduction{color:var(--lf-warning)!important}
+html[data-theme="dark"] #lfExecMaterials,
+html[data-theme="dark"] #lfExecOverdue{color:var(--lf-danger)!important}
