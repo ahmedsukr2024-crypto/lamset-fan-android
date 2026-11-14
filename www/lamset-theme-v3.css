@@ -931,3 +931,61 @@ html[data-theme="dark"] #orders .lf-order-history-filters select{
 #orders > .lf-orders-view{order:2!important;}
 @media(max-width:520px){#orders .lf-orders-nav{gap:5px;padding:5px}#orders .lf-orders-nav-tab{font-size:11px;padding:8px 3px;min-height:43px}#orders .lf-orders-overview-actions{grid-template-columns:1fr}#orders .lf-orders-action-card{min-height:unset}#orders .lf-orders-return-shortcut{align-items:flex-start;flex-direction:column}#orders .lf-orders-return-shortcut button{width:100%}}
 @media(prefers-reduced-motion:reduce){#orders .lf-orders-view,#orders .lf-orders-nav-tab{animation:none;transition:none}}
+
+
+/* Responsive safety layer — phones, compact phones and tablets.
+   Layout-only rules: preserve existing workflows, data and component behavior. */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{overflow-wrap:anywhere}
+#app,.app,.main,.container,main,.panel,.panel.active,
+.sectionhead,.card,.lf-card,.lf-order-card,.lf-orders-view,
+.lf-order-workspace,.lf-order-history-tools{min-width:0;max-width:100%}
+img,svg,video,canvas{max-width:100%;height:auto}
+img{object-fit:contain}
+button,input,select,textarea{max-width:100%;min-width:0}
+button{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+label,small,p,h1,h2,h3,h4,th,td,.muted,.hint{overflow-wrap:anywhere;word-break:normal}
+table{max-width:100%;border-collapse:separate}
+[role="dialog"],dialog,.modal,.modal-content,.popup,.drawer,
+.lf-alert-card,.lf-order-status-dialog{max-width:min(100%,720px)}
+.grid,.row,.flex,.actions,.toolbar{min-width:0}
+.grid>* ,.row>* ,.flex>*{min-width:0;max-width:100%}
+input,select,textarea{width:100%}
+:focus-visible{outline:2px solid var(--lf-blue);outline-offset:2px}
+@media(min-width:700px) and (max-width:1100px){
+  body{font-size:15px}
+  .container,main,.panel.active{width:100%;max-width:100%}
+  .card,.lf-card,.lf-order-card{padding:16px}
+  .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+  img{max-height:420px}
+}
+@media(max-width:699px){
+  .container,main,.panel.active{width:100%;max-width:100%;margin-inline:auto}
+  .card,.lf-card,.lf-order-card{min-width:0;max-width:100%;padding:12px}
+  .grid{grid-template-columns:minmax(0,1fr)!important}
+  .toolbar,.actions{display:flex;flex-wrap:wrap;gap:8px}
+  .toolbar>* ,.actions>*{flex:1 1 auto;min-width:0}
+  button{min-height:44px;padding:9px 10px!important}
+  table{display:block;width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
+  th,td{white-space:normal;min-width:84px}
+  img{max-height:300px}
+  [role="dialog"],dialog,.modal,.modal-content,.popup,.drawer,
+  .lf-alert-card,.lf-order-status-dialog{width:calc(100vw - 24px);max-width:calc(100vw - 24px);margin-inline:auto}
+}
+@media(max-width:390px){
+  body{font-size:13px}
+  .card,.lf-card,.lf-order-card{padding:10px;border-radius:13px}
+  button{font-size:12px!important;padding:8px 7px!important}
+  input,select,textarea{font-size:16px!important}
+  h1{font-size:clamp(19px,6vw,24px)}
+  h2{font-size:clamp(17px,5vw,21px)}
+  img{max-height:240px}
+  .actions>* ,.toolbar>*{flex:1 1 100%}
+}
+@media(orientation:landscape) and (max-height:520px){
+  [role="dialog"],dialog,.modal,.modal-content,.popup,.drawer,
+  .lf-alert-card,.lf-order-status-dialog{max-height:calc(100dvh - 20px);overflow-y:auto}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
