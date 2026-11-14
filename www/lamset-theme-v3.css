@@ -278,3 +278,11 @@ html[data-theme="dark"] .lf-product-cart-dock{background:var(--lf-blue-soft)!imp
  .nav button b{font-size:9px!important}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+/* Keep the existing drawer controller contract: it toggles is-open / is-visible. */
+.lf-side-drawer.is-open{transform:translateX(0)!important}
+.lf-drawer-backdrop.is-visible{display:block!important;opacity:1!important}
+.lf-drawer-backdrop:not(.is-visible){opacity:0;pointer-events:none}
+body.lf-drawer-open{overflow:hidden!important}
+.lf-menu-glyph{display:flex;flex-direction:column;justify-content:center;gap:5px;width:20px;height:20px}
+.lf-menu-glyph i{display:block;width:19px;height:2px;border-radius:2px;background:currentColor}
