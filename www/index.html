@@ -738,7 +738,7 @@ function importWhatsAppOrder(){
  const say=(message,kind='info')=>{if(status)status.textContent=message;window.LamsetUI?.toast(message,kind)};
  if(!source.trim())return say('الصق رسالة واتساب أولًا.','error');
  const lines=source.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- const field=(label)=>{const row=lines.find(x=>new RegExp('^'+label+'\s*[:：]','i').test(x));return row?row.replace(new RegExp('^'+label+'\s*[:：]\s*','i'),'').trim():''};
+ const field=(label)=>{const row=lines.find(x=>x.startsWith(label+':')||x.startsWith(label+'：'));return row?row.slice(label.length+1).trim():''};
  const customerName=field('الاسم'),phoneRaw=field('الموبايل')||field('الهاتف')||field('رقم الهاتف'),address=field('العنوان')||field('المنطقة'),note=field('ملاحظات');
  const digits=lfWhatsAppDigits(phoneRaw).replace(/[^0-9]/g,'');
  let matchedCustomer=(db.customers||[]).find(c=>digits&&customerPhoneDigits(c.phone)===customerPhoneDigits(phoneRaw));
