@@ -177,3 +177,16 @@ html,body{
   place-items:center!important;
   color:var(--lf-blue)!important;
 }#dashboard .lf-executive-mark .lf-icon{width:20px;height:20px;flex-basis:20px}#dashboard .dash-shortcuts button span{color:var(--lf-blue)!important}
+/* Analytics sales chart polish: consistent blue palette, clear summary, and touch-friendly scrolling. */
+#analyticsSalesChart{min-width:0}
+#analyticsSalesChart .lf-chart-summary{align-items:center;gap:6px 12px;padding:12px 13px;margin:2px 0 10px;border:1px solid var(--lf-border);border-radius:13px;background:var(--lf-surface-2)}
+#analyticsSalesChart .lf-chart-summary span{color:var(--lf-muted);font-size:11px;font-weight:700}
+#analyticsSalesChart .lf-chart-summary strong{color:var(--lf-blue);font-size:21px;font-weight:900;overflow-wrap:anywhere}
+#analyticsSalesChart .lf-chart-summary small{color:var(--lf-muted);font-size:11px}
+#analyticsSalesChart .lf-chart-scroll{padding:3px 0 8px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+#analyticsSalesChart .lf-sales-svg{min-width:520px;max-height:260px}
+#analyticsSalesChart .lf-chart-grid line{stroke:var(--lf-border);stroke-dasharray:3 5;opacity:.9}
+#analyticsSalesChart .lf-chart-grid text,#analyticsSalesChart .lf-chart-value{fill:var(--lf-muted)}
+#analyticsSalesChart .lf-chart-label{fill:var(--lf-text)}
+#analyticsSalesChart .lf-chart-column rect{stroke:rgba(24,119,242,.12);stroke-width:1}
+@media(max-width:420px){#analyticsSalesChart .lf-chart-summary{padding:10px}#analyticsSalesChart .lf-chart-summary strong{font-size:19px}}
