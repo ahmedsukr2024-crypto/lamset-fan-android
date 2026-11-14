@@ -533,3 +533,30 @@ html[data-theme="dark"] #mReceivables,
 html[data-theme="dark"] #lfExecProduction{color:var(--lf-warning)!important}
 html[data-theme="dark"] #lfExecMaterials,
 html[data-theme="dark"] #lfExecOverdue{color:var(--lf-danger)!important}
+
+
+/* Safe-area and viewport correction: reserve the Android top inset once,
+   keep the sticky header directly below the system status bar, and prevent
+   horizontal page scrolling without creating a new scroll container. */
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:clip;
+}
+body{margin:0}
+.wrap{
+  padding-top:env(safe-area-inset-top,0px)!important;
+}
+.lf-app-header{
+  position:sticky!important;
+  top:env(safe-area-inset-top,0px)!important;
+  margin-top:0!important;
+  padding:7px 14px!important;
+  min-height:62px!important;
+}
+@media(min-width:700px){
+  .lf-app-header{padding:9px 16px!important;min-height:68px!important}
+}
+@media(max-width:360px){
+  .lf-app-header{padding:7px 9px!important;min-height:58px!important}
+}
