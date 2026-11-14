@@ -96,7 +96,7 @@ if (isNative) {
   CapacitorUpdater.notifyAppReady().catch(error => console.warn('OTA app-ready notification failed', error));
 }
 
-const appLockEnabled = (() => { try { const saved = JSON.parse(localStorage.getItem('lamset_fan_business_manager_v1') || '{}'); return saved?.appSettings?.lockApp !== false; } catch { return true; } })();
+const appLockEnabled = (() => { try { const saved = JSON.parse(localStorage.getItem('lamset_fan_business_manager_v1') || '{}'); return saved?.appSettings?.lockApp === true; } catch { return false; } })();
 let authenticated = false;
 let authInProgress = false;
 
