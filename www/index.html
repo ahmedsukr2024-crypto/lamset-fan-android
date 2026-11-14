@@ -1402,6 +1402,7 @@ if(s===null)return;s=s.trim();if(!allowed.includes(s))return alert('الحالة
 if(['جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(s)&&orderPendingProductionUnits(o)>0)return alert('لا يمكن نقل الطلب إلى مرحلة الشحن أو التسليم قبل اكتمال التصنيع. توجد '+orderPendingProductionUnits(o)+' قطعة ناقصة في صفحة التصنيع المطلوب.');
 let previous=o.status;if(s===previous)return;
 const cancelling=s==='ملغي'&&previous!=='ملغي',reactivating=previous==='ملغي'&&s!=='ملغي';
+if(cancelling&&['تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(previous))return alert('لا يمكن إلغاء طلب بدأ شحنه أو تم تسليمه؛ حتى لا تعود كمياته إلى المخزون رغم خروجها فعليًا. سجّل مرتجعًا أو راجع التسوية المناسبة بدلًا من إلغاء الطلب.');
 if(cancelling&&(db.returns||[]).some(r=>r.orderId===o.id))return alert('لا يمكن إلغاء الطلب آليًا لوجود مرتجعات أو استبدالات مرتبطة به. راجع حركة المخزون والتسويات أولاً.');
 if(cancelling&&paidOnOrder(o)>0)return alert('لا يمكن إلغاء طلب عليه عربون أو تحصيلات مسجلة؛ حتى لا تختفي المبالغ من المبيعات دون تسجيل ردّها. سجّل رد المبلغ وتسويته أولاً ثم ألغِ الطلب.');
 if(cancelling&&(db.orderCreditSettlements||[]).some(x=>x.orderId===o.id))return alert('لا يمكن إلغاء طلب له تسويات رصيد مسجلة؛ راجع سجل الصرف قبل تغيير حالته.');
