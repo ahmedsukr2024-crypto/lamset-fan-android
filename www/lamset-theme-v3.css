@@ -383,3 +383,63 @@ textarea[aria-invalid="true"]{
 
 /* Four primary bottom-navigation actions after moving Orders to the side drawer. */
 .nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+
+/* Dashboard quick shortcuts: equal touch targets, readable labels, and theme-safe contrast. */
+#dashboard .dash-shortcuts{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  align-items:stretch!important;
+  gap:9px!important;
+}
+#dashboard .dash-shortcuts button{
+  min-width:0!important;
+  min-height:72px!important;
+  height:72px!important;
+  padding:9px 5px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  border-radius:13px!important;
+  color:var(--lf-text)!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  line-height:1.35!important;
+  white-space:nowrap!important;
+}
+#dashboard .dash-shortcuts button span{
+  width:24px!important;
+  height:24px!important;
+  min-width:24px!important;
+  display:grid!important;
+  place-items:center!important;
+  color:var(--lf-blue)!important;
+}
+#dashboard .dash-shortcuts button span svg,
+#dashboard .dash-shortcuts button span .lf-icon{
+  width:22px!important;
+  height:22px!important;
+  flex:0 0 22px!important;
+  stroke-width:1.9!important;
+}
+html[data-theme="dark"] #dashboard .dash-shortcuts button{
+  background:var(--lf-surface-2)!important;
+  color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+html:not([data-theme="dark"]) #dashboard .dash-shortcuts button{
+  background:var(--lf-surface)!important;
+  color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+@media(max-width:360px){
+  #dashboard .dash-shortcuts{gap:7px!important}
+  #dashboard .dash-shortcuts button{
+    height:70px!important;
+    min-height:70px!important;
+    padding:8px 3px!important;
+    gap:6px!important;
+    font-size:11.5px!important;
+  }
+}
