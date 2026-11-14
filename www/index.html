@@ -44,8 +44,8 @@ async function printDocumentPreview(){
   alert(window.Capacitor?.isNativePlatform?.()?'تعذر تجهيز ملف المستند للمشاركة أو الطباعة. تحقق من صلاحية التخزين ثم حاول مرة أخرى.':'تعذرت الطباعة من المعاينة الحالية. حاول فتح الصفحة في متصفح يدعم الطباعة.');
  }
 }
-function closeTopmostModal(){const doc=$('lamsetDocumentPreview'),invoice=$('invoicePreview'),product=$('productDetailModal'),stock=$('lfStockAdjustModal');
- if(stock&&!stock.classList.contains('hidden')){closeStockAdjustment();return true}if(doc?.classList.contains('open')){closeDocumentPreview();return true}if(invoice?.classList.contains('open')){closeInvoicePreview();return true}if(product&&!product.classList.contains('hidden')){closeProductDetail();return true}
+function closeTopmostModal(){const doc=$('lamsetDocumentPreview'),invoice=$('invoicePreview'),product=$('productDetailModal'),stock=$('lfStockAdjustModal'),orderStatus=$('lfOrderStatusModal');
+ if(orderStatus?.classList.contains('open')){closeOrderStatusModal();return true}if(stock&&!stock.classList.contains('hidden')){closeStockAdjustment();return true}if(doc?.classList.contains('open')){closeDocumentPreview();return true}if(invoice?.classList.contains('open')){closeInvoicePreview();return true}if(product&&!product.classList.contains('hidden')){closeProductDetail();return true}
  return false
 }document.addEventListener('keydown',e=>{if(e.key==='Escape'&&closeTopmostModal())e.preventDefault()});
 
@@ -374,6 +374,16 @@ html{color-scheme:light}html[data-theme="dark"]{color-scheme:dark;--ink:#F7F8FA;
 <section id="backup" class="panel"><div class="sectionhead"><h2>النسخ الاحتياطي</h2></div><div class="card"><p class="muted">احفظ نسخة من بياناتك أو اختر ملف نسخة سابقة لاستعادتها. لن يتم استبدال بياناتك الحالية إلا بعد التأكد من صلاحية الملف وموافقتك.</p><div class="actions"><button onclick="lamsetRunButtonAction(this,backup,'جارٍ تجهيز النسخة…')">حفظ نسخة احتياطية</button><button class="ghost" onclick="lamsetRunButtonAction(this,transferBackup,'جارٍ تجهيز ملف النقل…')">نقل كل البيانات إلى هاتف آخر</button><button class="ghost" onclick="document.getElementById('restoreFile').click()">استعادة نسخة على هذا الهاتف</button><input id="restoreFile" class="hidden" type="file" accept=".json,application/json" aria-label="اختيار ملف النسخة الاحتياطية للاستعادة" onchange="restore(event)"></div><div class="card" style="margin-top:14px;background:var(--surface)"><b>النسخ الاحتياطي التلقائي</b><div class="field"><label for="autoBackupFrequency">تكرار حفظ النسخة</label><select id="autoBackupFrequency" onchange="saveAutoBackupSettings()"><option value="off">متوقف</option><option value="daily">كل يوم</option><option value="weekly">كل أسبوع</option><option value="monthly">كل شهر</option><option value="quarterly">كل 3 شهور</option></select></div><p class="muted" id="autoBackupStatus">اختر موعد النسخ التلقائي.</p><small class="muted">يتم الحفظ تلقائيًا على الهاتف عند فتح التطبيق أو عودته للعمل، وفي أثناء استخدامه. إذا كان التطبيق مغلقًا وقت الاستحقاق، تُنفّذ النسخة عند فتحه مرة أخرى.</small></div><p class="muted" id="saveStatus">الحفظ المحلي مفعّل</p><div class="card" style="background:var(--surface)"><b>حالة التخزين</b><p id="storageUsage" class="muted">جارٍ فحص التخزين…</p></div><button class="danger" onclick="resetData()">مسح كل البيانات</button></div></section>
 <div class="footer">LAMSET FAN BUSINESS MANAGER · إصدار محلي أولي · البيانات محفوظة على جهازك</div>
 </main>
+
+
+<div id="lfOrderStatusModal" class="lf-order-status-overlay" role="dialog" aria-modal="true" aria-labelledby="lfOrderStatusTitle" aria-hidden="true" onclick="if(event.target===this)closeOrderStatusModal()">
+ <section class="lf-order-status-dialog">
+  <header class="lf-order-status-head"><div><h3 id="lfOrderStatusTitle">تحديث حالة الطلب</h3><p id="lfOrderStatusCurrent">اختر الحالة الجديدة للطلب</p></div><button type="button" class="ghost smallbtn" onclick="closeOrderStatusModal()" aria-label="إغلاق النافذة">×</button></header>
+  <div class="field"><label for="lfOrderStatusSelect">الحالة الجديدة</label><select id="lfOrderStatusSelect"></select></div>
+  <p class="lf-order-status-help">سيتم تطبيق قواعد المخزون والتصنيع والتحصيل المعتادة قبل حفظ التغيير.</p>
+  <div class="lf-order-status-actions"><button type="button" class="ghost" onclick="closeOrderStatusModal()">إلغاء</button><button type="button" onclick="confirmOrderStatusChange()">تأكيد تحديث الحالة</button></div>
+ </section>
+</div>
 
 <div id="lamsetDocumentPreview" class="lf-document-overlay" role="dialog" aria-modal="true" aria-label="معاينة المستند" onclick="if(event.target===this)closeDocumentPreview()">
  <section class="lf-document-shell">
@@ -757,9 +767,31 @@ return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><me
 function ensureInvoiceSnapshot(o){let snap=o.invoiceSnapshot||{},snapCustomer=snap.customer||{},phone=String(o.phone||snapCustomer.phone||'').replace(/[^0-9]/g,''),c=db.customers.find(x=>x.id===o.customerId)||(o.customerId?null:findUniqueCustomerByPhone(phone));if(c&&!o.customerId)o.customerId=c.id;if(!o.invoiceSnapshot){let p=db.products.find(x=>x.id===o.productId),bp=JSON.parse(JSON.stringify(db.businessProfile||{}));o.invoiceSnapshot={date:o.date||new Date().toISOString(),business:bp,product:o.productSnapshot||{name:p?.name||'منتج',code:p?.code||''},customer:{id:c?.id||o.customerId||'',customerId:c?.id||o.customerId||'',name:c?.name||o.customer,phone:c?.phone||o.phone,area:c?.area||o.area,type:c?.type||''}}}else{o.invoiceSnapshot.customer={...snapCustomer,id:snapCustomer.id||c?.id||o.customerId||'',customerId:snapCustomer.customerId||c?.id||o.customerId||'',name:snapCustomer.name||c?.name||o.customer,phone:snapCustomer.phone||c?.phone||o.phone,area:snapCustomer.area||c?.area||o.area,type:snapCustomer.type||c?.type||''};let currentBusiness=JSON.parse(JSON.stringify(db.businessProfile||{}));o.invoiceSnapshot.business={...currentBusiness,...(snap.business||{})};if(!o.invoiceSnapshot.business.logo)o.invoiceSnapshot.business.logo=currentBusiness.logo||'';}return o.invoiceSnapshot}function previewInvoice(orderId){let o=db.orders.find(x=>x.id===orderId);if(!o)return alert('الطلب غير موجود');ensureInvoiceSnapshot(o);let modal=$('invoicePreview'),frame=$('invoicePreviewFrame');frame.onload=null;frame.srcdoc=lamsetApplyPrintTheme(invoiceHtml(o));$('invoicePreviewPrint').onclick=()=>printInvoice(orderId);$('invoicePreviewWhatsApp').onclick=()=>shareInvoiceWhatsApp(orderId);modal.classList.add('open');document.body.classList.add('lf-modal-open');document.body.style.overflow='hidden'}function closeInvoicePreview(){let modal=$('invoicePreview');if(modal)modal.classList.remove('open');document.body.classList.remove('lf-modal-open');document.body.style.overflow=''}
 function printInvoice(orderId){let o=db.orders.find(x=>x.id===orderId);if(!o)return alert('الطلب غير موجود');ensureInvoiceSnapshot(o);previewInvoice(orderId);let frame=$('invoicePreviewFrame'),printed=false;let doPrint=()=>{if(printed)return;printed=true;try{frame.contentWindow.focus();frame.contentWindow.print()}catch(e){printed=false;alert('تعذر فتح نافذة الطباعة. افتح معاينة الفاتورة واضغط طباعة / حفظ PDF.')}};frame.onload=()=>setTimeout(doPrint,500);setTimeout(()=>{if(frame.contentDocument?.readyState==='complete')doPrint()},700)}function normalizeWhatsAppPhone(value){let d=String(value||'').replace(/\D/g,'');if(!d)return '';if(d.startsWith('00'))d=d.slice(2);if(d.startsWith('0'))d='20'+d.slice(1);else if(d.length===10&&d.startsWith('1'))d='20'+d;return d}
 function shareInvoiceWhatsApp(orderId){let o=db.orders.find(x=>x.id===orderId);if(!o)return alert('الطلب غير موجود');ensureInvoiceSnapshot(o);let snap=o.invoiceSnapshot,customer=snap.customer||{},phone=normalizeWhatsAppPhone(customer.phone||o.phone);if(!phone)return alert('لا يوجد رقم هاتف مسجل للعميل. أضف رقم الهاتف في ملف العميل أولاً.');let items=analyticsItems(o),productLines=items.map((x,i)=>{let p=x.productSnapshot||db.products.find(v=>v.id===x.productId)||{};return (i+1)+'. '+(x.productName||p.name||'منتج')+(x.productCode||p.code?' · '+(x.productCode||p.code):'')+' × '+(Number(x.qty)||0)+' '+((x.unitType||o.unitType)==='carton'?'كرتونة':'قطعة')+' — '+money(x.price)}),gross=orderGrossTotal(o),refund=orderRefundTotal(o.id),exchange=orderExchangeAdjustment(o.id),total=orderNetTotal(o),paid=paidOnOrder(o),due=orderDue(o),credit=orderCredit(o),lines=['🧾 فاتورة مبيعات - لمسة فن','رقم الفاتورة: '+(o.invoiceNumber||o.id),'التاريخ: '+new Date(snap.date||o.date||Date.now()).toLocaleDateString('ar-EG'),'العميل: '+(customer.name||o.customer||''),'تفاصيل المنتجات:',...productLines,'','إجمالي الطلب: '+money(gross),'المرتجعات: '+money(refund),'فروق الاستبدال: '+money(exchange),'صافي الفاتورة: '+money(total),'المدفوع: '+money(paid),'المتبقي: '+money(due)];if(credit>0)lines.push('رصيد زائد للعميل: '+money(credit));lines.push('شكراً لاختياركم لمسة فن ❤️');let url='https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n'));let opened=window.open(url,'_blank');if(!opened)location.href=url}
-function changeOrderStatus(id){let o=db.orders.find(x=>x.id===id);if(!o)return;
-let allowed=['جديد','قيد التجهيز','جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم','ملغي'],s=prompt('اختر حالة من الحالات المعتمدة:\n'+allowed.join(' / '),o.status);
-if(s===null)return;s=s.trim();if(!allowed.includes(s))return alert('الحالة غير معتمدة. اختر حالة من القائمة المعروضة.');
+function changeOrderStatus(id){
+ const o=(db.orders||[]).find(x=>x.id===id);if(!o)return;
+ const modal=$('lfOrderStatusModal'),select=$('lfOrderStatusSelect'),current=$('lfOrderStatusCurrent');
+ if(!modal||!select)return alert('نافذة تحديث الحالة غير متاحة حاليًا.');
+ const allowed=['جديد','قيد التجهيز','جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم','ملغي'];
+ select.innerHTML=allowed.map(status=>'<option value="'+esc(status)+'" '+(status===o.status?'selected':'')+'>'+esc(status)+'</option>').join('');
+ if(current)current.textContent='الحالة الحالية: '+(o.status||'جديد')+' · الطلب #'+String(o.id).slice(-8);
+ window.lfOrderStatusTargetId=id;
+ modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('lf-modal-open');
+ setTimeout(()=>select.focus(),40);
+}
+function closeOrderStatusModal(){
+ const modal=$('lfOrderStatusModal');if(!modal)return;
+ modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('lf-modal-open');
+ window.lfOrderStatusTargetId=null;
+}
+function confirmOrderStatusChange(){
+ const id=window.lfOrderStatusTargetId,select=$('lfOrderStatusSelect');
+ if(id===null||id===undefined||!select)return closeOrderStatusModal();
+ const status=select.value;closeOrderStatusModal();
+ applyOrderStatusChange(id,status);
+}
+function applyOrderStatusChange(id,s){let o=db.orders.find(x=>x.id===id);if(!o)return;
+let allowed=['جديد','قيد التجهيز','جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم','ملغي'];
+if(!allowed.includes(s))return alert('الحالة غير معتمدة. اختر حالة من القائمة المعروضة.');
 if(['جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(s)&&orderPendingProductionUnits(o)>0)return alert('لا يمكن نقل الطلب إلى مرحلة الشحن أو التسليم قبل اكتمال التصنيع. توجد '+orderPendingProductionUnits(o)+' قطعة ناقصة في صفحة التصنيع المطلوب.');
 let previous=o.status;if(s===previous)return;
 const cancelling=s==='ملغي'&&previous!=='ملغي',reactivating=previous==='ملغي'&&s!=='ملغي';
