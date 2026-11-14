@@ -989,3 +989,97 @@ input,select,textarea{width:100%}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+
+/* Lamset Fan design tokens — one source of truth for app colors and controls. */
+:root{
+ --lf-brand:#7654E8;
+ --lf-brand-hover:#6543D6;
+ --lf-brand-soft:#F0EBFF;
+ --lf-control-height:44px;
+ --lf-control-radius:12px;
+ --lf-control-padding-x:14px;
+ --lf-control-font:14px;
+ --lf-control-gap:8px;
+ --lf-control-border:var(--lf-border);
+ --lf-control-bg:var(--lf-surface);
+ --lf-control-text:var(--lf-text);
+ --lf-focus-ring:0 0 0 3px rgba(118,84,232,.18);
+ --lf-blue:var(--lf-brand);
+ --lf-blue-hover:var(--lf-brand-hover);
+ --lf-blue-soft:var(--lf-brand-soft);
+}
+html[data-theme="dark"]{
+ --lf-brand:#A78BFA;
+ --lf-brand-hover:#B9A5FF;
+ --lf-brand-soft:#352A4A;
+ --lf-control-border:#494252;
+ --lf-focus-ring:0 0 0 3px rgba(167,139,250,.24);
+ --lf-bg:#17151C;
+ --lf-surface:#211E29;
+ --lf-surface-2:#2B2735;
+ --lf-text:#F5F1FA;
+ --lf-muted:#B8B1C5;
+ --lf-border:#3D3748;
+ --lf-success:#65C98A;
+ --lf-warning:#F2C66D;
+ --lf-danger:#F17B91;
+}
+button,
+input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),
+select,textarea{
+ font-family:"Tajawal",Tahoma,Arial,sans-serif!important;
+ border-radius:var(--lf-control-radius)!important;
+}
+button{
+ min-height:var(--lf-control-height)!important;
+ padding:10px var(--lf-control-padding-x)!important;
+ font-size:var(--lf-control-font)!important;
+ line-height:1.35!important;
+ font-weight:800!important;
+}
+button.ghost,button.textbtn,.textbtn,.iconbtn,
+.lf-alert-snooze,.lf-alert-filter,.lf-drawer-close,
+.lf-header-menu,.lf-order-workspace-tab,.dash-shortcuts button{
+ background:var(--lf-control-bg)!important;
+ color:var(--lf-brand)!important;
+ border:1px solid var(--lf-control-border)!important;
+}
+button.danger,.danger{
+ background:color-mix(in srgb,var(--lf-danger) 13%,var(--lf-surface))!important;
+ color:var(--lf-danger)!important;
+ border-color:color-mix(in srgb,var(--lf-danger) 32%,var(--lf-border))!important;
+}
+button.success,.success{
+ background:color-mix(in srgb,var(--lf-success) 13%,var(--lf-surface))!important;
+ color:var(--lf-success)!important;
+ border-color:color-mix(in srgb,var(--lf-success) 32%,var(--lf-border))!important;
+}
+button.warning,.warning{
+ background:color-mix(in srgb,var(--lf-warning) 16%,var(--lf-surface))!important;
+ color:var(--lf-text)!important;
+ border-color:color-mix(in srgb,var(--lf-warning) 38%,var(--lf-border))!important;
+}
+input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),
+select,textarea{
+ min-height:var(--lf-control-height);
+ padding:10px 12px!important;
+ background:var(--lf-control-bg)!important;
+ color:var(--lf-control-text)!important;
+ border:1px solid var(--lf-control-border)!important;
+ font-size:var(--lf-control-font)!important;
+}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+ outline:0!important;box-shadow:var(--lf-focus-ring)!important;
+}
+html[data-theme="dark"] button.danger,
+html[data-theme="dark"] button.success,
+html[data-theme="dark"] button.warning{filter:saturate(.92)}
+/* Keep icon-only controls compact and consistently square. */
+.iconbtn,.lf-header-menu,.lf-drawer-close,.lf-alert-snooze{
+ width:var(--lf-control-height);min-width:var(--lf-control-height);
+ height:var(--lf-control-height);min-height:var(--lf-control-height);
+ padding:0!important;display:inline-flex;align-items:center;justify-content:center;
+}
+/* Button groups use the same rhythm without forcing every action to full width. */
+.actions,.toolbar,.lf-order-status-actions{gap:var(--lf-control-gap)!important}
