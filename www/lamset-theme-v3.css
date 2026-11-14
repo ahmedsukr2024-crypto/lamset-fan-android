@@ -890,3 +890,18 @@ html[data-theme="dark"] #orders .lf-order-history-filters select{
   #orders .lf-order-history-head h3{font-size:13px!important}
   #orders .lf-order-history-filters>.field>span{font-size:10px!important}
 }
+
+
+/* Orders workspace — first UX pass: put the searchable order register before long entry forms. */
+#orders.panel.active{
+  display:flex!important;
+  flex-direction:column!important;
+  min-width:0!important;
+}
+#orders > .sectionhead{order:0!important}
+#orders > .lf-order-workspace{order:1!important}
+#orders > .lf-order-history-tools{order:2!important}
+#orders > #orderList{order:3!important}
+#orders > :not(.sectionhead):not(.lf-order-workspace):not(.lf-order-history-tools):not(#orderList){
+  order:4!important;
+}
