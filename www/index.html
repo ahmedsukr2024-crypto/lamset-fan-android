@@ -1568,7 +1568,7 @@ const lifecycle={...(settingsBefore.alertLifecycle||{})};
 const previousActive=lifecycle.active&&typeof lifecycle.active==='object'?lifecycle.active:{};
 const history=Array.isArray(lifecycle.history)?lifecycle.history.slice():[];
 const currentActive={};
-items.forEach(x=>{const old=previousActive[x.key];currentActive[x.key]={title:x.title,body:x.body,category:x.category,level:x.level,firstSeenAt:old?.firstSeenAt||now,lastSeenAt:now};});
+items.forEach(x=>{const old=previousActive[x.key];currentActive[x.key]={title:x.title,body:x.body,category:x.category,level:x.level,firstSeenAt:old?.firstSeenAt||now,lastSeenAt:old?.lastSeenAt&&now-Number(old.lastSeenAt)<300000?old.lastSeenAt:now};});
 Object.keys(previousActive).forEach(k=>{if(!activeKeys.has(k)){const old=previousActive[k];history.unshift({key:k,title:old.title||'تنبيه',body:old.body||'',category:old.category||'متابعة',level:old.level||'info',resolvedAt:now,firstSeenAt:old.firstSeenAt||now,resolution:'اختفى سبب التنبيه من البيانات الحالية'});}});
 lifecycle.active=currentActive;lifecycle.history=history.slice(0,60);
 const snoozeChanged=Object.keys(snoozes).some(k=>!activeKeys.has(k)||Number(snoozes[k])<=now);
