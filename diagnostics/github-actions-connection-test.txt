@@ -1,0 +1,3 @@
+Temporary diagnostic file.
+Purpose: verify that pull_request events can start GitHub Actions.
+This file does not affect application source or build configuration.
