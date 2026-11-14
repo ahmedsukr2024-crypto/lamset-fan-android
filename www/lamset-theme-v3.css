@@ -379,3 +379,7 @@ textarea[aria-invalid="true"]{
   #dashboard .lf-exec-primary-task{align-items:stretch!important}
   #dashboard .lf-exec-primary-task button{width:100%!important}
 }
+
+
+/* Four primary bottom-navigation actions after moving Orders to the side drawer. */
+.nav{grid-template-columns:repeat(4,minmax(0,1fr))}
