@@ -443,3 +443,263 @@ html:not([data-theme="dark"]) #dashboard .dash-shortcuts button{
     font-size:11.5px!important;
   }
 }
+
+
+/* Orders: clearer card hierarchy, production progress, and financial summary. */
+#orders #orderList .lf-order-card{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:12px!important;
+  padding:16px!important;
+  margin:0 0 12px!important;
+  border:1px solid var(--lf-border)!important;
+  border-inline-start:4px solid var(--lf-blue)!important;
+  border-radius:18px!important;
+  background:var(--lf-surface)!important;
+  color:var(--lf-text)!important;
+  box-shadow:var(--lf-shadow)!important;
+  min-width:0!important;
+}
+#orders #orderList .lf-order-card.is-overdue{
+  border-inline-start-color:var(--lf-danger)!important;
+}
+#orders #orderList .lf-order-card>.sectionhead{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  margin:0!important;
+}
+#orders #orderList .lf-order-card>.sectionhead>div{
+  display:grid!important;
+  gap:4px!important;
+  min-width:0!important;
+}
+#orders #orderList .lf-order-card>.sectionhead>div>b{
+  color:var(--lf-text)!important;
+  font-size:16px!important;
+  font-weight:900!important;
+  line-height:1.4!important;
+  overflow-wrap:anywhere!important;
+}
+#orders #orderList .lf-order-number{
+  color:var(--lf-muted)!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  direction:ltr!important;
+  text-align:right!important;
+}
+#orders #orderList .lf-order-stage{
+  flex:0 0 auto!important;
+  max-width:48%!important;
+  padding:6px 10px!important;
+  border:1px solid var(--lf-border)!important;
+  border-radius:999px!important;
+  background:var(--lf-blue-soft)!important;
+  color:var(--lf-blue)!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  line-height:1.4!important;
+  text-align:center!important;
+  white-space:normal!important;
+}
+#orders #orderList .lf-order-stage.danger{
+  background:color-mix(in srgb,var(--lf-danger) 12%,var(--lf-surface))!important;
+  color:var(--lf-danger)!important;
+}
+#orders #orderList .lf-order-stage.warning{
+  background:color-mix(in srgb,var(--lf-warning) 14%,var(--lf-surface))!important;
+  color:var(--lf-warning)!important;
+}
+#orders #orderList .lf-order-meta{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+  margin:0!important;
+}
+#orders #orderList .lf-order-meta>span{
+  min-width:0!important;
+  padding:8px 10px!important;
+  border:1px solid var(--lf-border)!important;
+  border-radius:10px!important;
+  background:var(--lf-surface-2)!important;
+  color:var(--lf-muted)!important;
+  font-size:11px!important;
+  font-weight:700!important;
+  line-height:1.5!important;
+  overflow-wrap:anywhere!important;
+}
+#orders #orderList .lf-order-progress-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  margin:0!important;
+  color:var(--lf-text)!important;
+  font-size:12px!important;
+}
+#orders #orderList .lf-order-progress-head>b{font-weight:900!important}
+#orders #orderList .lf-order-progress-head>strong{
+  color:var(--lf-blue)!important;
+  font-size:14px!important;
+  font-weight:900!important;
+  font-variant-numeric:tabular-nums!important;
+}
+#orders #orderList .lf-order-progress{
+  height:9px!important;
+  margin-top:-7px!important;
+  overflow:hidden!important;
+  border-radius:99px!important;
+  background:var(--lf-surface-2)!important;
+  border:1px solid var(--lf-border)!important;
+}
+#orders #orderList .lf-order-progress>span{
+  display:block!important;
+  height:100%!important;
+  min-width:0!important;
+  border-radius:inherit!important;
+  background:var(--lf-blue)!important;
+  transition:width .25s ease!important;
+}
+#orders #orderList .lf-order-progress-stats{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:6px!important;
+  margin-top:-5px!important;
+}
+#orders #orderList .lf-order-progress-stats>span{
+  min-width:0!important;
+  color:var(--lf-muted)!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  line-height:1.5!important;
+  text-align:center!important;
+  overflow-wrap:anywhere!important;
+}
+#orders #orderList .lf-order-lines{
+  display:grid!important;
+  gap:7px!important;
+  margin:0!important;
+}
+#orders #orderList .lf-order-line-progress{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  flex-wrap:wrap!important;
+  gap:5px 10px!important;
+  padding:9px 10px!important;
+  border:1px solid var(--lf-border)!important;
+  border-radius:11px!important;
+  background:var(--lf-surface-2)!important;
+  min-width:0!important;
+}
+#orders #orderList .lf-order-line-progress>span{
+  min-width:0!important;
+  color:var(--lf-text)!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  overflow-wrap:anywhere!important;
+}
+#orders #orderList .lf-order-line-progress>b{
+  color:var(--lf-text)!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  font-variant-numeric:tabular-nums!important;
+}
+#orders #orderList .lf-order-line-progress>small{
+  flex:1 0 100%!important;
+  color:var(--lf-muted)!important;
+  font-size:10px!important;
+  line-height:1.5!important;
+}
+#orders #orderList .lf-order-finance{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin:0!important;
+}
+#orders #orderList .lf-order-finance>span{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:5px!important;
+  min-width:0!important;
+  padding:11px!important;
+  border:1px solid var(--lf-border)!important;
+  border-radius:12px!important;
+  background:var(--lf-surface-2)!important;
+  color:var(--lf-muted)!important;
+  font-size:10px!important;
+  font-weight:800!important;
+}
+#orders #orderList .lf-order-finance>span>b{
+  color:var(--lf-text)!important;
+  font-size:15px!important;
+  font-weight:900!important;
+  overflow-wrap:anywhere!important;
+  font-variant-numeric:tabular-nums!important;
+}
+#orders #orderList .lf-order-finance>span>b.warn{color:var(--lf-warning)!important}
+#orders #orderList .lf-order-status-history{
+  padding:9px 10px!important;
+  border-inline-start:3px solid var(--lf-blue)!important;
+  border-radius:9px!important;
+  background:var(--lf-surface-2)!important;
+  color:var(--lf-muted)!important;
+  font-size:10px!important;
+  line-height:1.6!important;
+  overflow-wrap:anywhere!important;
+}
+#orders #orderList .lf-order-status-history>b{color:var(--lf-text)!important}
+#orders #orderList .lf-order-card>.actions{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin:0!important;
+}
+#orders #orderList .lf-order-card>.actions button{
+  min-width:0!important;
+  min-height:42px!important;
+  margin:0!important;
+  padding:8px 9px!important;
+  border-radius:11px!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  line-height:1.4!important;
+  white-space:normal!important;
+}
+#orders #orderList .lf-order-archive-note{
+  padding:8px 10px!important;
+  border-radius:9px!important;
+  background:var(--lf-surface-2)!important;
+  color:var(--lf-muted)!important;
+  font-size:10px!important;
+  line-height:1.5!important;
+}
+html[data-theme="dark"] #orders #orderList .lf-order-card,
+html[data-theme="dark"] #orders #orderList .lf-order-meta>span,
+html[data-theme="dark"] #orders #orderList .lf-order-line-progress,
+html[data-theme="dark"] #orders #orderList .lf-order-finance>span,
+html[data-theme="dark"] #orders #orderList .lf-order-status-history,
+html[data-theme="dark"] #orders #orderList .lf-order-archive-note{
+  background:var(--lf-surface)!important;
+  color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] #orders #orderList .lf-order-meta>span,
+html[data-theme="dark"] #orders #orderList .lf-order-line-progress,
+html[data-theme="dark"] #orders #orderList .lf-order-finance>span,
+html[data-theme="dark"] #orders #orderList .lf-order-status-history,
+html[data-theme="dark"] #orders #orderList .lf-order-archive-note{
+  background:var(--lf-surface-2)!important;
+}
+@media(max-width:380px){
+  #orders #orderList .lf-order-card{padding:12px!important;gap:10px!important}
+  #orders #orderList .lf-order-card>.sectionhead>div>b{font-size:14px!important}
+  #orders #orderList .lf-order-meta{grid-template-columns:minmax(0,1fr)!important}
+  #orders #orderList .lf-order-progress-stats{gap:3px!important}
+  #orders #orderList .lf-order-progress-stats>span{font-size:9px!important}
+  #orders #orderList .lf-order-finance>span{padding:9px!important}
+  #orders #orderList .lf-order-finance>span>b{font-size:13px!important}
+  #orders #orderList .lf-order-card>.actions{gap:6px!important}
+  #orders #orderList .lf-order-card>.actions button{font-size:10px!important;padding:7px 5px!important}
+}
