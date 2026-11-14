@@ -1044,29 +1044,28 @@ window.addEventListener('lamset-native-bridge-ready',startLamsetAutoBackupTimer)
 window.addEventListener('lamset-app-resumed',runAutoBackupIfDue);
 async function restore(e){
 const file=e.target.files?.[0];if(!file)return;const previous=db,recoveryWasRequired=lamsetStorageRecoveryRequired;let imageDb=null,priorImages=[],imagesWritten=false,images=[];
-const imageTransaction=(mode,records,ids)=>new Promise((resolve,reject)=>{try{const tx=imageDb.transaction(LAMSET_IMAGE_STORE,'readwrite'),store=tx.objectStore(LAMSET_IMAGE_STORE);if(mode==='put')records.forEach(x=>store.put(x));else ids.forEach(id=>store.delete(id));tx.oncomplete=resolve;tx.onerror=tx.onabort=()=>reject(tx.error||new Error('images'))}catch(err){reject(err)}});
+const imageTransaction=(mode,records=[],ids=[])=>new Promise((resolve,reject)=>{try{const tx=imageDb.transaction(LAMSET_IMAGE_STORE,'readwrite'),store=tx.objectStore(LAMSET_IMAGE_STORE);if(mode==='replace'){store.clear();records.forEach(x=>store.put(x))}else if(mode==='put')records.forEach(x=>store.put(x));else ids.forEach(id=>store.delete(id));tx.oncomplete=resolve;tx.onerror=tx.onabort=()=>reject(tx.error||new Error('images'))}catch(err){reject(err)}});
 try{const rawText=await file.text(),cleanText=rawText.replace(/^\\uFEFF/,'').trim();let parsed;try{parsed=JSON.parse(cleanText)}catch(parseError){throw new Error('تعذر قراءة الملف؛ تأكد أنه ملف JSON أصلي صادر من تطبيق لمسة فن وليس ملف PDF أو ZIP أو صورة.')}let data=parsed?.format==='lamset-fan-backup'?parsed.database:(parsed?.database&&typeof parsed.database==='object'?parsed.database:(parsed?.data&&typeof parsed.data==='object'?parsed.data:parsed));
-images=parsed?.format==='lamset-fan-backup'&&Array.isArray(parsed.images)?parsed.images:(Array.isArray(parsed?.images)?parsed.images:[]);
+const imagesIncluded=Array.isArray(parsed?.images);images=imagesIncluded?parsed.images:[];
 if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('محتوى الملف لا يحتوي على قاعدة بيانات مفهومة.');
 if(!Array.isArray(data.products)||!Array.isArray(data.orders))throw new Error('الملف مقروء لكنه ليس نسخة قاعدة بيانات لمسة فن؛ تأكد من اختيار ملف النسخة الاحتياطية الصحيح.');
 if((data.customers!=null&&!Array.isArray(data.customers))||(data.productions!=null&&!Array.isArray(data.productions)))throw new Error('بعض أقسام النسخة الاحتياطية غير متوافقة؛ لم يتم تغيير بياناتك الحالية.');
 if(data.products.some(p=>!p||typeof p!=='object'||!p.id)||data.orders.some(o=>!o||typeof o!=='object'||!o.id)||images.some(im=>!im||!im.id||typeof im.data!=='string'))throw new Error('النسخة تحتوي على سجلات غير مكتملة أو صور غير صالحة؛ لم يتم استبدال بياناتك.');
 if(!confirm('استبدال البيانات الحالية بالنسخة المختارة؟ سيتم استيراد الصور الموجودة داخل النسخة أيضًا.'))return;
 const next={...previous,...data,customers:data.customers||[],productions:data.productions||[],offers:Array.isArray(data.offers)?data.offers:previous.offers,costLines:Array.isArray(data.costLines)?data.costLines:[]};
-if(images.length){
+if(imagesIncluded){
 imageDb=await openLamsetImageDb();if(!imageDb)throw new Error('images');
-const ids=images.map(x=>String(x.id));
-priorImages=await new Promise((resolve,reject)=>{try{const tx=imageDb.transaction(LAMSET_IMAGE_STORE,'readonly'),store=tx.objectStore(LAMSET_IMAGE_STORE),out=[];let pending=ids.length;if(!pending)return resolve(out);ids.forEach(key=>{const req=store.get(key);req.onsuccess=()=>{if(req.result)out.push(req.result);if(--pending===0)resolve(out)};req.onerror=()=>reject(req.error||new Error('images'))})}catch(err){reject(err)}});
-await imageTransaction('put',images.map(im=>({id:String(im.id),data:im.data,updatedAt:Date.now()})),[]);imagesWritten=true;
+priorImages=await new Promise((resolve,reject)=>{try{const tx=imageDb.transaction(LAMSET_IMAGE_STORE,'readonly'),req=tx.objectStore(LAMSET_IMAGE_STORE).getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error||new Error('images'));tx.onerror=()=>reject(tx.error||new Error('images'))}catch(err){reject(err)}});
+await imageTransaction('replace',images.map(im=>({id:String(im.id),data:im.data,updatedAt:Date.now()})));imagesWritten=true;
 }
 db=next;
 lamsetStorageRecoveryRequired=false;
-if(!save()){lamsetStorageRecoveryRequired=recoveryWasRequired;db=previous;if(imagesWritten){await imageTransaction('delete',[],images.map(x=>String(x.id)));if(priorImages.length)await imageTransaction('put',priorImages,[]);imagesWritten=false}throw new Error('save')}
+if(!save()){lamsetStorageRecoveryRequired=recoveryWasRequired;db=previous;if(imagesWritten){await imageTransaction('replace',priorImages);imagesWritten=false}throw new Error('save')}
 lamsetImageCache.clear();renderAll();await refreshStorageUsage();alert('تمت استعادة البيانات بنجاح'+(images.length?' مع '+images.length+' صورة':'')+'.');
 }catch(err){
 lamsetStorageRecoveryRequired=recoveryWasRequired;
 db=previous;
-if(imagesWritten&&imageDb){try{const ids=images.map(x=>String(x.id));await imageTransaction('delete',[],ids);if(priorImages.length)await imageTransaction('put',priorImages,[]);lamsetImageCache.clear()}catch(rollbackError){console.error('Image rollback failed',rollbackError)}}
+if(imagesWritten&&imageDb){try{await imageTransaction('replace',priorImages);lamsetImageCache.clear()}catch(rollbackError){console.error('Image rollback failed',rollbackError)}}
 console.error(err);alert(err.message==='save'?'تعذر حفظ النسخة المستعادة؛ تم الاحتفاظ بالبيانات الحالية ومحاولة إعادة الصور السابقة.':err.message==='images'?'تعذر استيراد الصور؛ لم يتم استبدال قاعدة البيانات الحالية.':(err.message||'ملف النسخة الاحتياطية غير صالح أو تعذر قراءته.'));
 }finally{e.target.value=''}
 }
