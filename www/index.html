@@ -1175,7 +1175,7 @@ function renderCatalogCustomerResults(){
  const q=String(input.value||'').trim().toLocaleLowerCase('ar'),digits=customerPhoneDigits(q);
  if(!q){el.innerHTML='';return}
  const matches=(db.customers||[]).filter(c=>String(c.name||'').toLocaleLowerCase('ar').includes(q)||(digits&&customerPhoneDigits(c.phone).includes(digits))).slice(0,8);
- el.innerHTML=matches.length?matches.map(c=>'<button type="button" class="ghost" style="display:flex;width:100%;justify-content:space-between;gap:8px;margin:5px 0;text-align:right" onclick="selectCatalogCustomer(\\''+c.id+'\\')"><span>'+esc(c.name||'عميل بدون اسم')+'</span><small>'+esc(c.phone||'بدون رقم')+'</small></button>').join(''):'<div class="muted" style="padding:8px">لا يوجد عميل مطابق. يمكنك ترك الاختيار فارغًا وتحديد الفئة يدويًا.</div>';
+ el.innerHTML=matches.length?matches.map(c=>'<button type="button" class="ghost" style="display:flex;width:100%;justify-content:space-between;gap:8px;margin:5px 0;text-align:right" onclick="selectCatalogCustomer(\''+c.id+'\')"><span>'+esc(c.name||'عميل بدون اسم')+'</span><small>'+esc(c.phone||'بدون رقم')+'</small></button>').join(''):'<div class="muted" style="padding:8px">لا يوجد عميل مطابق. يمكنك ترك الاختيار فارغًا وتحديد الفئة يدويًا.</div>';
 }
 function selectCatalogCustomer(cid){
  const c=(db.customers||[]).find(x=>x.id===cid);if(!c)return;
