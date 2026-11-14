@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - work/lamset-fan-ui-and-business-upgrade
+      - feature/facebook-tajawal-theme-2026-11-14
 
 jobs:
   build:
