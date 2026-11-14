@@ -766,3 +766,62 @@ html[data-theme="dark"] #orders #orderList .lf-order-actions-secondary button{
  #orders #orderList .lf-order-actions-primary button,
  #orders #orderList .lf-order-actions-secondary button{font-size:10px!important;padding:8px 5px!important;min-height:42px!important}
 }
+
+
+/* Archived orders: clearly separated from active workflow without changing order data. */
+#orders #orderList .lf-order-card.is-archived{
+  border-inline-start-color:var(--lf-muted)!important;
+  background:var(--lf-surface-2)!important;
+  box-shadow:none!important;
+}
+#orders #orderList .lf-order-card.is-archived .lf-order-stage{
+  background:var(--lf-surface)!important;
+  border-color:var(--lf-border)!important;
+  color:var(--lf-muted)!important;
+}
+#orders #orderList .lf-order-archive-label{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  flex-wrap:wrap!important;
+  gap:7px!important;
+  padding:9px 11px!important;
+  border:1px solid var(--lf-border)!important;
+  border-radius:11px!important;
+  background:var(--lf-surface)!important;
+}
+#orders #orderList .lf-order-archive-label>b{
+  color:var(--lf-muted)!important;
+  font-size:11px!important;
+  font-weight:900!important;
+}
+#orders #orderList .lf-order-archive-label>span{
+  padding:4px 9px!important;
+  border-radius:999px!important;
+  background:var(--lf-surface-2)!important;
+  color:var(--lf-text)!important;
+  font-size:10px!important;
+  font-weight:850!important;
+}
+#orders #orderList .lf-order-card.is-archived .lf-order-archive-note{
+  border:1px dashed var(--lf-border)!important;
+  background:transparent!important;
+  color:var(--lf-muted)!important;
+}
+html[data-theme="dark"] #orders #orderList .lf-order-card.is-archived{
+  background:var(--lf-surface-2)!important;
+  border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] #orders #orderList .lf-order-card.is-archived .lf-order-stage,
+html[data-theme="dark"] #orders #orderList .lf-order-archive-label{
+  background:var(--lf-surface)!important;
+  color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] #orders #orderList .lf-order-archive-label>span{
+  background:var(--lf-surface-2)!important;
+  color:var(--lf-text)!important;
+}
+@media(max-width:380px){
+  #orders #orderList .lf-order-archive-label{padding:8px 9px!important}
+}
