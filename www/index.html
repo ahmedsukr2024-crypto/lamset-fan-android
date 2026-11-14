@@ -1286,8 +1286,10 @@ function saveOrder(){
  let before=JSON.parse(JSON.stringify(db));
  try{
   const enteredPhone=normalizePhone($('oPhone').value,$('oCountryCode').value),area=$('oArea').value.trim();
-  const phoneOwner=enteredPhone?(db.customers||[]).find(c=>customerPhoneDigits(c.phone)===customerPhoneDigits(enteredPhone)):null;
-  if(phoneOwner&&selectedCustomer&&phoneOwner.id!==selectedCustomer.id)return alert('رقم الهاتف الذي أدخلته مرتبط بعميل آخر. اختر العميل الصحيح أو راجع بيانات العملاء قبل تسجيل الطلب.');
+  const phoneMatches=enteredPhone?(db.customers||[]).filter(c=>customerPhoneDigits(c.phone)===customerPhoneDigits(enteredPhone)):[];
+  if(!selectedCustomer&&phoneMatches.length>1)return alert('رقم الهاتف مرتبط بأكثر من عميل. اختر العميل المقصود من القائمة قبل تسجيل الطلب لتجنب ربط الفاتورة بملف خاطئ.');
+  const phoneOwner=phoneMatches.length===1?phoneMatches[0]:null;
+  if(selectedCustomer&&phoneMatches.length&&!phoneMatches.some(c=>c.id===selectedCustomer.id))return alert('رقم الهاتف الذي أدخلته مرتبط بعميل آخر. اختر العميل الصحيح أو راجع بيانات العملاء قبل تسجيل الطلب.');
   let customer=selectedCustomer||phoneOwner||null;
   if(!customer){customer={id:id(),name:customerName,phone:enteredPhone,area,type:'trader',createdAt:new Date().toISOString()};if(!Array.isArray(db.customers))db.customers=[];db.customers.push(customer)}
   else{if(!selectedCustomer&&phoneOwner)customer.name=customerName;customer.phone=enteredPhone||customer.phone||'';customer.area=area||customer.area||''}
