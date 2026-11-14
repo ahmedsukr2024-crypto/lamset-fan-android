@@ -1,16 +1,11 @@
 window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
   if (typeof data !== 'string' || !data.length) throw new Error('محتوى التقرير فارغ.');
   const safeName = String(filename || 'lamset-fan-report.csv').replace(/[^a-zA-Z0-9._-]/g, '-');
-  const saved = await Filesystem.writeFile({
-    path: 'LAMSET-FAN/' + safeName,
-    data,
-    directory: Directory.Documents,
-    encoding: Encoding.UTF8,
-    recursive: true
-  });
-  if (!saved?.uri) throw new Error('تعذر حفظ التقرير على الهاتف.');
-  // Android FileProvider exposes the cache directory by default. Keep the
-  // permanent copy in Documents and share a cache copy as a real attachment.
+  const isDocument = mimeType === 'text/html' || /\.html?$/i.test(safeName);
+
+  // Android scoped storage may deny direct writes to shared Documents.
+  // Interactive HTML catalogs are staged in the app cache and shared from
+  // there; the receiving app can let the user save or print the file.
   const shareCopy = await Filesystem.writeFile({
     path: 'LAMSET-FAN/Shared/' + safeName,
     data,
@@ -18,8 +13,20 @@ window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
     encoding: Encoding.UTF8,
     recursive: true
   });
-  if (!shareCopy?.uri) throw new Error('تم حفظ التقرير، لكن تعذر تجهيز نسخة المشاركة.');
-  const isDocument = mimeType === 'text/html' || /\.html?$/i.test(safeName);
+  if (!shareCopy?.uri) throw new Error('تعذر تجهيز نسخة المشاركة.');
+
+  let saved = shareCopy;
+  if (!isDocument) {
+    saved = await Filesystem.writeFile({
+      path: 'LAMSET-FAN/' + safeName,
+      data,
+      directory: Directory.Documents,
+      encoding: Encoding.UTF8,
+      recursive: true
+    });
+    if (!saved?.uri) throw new Error('تم تجهيز المشاركة، لكن تعذر حفظ نسخة التقرير في المستندات.');
+  }
+
   await Share.share({
     title: isDocument ? 'مستند لمسة فن' : 'تقرير لمسة فن',
     text: isDocument ? 'مستند جاهز للطباعة من LAMSET FAN' : 'تقرير من LAMSET FAN',
