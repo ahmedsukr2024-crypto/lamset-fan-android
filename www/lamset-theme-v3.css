@@ -222,3 +222,56 @@ textarea[aria-invalid="true"]{
 @media(prefers-reduced-motion:reduce){
  button[aria-busy="true"]::after{animation:none;opacity:.65}
 }
+
+/* Dashboard metric cards: clearer labels, values and semantic accents. */
+#dashboard .dash-metrics .metric{
+  --metric-accent:var(--lf-blue);
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  gap:2px!important;
+  min-width:0!important;
+  min-height:104px!important;
+  padding:14px!important;
+  border-right:3px solid var(--metric-accent)!important;
+  border-radius:14px!important;
+  background:var(--lf-surface)!important;
+}
+#dashboard .dash-metrics .metric:nth-child(1){--metric-accent:var(--lf-blue)}
+#dashboard .dash-metrics .metric:nth-child(2){--metric-accent:var(--lf-success)}
+#dashboard .dash-metrics .metric:nth-child(3){--metric-accent:var(--lf-warning)}
+#dashboard .dash-metrics .metric:nth-child(4){--metric-accent:var(--lf-danger)}
+#dashboard .dash-metrics .metric:after{
+  width:34px!important;
+  height:34px!important;
+  top:10px!important;
+  left:10px!important;
+  border-radius:11px!important;
+  background:var(--lf-blue-soft)!important;
+  opacity:.72!important;
+}
+#dashboard .dash-metrics .metric small{
+  display:block!important;
+  max-width:100%!important;
+  color:var(--lf-muted)!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  line-height:1.5!important;
+}
+#dashboard .dash-metrics .metric strong{
+  display:block!important;
+  max-width:100%!important;
+  margin-top:5px!important;
+  color:var(--metric-accent)!important;
+  font-size:21px!important;
+  font-weight:900!important;
+  line-height:1.35!important;
+  overflow-wrap:anywhere!important;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:360px){
+  #dashboard .dash-metrics{gap:7px!important}
+  #dashboard .dash-metrics .metric{min-height:94px!important;padding:11px!important}
+  #dashboard .dash-metrics .metric strong{font-size:18px!important}
+  #dashboard .dash-metrics .metric small{font-size:11px!important}
+}
