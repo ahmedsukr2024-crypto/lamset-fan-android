@@ -626,3 +626,26 @@ body{margin:0}
  .lf-exec-primary-task button{width:100%}
  .lf-dash-order-meta{align-items:flex-start;flex-direction:column;gap:2px}
 }
+
+
+/* Dashboard icons: one Lucide outline language, consistent size and stroke. */
+#dashboard [data-lucide] .lf-icon,
+#dashboard .lf-executive-mark .lf-icon,
+#dashboard .dash-shortcuts .lf-icon{
+  display:block;
+  width:21px;
+  height:21px;
+  flex:0 0 21px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#dashboard .lf-executive-mark{
+  display:grid!important;
+  place-items:center!important;
+  color:var(--lf-blue)!important;
+}
+#dashboard .lf-executive-mark .lf-icon{width:20px;height:20px;flex-basis:20px}
+#dashboard .dash-shortcuts button span{color:var(--lf-blue)!important}
