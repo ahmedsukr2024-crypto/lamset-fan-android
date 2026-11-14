@@ -275,3 +275,107 @@ textarea[aria-invalid="true"]{
   #dashboard .dash-metrics .metric strong{font-size:18px!important}
   #dashboard .dash-metrics .metric small{font-size:11px!important}
 }
+
+/* Executive manager cards: clearer status hierarchy and task readability. */
+#dashboard .lf-executive{
+  padding:16px!important;
+  border-top:3px solid var(--lf-blue)!important;
+}
+#dashboard .lf-executive-head{
+  align-items:center!important;
+  gap:12px!important;
+}
+#dashboard .lf-executive-head>div{min-width:0}
+#dashboard .lf-executive-head p{
+  max-width:42ch;
+  line-height:1.55!important;
+}
+#dashboard .lf-executive-mark{
+  flex:0 0 42px;
+  border:1px solid var(--lf-border)!important;
+}
+#dashboard .lf-executive-stats{
+  gap:9px!important;
+  margin:13px 0!important;
+}
+#dashboard .lf-executive-stats>div{
+  min-width:0;
+  min-height:70px;
+  justify-content:center;
+  padding:10px 11px!important;
+  border-inline-start:3px solid var(--lf-blue)!important;
+  border-radius:12px!important;
+  background:var(--lf-surface-2)!important;
+}
+#dashboard .lf-executive-stats>div:nth-child(2){border-inline-start-color:var(--lf-success)!important}
+#dashboard .lf-executive-stats>div:nth-child(3){border-inline-start-color:var(--lf-warning)!important}
+#dashboard .lf-executive-stats>div:nth-child(4){border-inline-start-color:var(--lf-danger)!important}
+#dashboard .lf-executive-stats small{
+  font-size:11px!important;
+  line-height:1.45!important;
+  font-weight:800!important;
+}
+#dashboard .lf-executive-stats strong{
+  font-size:21px!important;
+  line-height:1.25!important;
+  font-weight:900!important;
+  font-variant-numeric:tabular-nums;
+}
+#dashboard .lf-executive-focus{
+  padding:12px!important;
+  border-radius:14px!important;
+  background:var(--lf-surface-2)!important;
+}
+#dashboard .lf-executive-focus-title{
+  align-items:center!important;
+  gap:7px!important;
+}
+#dashboard .lf-executive-focus-title>b{font-size:13px!important;font-weight:900!important}
+#dashboard .lf-executive-focus-title>span{
+  padding:4px 8px;
+  border:1px solid var(--lf-border);
+  border-radius:999px;
+  background:var(--lf-surface)!important;
+  color:var(--lf-muted)!important;
+  font-size:10px!important;
+  font-weight:800!important;
+}
+#dashboard .lf-exec-primary-task{
+  margin-top:9px;
+  padding:11px!important;
+  border:1px solid var(--lf-border)!important;
+  border-inline-start:3px solid var(--lf-warning)!important;
+  border-radius:12px!important;
+  background:var(--lf-surface)!important;
+}
+#dashboard .lf-exec-primary-task.danger{border-inline-start-color:var(--lf-danger)!important}
+#dashboard .lf-exec-primary-task.warning{border-inline-start-color:var(--lf-warning)!important}
+#dashboard .lf-exec-primary-task>div{gap:4px!important}
+#dashboard .lf-exec-primary-task b{font-size:13px!important;font-weight:900!important}
+#dashboard .lf-exec-primary-task small{font-size:11px!important;line-height:1.55!important}
+#dashboard .lf-exec-primary-task button{
+  min-width:104px!important;
+  min-height:38px!important;
+  border-radius:10px!important;
+  font-size:11px!important;
+}
+#dashboard .lf-exec-secondary-task{
+  margin-top:7px;
+  padding:9px 10px!important;
+  border:1px solid var(--lf-border)!important;
+  border-radius:11px!important;
+  background:var(--lf-surface)!important;
+}
+#dashboard .lf-exec-secondary-task b{font-weight:800!important}
+#dashboard .lf-executive-note{
+  margin-top:11px!important;
+  line-height:1.6!important;
+}
+@media(max-width:360px){
+  #dashboard .lf-executive{padding:13px!important}
+  #dashboard .lf-executive-stats{gap:7px!important}
+  #dashboard .lf-executive-stats>div{min-height:64px;padding:8px!important}
+  #dashboard .lf-executive-stats strong{font-size:19px!important}
+  #dashboard .lf-exec-primary-task{align-items:stretch!important}
+  #dashboard .lf-exec-primary-task button{width:100%!important}
+}
