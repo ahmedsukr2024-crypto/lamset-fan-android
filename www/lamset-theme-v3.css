@@ -703,3 +703,35 @@ html[data-theme="dark"] #orders #orderList .lf-order-archive-note{
   #orders #orderList .lf-order-card>.actions{gap:6px!important}
   #orders #orderList .lf-order-card>.actions button{font-size:10px!important;padding:7px 5px!important}
 }
+
+
+/* In-app order status picker: accessible, compact, and consistent with both themes. */
+.lf-order-status-overlay{
+ display:none!important;position:fixed!important;inset:0!important;z-index:120!important;
+ align-items:center!important;justify-content:center!important;padding:16px!important;
+ background:rgba(12,18,28,.58)!important;backdrop-filter:blur(4px)!important;
+}
+.lf-order-status-overlay.open{display:flex!important}
+.lf-order-status-dialog{
+ width:min(440px,100%)!important;max-height:min(88vh,620px)!important;overflow:auto!important;
+ padding:18px!important;border:1px solid var(--lf-border)!important;border-radius:20px!important;
+ background:var(--lf-surface)!important;color:var(--lf-text)!important;box-shadow:0 24px 70px rgba(0,0,0,.24)!important;
+}
+.lf-order-status-head{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;margin-bottom:16px!important}
+.lf-order-status-head h3{margin:0!important;color:var(--lf-text)!important;font-size:17px!important;font-weight:900!important}
+.lf-order-status-head p{margin:5px 0 0!important;color:var(--lf-muted)!important;font-size:11px!important;line-height:1.6!important}
+.lf-order-status-head>button{flex:0 0 36px!important;min-width:36px!important;min-height:36px!important;padding:0!important;font-size:22px!important}
+.lf-order-status-dialog .field{margin:0!important}
+.lf-order-status-dialog .field label{display:block!important;margin-bottom:7px!important;color:var(--lf-text)!important;font-size:12px!important;font-weight:850!important}
+.lf-order-status-dialog .field select{width:100%!important;min-height:48px!important;border:1px solid var(--lf-border)!important;border-radius:12px!important;background:var(--lf-surface-2)!important;color:var(--lf-text)!important;padding:10px 12px!important}
+.lf-order-status-help{margin:12px 0 0!important;padding:10px 12px!important;border-radius:11px!important;background:var(--lf-surface-2)!important;color:var(--lf-muted)!important;font-size:11px!important;line-height:1.65!important}
+.lf-order-status-actions{display:grid!important;grid-template-columns:1fr 1.4fr!important;gap:9px!important;margin-top:16px!important}
+.lf-order-status-actions button{min-height:44px!important;margin:0!important;border-radius:12px!important;font-size:12px!important;font-weight:850!important}
+html[data-theme="dark"] .lf-order-status-dialog{background:var(--lf-surface)!important;color:var(--lf-text)!important;border-color:var(--lf-border)!important}
+html[data-theme="dark"] .lf-order-status-dialog .field select{background:var(--lf-surface-2)!important;color:var(--lf-text)!important;border-color:var(--lf-border)!important;color-scheme:dark}
+@media(max-width:360px){
+ .lf-order-status-overlay{padding:12px!important}
+ .lf-order-status-dialog{padding:14px!important;border-radius:16px!important}
+ .lf-order-status-head h3{font-size:15px!important}
+ .lf-order-status-actions{grid-template-columns:1fr!important}
+}
