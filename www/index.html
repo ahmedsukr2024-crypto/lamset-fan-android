@@ -15,7 +15,7 @@ function lamsetPrintThemeTag(){return '<style id="lamset-unified-document-theme"
  frame.onload=null;
  const source=String(html||'');
  // Scripts stay disabled for ordinary documents. Only app-generated interactive catalog HTML opts in.
- const cleanHtml=allowTrustedScripts?source:source.replace(/<script[\\s\\S]*?<\\/script>|<script[\\s\\S]*?<\\\\\\/script>/gi,'');
+ const cleanHtml=allowTrustedScripts?source:source.replace(/<script[\s\S]*?<\/script>|<script[\s\S]*?<\\\/script>/gi,'');
  frame.srcdoc=lamsetApplyPrintTheme(cleanHtml);
  modal.classList.add('open');
  document.body.classList.add('lf-modal-open');
