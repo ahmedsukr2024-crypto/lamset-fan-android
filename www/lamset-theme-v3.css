@@ -825,3 +825,68 @@ html[data-theme="dark"] #orders #orderList .lf-order-archive-label>span{
 @media(max-width:380px){
   #orders #orderList .lf-order-archive-label{padding:8px 9px!important}
 }
+
+
+/* Order history filters: readable controls with a single-column mobile layout. */
+#orders .lf-order-history-tools{
+  min-width:0!important;
+  padding:14px!important;
+  border:1px solid var(--lf-border)!important;
+  border-radius:16px!important;
+  background:var(--lf-surface)!important;
+  color:var(--lf-text)!important;
+}
+#orders .lf-order-history-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  min-width:0!important;
+  margin-bottom:12px!important;
+}
+#orders .lf-order-history-head>div{min-width:0!important}
+#orders .lf-order-history-head h3{
+  margin:0!important;color:var(--lf-text)!important;
+  font-size:14px!important;font-weight:900!important;
+}
+#orders .lf-order-history-head small{display:block!important;margin-top:4px!important;color:var(--lf-muted)!important}
+#orders .lf-order-history-head>span{flex:0 0 auto!important;color:var(--lf-muted)!important}
+#orders .lf-order-history-filters{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr)!important;
+  gap:10px!important;
+  align-items:end!important;
+  min-width:0!important;
+}
+#orders .lf-order-history-filters>.field{
+  display:grid!important;gap:6px!important;
+  min-width:0!important;margin:0!important;
+}
+#orders .lf-order-history-filters>.field>span{
+  color:var(--lf-text)!important;font-size:11px!important;font-weight:850!important;
+}
+#orders .lf-order-history-filters input,
+#orders .lf-order-history-filters select{
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  min-height:44px!important;margin:0!important;padding:9px 11px!important;
+  border:1px solid var(--lf-border)!important;border-radius:11px!important;
+  background:var(--lf-surface-2)!important;color:var(--lf-text)!important;
+  font:inherit!important;font-size:12px!important;
+}
+html[data-theme="dark"] #orders .lf-order-history-tools{
+  background:var(--lf-surface)!important;color:var(--lf-text)!important;border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] #orders .lf-order-history-filters input,
+html[data-theme="dark"] #orders .lf-order-history-filters select{
+  background:var(--lf-surface-2)!important;color:var(--lf-text)!important;border-color:var(--lf-border)!important;
+}
+@media(max-width:520px){
+  #orders .lf-order-history-tools{padding:12px!important}
+  #orders .lf-order-history-filters{grid-template-columns:minmax(0,1fr)!important;gap:9px!important}
+  #orders .lf-order-history-filters input,
+  #orders .lf-order-history-filters select{min-height:46px!important;font-size:13px!important}
+}
+@media(max-width:360px){
+  #orders .lf-order-history-head h3{font-size:13px!important}
+  #orders .lf-order-history-filters>.field>span{font-size:10px!important}
+}
