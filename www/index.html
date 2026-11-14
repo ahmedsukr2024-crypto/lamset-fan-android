@@ -1929,7 +1929,7 @@ function exportOrdersCSV(){
   });
  });
  const escapeCell=value=>'"'+String(value??'').replace(/"/g,'""')+'"';
- const csv='\\ufeff'+rows.map(row=>row.map(escapeCell).join(',')).join('\\r\\n');
+ const csv='\ufeff'+rows.map(row=>row.map(escapeCell).join(',')).join('\r\n');
  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='lamset-fan-orders.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
