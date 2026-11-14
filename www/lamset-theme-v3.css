@@ -735,3 +735,34 @@ html[data-theme="dark"] .lf-order-status-dialog .field select{background:var(--l
  .lf-order-status-head h3{font-size:15px!important}
  .lf-order-status-actions{grid-template-columns:1fr!important}
 }
+
+
+/* Order actions: separate the two frequent actions from supporting actions. */
+#orders #orderList .lf-order-card>.lf-order-actions{
+ display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin:0!important;
+}
+#orders #orderList .lf-order-actions-primary,
+#orders #orderList .lf-order-actions-secondary{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;min-width:0!important;
+}
+#orders #orderList .lf-order-actions-primary button,
+#orders #orderList .lf-order-actions-secondary button{
+ min-width:0!important;min-height:44px!important;margin:0!important;padding:9px 8px!important;
+ border-radius:11px!important;font-size:11px!important;font-weight:850!important;line-height:1.4!important;
+ white-space:normal!important;overflow-wrap:anywhere!important;
+}
+#orders #orderList .lf-order-actions-primary .lf-order-status-action{
+ background:var(--lf-blue)!important;color:#fff!important;border:1px solid var(--lf-blue)!important;box-shadow:none!important;
+}
+#orders #orderList .lf-order-actions-secondary button{
+ background:var(--lf-surface-2)!important;color:var(--lf-text)!important;border:1px solid var(--lf-border)!important;box-shadow:none!important;
+}
+html[data-theme="dark"] #orders #orderList .lf-order-actions-secondary button{
+ background:var(--lf-surface-2)!important;color:var(--lf-text)!important;border-color:var(--lf-border)!important;
+}
+@media(max-width:380px){
+ #orders #orderList .lf-order-actions-primary,
+ #orders #orderList .lf-order-actions-secondary{gap:6px!important}
+ #orders #orderList .lf-order-actions-primary button,
+ #orders #orderList .lf-order-actions-secondary button{font-size:10px!important;padding:8px 5px!important;min-height:42px!important}
+}
