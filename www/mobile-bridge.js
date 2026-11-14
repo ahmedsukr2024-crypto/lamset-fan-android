@@ -192,13 +192,33 @@ window.lamsetRequireBiometric = async (reason = 'تأكيد العملية ال�
 
 let businessNotificationsEnabled = false;
 try { businessNotificationsEnabled = localStorage.getItem('lamset-business-notifications') === 'true'; } catch {}
-window.lamsetGetBusinessNotifications = async () => { if (!isNative) return { enabled: false, permission: 'unsupported' }; const p = await LocalNotifications.checkPermissions(); return { enabled: businessNotificationsEnabled && p.display === 'granted', permission: p.display }; };
+window.lamsetGetBusinessNotifications = async () => {
+  if (!isNative) return { enabled: false, permission: 'unsupported' };
+  const permission = await LocalNotifications.checkPermissions();
+  const granted = permission.display === 'granted';
+  if (!granted && businessNotificationsEnabled) {
+    businessNotificationsEnabled = false;
+    try { localStorage.setItem('lamset-business-notifications','false'); } catch {}
+  }
+  return { enabled: businessNotificationsEnabled && granted, permission: permission.display };
+};
 window.lamsetSetBusinessNotifications = async (enabled) => {
   if (!isNative) return false;
-  if (!enabled) { businessNotificationsEnabled = false; localStorage.setItem('lamset-business-notifications','false'); return true; }
-  const p = await LocalNotifications.checkPermissions(); const granted = p.display === 'granted' ? p : await LocalNotifications.requestPermissions();
-  if (granted.display !== 'granted') return false;
-  businessNotificationsEnabled = true; localStorage.setItem('lamset-business-notifications','true'); return true;
+  if (!enabled) {
+    businessNotificationsEnabled = false;
+    try { localStorage.setItem('lamset-business-notifications','false'); } catch {}
+    return true;
+  }
+  const current = await LocalNotifications.checkPermissions();
+  const permission = current.display === 'granted' ? current : await LocalNotifications.requestPermissions();
+  if (permission.display !== 'granted') {
+    businessNotificationsEnabled = false;
+    try { localStorage.setItem('lamset-business-notifications','false'); } catch {}
+    return false;
+  }
+  businessNotificationsEnabled = true;
+  try { localStorage.setItem('lamset-business-notifications','true'); } catch {}
+  return true;
 };
 window.lamsetBusinessAlert = async (title, body) => {
   if (!isNative || !businessNotificationsEnabled) return;
