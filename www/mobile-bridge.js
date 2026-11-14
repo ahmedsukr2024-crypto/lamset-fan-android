@@ -232,8 +232,8 @@ function showLockScreen() {
     panel = document.createElement('div');
     panel.id = 'lamset-lock-screen';
     panel.dir = 'rtl';
-    panel.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#f7f6fb;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;font-family:system-ui';
-    panel.innerHTML = '<h2 style="color:#49319f">LAMSET FAN</h2><p>التطبيق مقفول. استخدم بصمة الهاتف أو رمز قفل الجهاز للمتابعة.</p><button id="lamset-unlock" style="padding:12px 22px;border:0;border-radius:10px;background:#6d4bd1;color:white">إعادة المحاولة</button>';
+    panel.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:var(--lf-bg,#F0F2F5)!important;color:var(--lf-text,#1C1E21)!important;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;font-family:inherit';
+    panel.innerHTML = '<h2 style="color:var(--lf-text,#1C1E21)!important">LAMSET FAN</h2><p style="color:var(--lf-text,#1C1E21)!important">التطبيق مقفول. استخدم بصمة الهاتف أو رمز قفل الجهاز للمتابعة.</p><button id="lamset-unlock" style="padding:12px 22px;border:1px solid var(--lf-blue,#1877F2)!important;border-radius:10px;background:var(--lf-blue,#1877F2)!important;color:#fff!important">إعادة المحاولة</button>';
     document.body.appendChild(panel);
     panel.querySelector('#lamset-unlock').addEventListener('click', () => { authenticated = false; authenticate(); });
   }
