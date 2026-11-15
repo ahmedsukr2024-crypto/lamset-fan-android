@@ -1,3 +1,12 @@
+window.lamsetReadClipboardText = async () => {
+  if (!isNative) {
+    if (navigator.clipboard?.readText) return await navigator.clipboard.readText();
+    throw new Error('قراءة الحافظة غير متاحة في هذا المتصفح.');
+  }
+  const result = await Clipboard.read();
+  return String(result?.value || '');
+};
+
 window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
   if (typeof data !== 'string' || !data.length) throw new Error('محتوى التقرير فارغ.');
   const safeName = String(filename || 'lamset-fan-report.csv').replace(/[^a-zA-Z0-9._-]/g, '-');
@@ -39,6 +48,7 @@ import { App } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { Clipboard } from '@capacitor/clipboard';
 import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
