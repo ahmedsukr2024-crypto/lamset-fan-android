@@ -1018,7 +1018,7 @@ function editOrder(id){
  $('oArea').value=o.area||customer?.area||'';$('oDeposit').value=Number(o.deposit)||0;$('oDue').value=o.due||'';$('oStatus').value=o.status||'جديد';
  const source=Array.isArray(o.items)&&o.items.length?o.items:[{productId:o.productId,productName:o.productName||o.productSnapshot?.name,productCode:o.productCode||o.productSnapshot?.code,productSnapshot:o.productSnapshot,qty:o.qty,unitType:o.unitType,stockUnits:o.stockUnits,price:o.price}];
  pendingOrderItems=source.map(x=>{const p=db.products.find(v=>v.id===x.productId),snapshot=JSON.parse(JSON.stringify(x.productSnapshot||{name:x.productName||p?.name||'',code:x.productCode||p?.code||'',design:p?.design||'',unitsPerCarton:Math.max(1,Number(p?.unitsPerCarton)||1)})),qty=Math.max(1,Number(x.qty)||1),unitType=x.unitType==='carton'?'carton':'piece',units=qty*(unitType==='carton'?Math.max(1,Number(snapshot.unitsPerCarton)||1):1);return{productId:x.productId,productName:x.productName||snapshot.name||p?.name||'منتج',productCode:x.productCode||snapshot.code||p?.code||'',productSnapshot:snapshot,qty,unitType,stockUnits:Number(x.stockUnits)||units,price:Math.max(0,Number(x.price)||0),lineTotal:qty*Math.max(0,Number(x.price)||0)}});
- filterOrderProductOptions();renderPendingOrderItems();orderTotal();renderProductCartDock();persistPendingOrderDraft();
+ filterOrderProductOptions();renderPendingOrderItems();orderTotal();renderProductCartDock();lfSaveOrderFormDraft();
  const saveButton=document.querySelector('#orders button[onclick="saveOrder()"]');if(saveButton)saveButton.textContent='حفظ تعديل الطلب';
  setOrdersWorkspaceTab('new');window.LamsetUI?.toast('تم تحميل الطلب للتعديل. لن يتغير المخزون أو الطلب الأصلي حتى تحفظ التعديلات.','info');
  document.getElementById('orders')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1996,7 +1996,7 @@ function lfSaveOrderFormDraft(){
   const items=JSON.parse(JSON.stringify(Array.isArray(pendingOrderItems)?pendingOrderItems:[]));
   const meaningful=!!(values.oCustomerSelect||values.oCustomerNew||values.oPhone||values.oArea||Number(values.oDeposit)||values.oDue||items.length);
   if(!meaningful){localStorage.removeItem(LF_ORDER_FORM_DRAFT_KEY);return true}
-  localStorage.setItem(LF_ORDER_FORM_DRAFT_KEY,JSON.stringify({values,items,updatedAt:Date.now(),version:2}));
+  localStorage.setItem(LF_ORDER_FORM_DRAFT_KEY,JSON.stringify({values,items,editingOrderId:editingOrderId||null,updatedAt:Date.now(),version:2}));
   return true;
  }catch(error){console.warn('Unable to persist complete order draft:',error);window.LamsetUI?.toast('تعذر حفظ مسودة الطلب كاملة على الجهاز.','warning');return false}
 }
@@ -2006,6 +2006,8 @@ function lfRestoreOrderFormDraft(){
   if(!raw){if(Array.isArray(db.orderDraft)&&db.orderDraft.length){pendingOrderItems=JSON.parse(JSON.stringify(db.orderDraft));renderPendingOrderItems();renderProductCartDock();orderTotal();return true}return false}
   const draft=JSON.parse(raw),v=draft?.values||{};
   const choice=v.oCustomerSelect||'';
+  const draftOrderId=draft?.editingOrderId||null;
+  if(draftOrderId){const target=(db.orders||[]).find(x=>x.id===draftOrderId);if(target&&lfCanEditOrder(target))editingOrderId=draftOrderId;else{editingOrderId=null;window.LamsetUI?.toast('تعذر استكمال تعديل الطلب السابق؛ تغيرت حالته أو بياناته. تم استعادة المسودة كطلب جديد للمراجعة.','warning')}}
   if(Array.isArray(draft.items)){
    pendingOrderItems=draft.items.filter(x=>x&&typeof x==='object'&&Number(x.qty)>0&&Number.isFinite(Number(x.price))).map(x=>({...x,qty:Number(x.qty),price:Number(x.price),lineTotal:Number(x.qty)*Number(x.price)}));
    db.orderDraft=JSON.parse(JSON.stringify(pendingOrderItems));
@@ -2018,7 +2020,8 @@ function lfRestoreOrderFormDraft(){
   Object.entries(v).forEach(([key,value])=>{const el=$(key);if(el&&key!=='oCustomerSelect')el.value=value??''});
   if($('oCustomerNew'))$('oCustomerNew').style.display=choice==='__new__'?'block':'none';
   renderPendingOrderItems();renderProductCartDock();orderTotal();
-  if(draft.updatedAt)window.LamsetUI?.toast('تم استعادة مسودة الطلب بكل بياناتها وأصنافها. راجعها قبل تسجيل الطلب.','info');
+  const saveButton=document.querySelector('#orders button[onclick="saveOrder()"]');if(saveButton)saveButton.textContent=editingOrderId?'حفظ تعديل الطلب':'تسجيل الطلب';
+  if(draft.updatedAt)window.LamsetUI?.toast(editingOrderId?'تم استعادة مسودة تعديل الطلب. راجعها قبل الحفظ.':'تم استعادة مسودة الطلب بكل بياناتها وأصنافها. راجعها قبل تسجيل الطلب.','info');
   return true;
  }catch(error){console.warn('Unable to restore complete order draft:',error);return false}
 }
@@ -2026,7 +2029,7 @@ function lfRestoreOrderFormDraft(){
 function lfStartNewOrder(silent=false){
  if(!silent&&!confirm('بدء طلب جديد؟ سيتم مسح بيانات ومسودة الطلب الحالية وسلة المنتجات فقط، ولن يتم حذف أي عميل أو منتج محفوظ.'))return false;
  try{
-  pendingOrderItems=[];
+  pendingOrderItems=[];editingOrderId=null;
   db.orderDraft=[];
   const fields=['oCustomerSelect','oCustomerNew','lfOrderNewCustomerType','oPhone','oArea','oDeposit','oDue','oStatus','orderCustomerSearch','orderProductSearch','orderProduct','oQty','oPrice'];
   fields.forEach(id=>{const el=$(id);if(el)el.value=(id==='oDeposit'?'0':id==='oQty'?'1':id==='oStatus'?'جديد':'')});
@@ -2036,6 +2039,7 @@ function lfStartNewOrder(silent=false){
   if($('oCustomerHint'))$('oCustomerHint').textContent='اختر عميلًا مسجلًا أو أضف عميلًا جديدًا.';
   try{localStorage.removeItem(LF_ORDER_FORM_DRAFT_KEY)}catch(error){console.warn('Unable to clear order form draft:',error)}
   const saved=save();
+  const saveButton=document.querySelector('#orders button[onclick="saveOrder()"]');if(saveButton)saveButton.textContent='تسجيل الطلب';
   renderOrderCustomerOptions();
   filterOrderProductOptions();
   renderPendingOrderItems();
