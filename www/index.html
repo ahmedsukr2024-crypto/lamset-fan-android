@@ -935,7 +935,7 @@ function saveOrder(){
   before=JSON.parse(JSON.stringify(db));
   const enteredPhone=normalizePhone($('oPhone').value,$('oCountryCode').value),area=$('oArea').value.trim(),dueValue=$('oDue').value,statusValue=$('oStatus').value,phoneDigits=customerPhoneDigits(enteredPhone);
   if(phoneDigits&&(phoneDigits.length<7||phoneDigits.length>15))return alert('رقم الهاتف غير مكتمل أو أطول من المسموح؛ راجع كود الدولة والرقم المحلي.');
-  if(dueValue&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(dueValue))return alert('موعد التسليم غير صحيح؛ اختر التاريخ من حقل الموعد.');
+  if(dueValue&&!/^\d{4}-\d{2}-\d{2}$/.test(dueValue))return alert('موعد التسليم غير صحيح؛ اختر التاريخ من حقل الموعد.');
   if(!['جديد','قيد التجهيز','تم التسليم','ملغي'].includes(statusValue))return alert('حالة الطلب المختارة غير صحيحة؛ اختر حالة من القائمة.');
   const phoneMatches=enteredPhone?(db.customers||[]).filter(c=>customerPhoneDigits(c.phone)===phoneDigits):[];
   if(!selectedCustomer&&phoneMatches.length>1)return alert('رقم الهاتف مرتبط بأكثر من عميل. اختر العميل المقصود من القائمة قبل تسجيل الطلب لتجنب ربط الفاتورة بملف خاطئ.');
