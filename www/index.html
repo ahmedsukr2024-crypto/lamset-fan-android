@@ -810,18 +810,37 @@ function toggleWhatsAppOrderImport(forceOpen){
 }
 window.toggleWhatsAppOrderImport=toggleWhatsAppOrderImport;
 async function lfPasteWhatsAppOrderText(){
- const field=$('lfWhatsAppOrderText');
+ const field=$('lfWhatsAppOrderText'),status=$('lfWhatsAppOrderStatus');
  if(!field)return false;
+ const setStatus=(message)=>{if(status)status.textContent=message};
  try{
-  if(!navigator.clipboard?.readText)throw new Error('clipboard-unavailable');
-  const value=await navigator.clipboard.readText();
-  if(!value){field.focus();window.LamsetUI?.toast('الحافظة فارغة. انسخ رسالة واتساب أولًا.','info');return false;}
-  field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));field.focus();
-  window.LamsetUI?.toast('تم لصق رسالة واتساب. اضغط جلب الطلبية.','success');
+  let value='';
+  if(typeof window.lamsetReadClipboardText==='function'){
+   value=await window.lamsetReadClipboardText();
+  }else if(navigator.clipboard?.readText){
+   value=await navigator.clipboard.readText();
+  }else{
+   throw new Error('clipboard-unavailable');
+  }
+  value=String(value||'');
+  if(!value.trim()){
+   field.focus();
+   setStatus('الحافظة فارغة. انسخ رسالة واتساب أولًا.');
+   window.LamsetUI?.toast('الحافظة فارغة. انسخ رسالة واتساب أولًا.','info');
+   return false;
+  }
+  field.value=value;
+  field.dispatchEvent(new Event('input',{bubbles:true}));
+  field.dispatchEvent(new Event('change',{bubbles:true}));
+  field.focus();
+  setStatus('تم لصق النص من الحافظة. راجعه ثم اضغط «جلب الطلبية».');
+  window.LamsetUI?.toast('تم لصق رسالة واتساب بنجاح.','success');
   return true;
  }catch(error){
+  console.warn('WhatsApp clipboard read failed',error);
   field.focus();
-  window.LamsetUI?.toast('اضغط مطولًا داخل المربع واختر «لصق» من لوحة المفاتيح.','info');
+  setStatus('تعذرت قراءة الحافظة تلقائيًا. اضغط مطولًا داخل مربع الرسالة واختر «لصق» من لوحة المفاتيح.');
+  window.LamsetUI?.toast('تعذرت قراءة الحافظة؛ يمكنك اللصق يدويًا داخل مربع الرسالة.','info');
   return false;
  }
 }
