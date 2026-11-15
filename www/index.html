@@ -796,7 +796,7 @@ function consumeProductionMaterials(product,quantity){let recipe=Array.isArray(p
 function orderStockLines(o){return Array.isArray(o?.items)&&o.items.length?o.items.map(x=>({item:x,productId:x.productId,units:Math.max(0,Number(x.stockUnits)||0)})):[{item:o,productId:o?.productId,units:Math.max(0,Number(o?.stockUnits)||((Number(o?.qty)||0)*(o?.unitType==='carton'?Math.max(1,Number(o?.productSnapshot?.unitsPerCarton)||1):1)))}]}function orderPendingProductionUnits(o){if(!o||o.status==='ملغي')return 0;return orderStockLines(o).reduce((sum,line)=>sum+Math.max(0,Number(line.item?.productionPendingUnits)||0),0)}
 function renderProductionNeeds(){const el=$('productionNeedsList');if(!el)return;const needs=new Map();(db.orders||[]).filter(o=>o.status!=='ملغي').forEach(o=>orderStockLines(o).forEach(line=>{const qty=Math.max(0,Number(line.item?.productionPendingUnits)||0);if(!qty)return;const p=db.products.find(x=>x.id===line.productId),key=line.productId;if(!needs.has(key))needs.set(key,{productId:key,name:line.item?.productName||p?.name||'منتج غير موجود',code:p?.code||line.item?.productCode||'',qty:0,orders:[]});const row=needs.get(key);row.qty+=qty;row.orders.push({customer:o.customer||'عميل',orderId:o.id,due:o.due||'',qty})}));const rows=[...needs.values()].sort((a,b)=>b.qty-a.qty),total=rows.reduce((n,x)=>n+x.qty,0);if($('productionNeedsSummary'))$('productionNeedsSummary').innerHTML='<div class="stock-stat need"><span>إجمالي القطع المطلوبة للتصنيع</span><strong>'+total.toLocaleString('en-US')+'</strong><small>قطعة لتغطية طلبات العملاء</small></div><div class="stock-stat total"><span>أصناف بها نواقص</span><strong>'+rows.length+'</strong><small>صنف يحتاج إنتاج</small></div>';el.innerHTML=rows.length?rows.map(x=>'<article class="card production-need-card"><div class="sectionhead"><b>'+esc(x.name)+'</b><span class="pill">'+x.qty.toLocaleString('en-US')+' قطعة ناقصة</span></div><div class="muted">'+(x.code?'كود الصنف: '+esc(x.code)+' · ':'')+'عدد الطلبات المرتبطة: '+x.orders.length+'</div><div class="production-need-orders">'+x.orders.map(o=>'<div class="production-need-order"><b>'+esc(o.customer)+'</b><span>'+o.qty.toLocaleString('en-US')+' قطعة · طلب '+esc(String(o.orderId).slice(-8))+(o.due?' · التسليم '+esc(o.due):'')+'</span></div>').join('')+'</div></article>').join(''):'<div class="card empty">لا توجد نواقص تصنيع من طلبات العملاء حاليًا. ستظهر هنا تلقائيًا عند تسجيل طلب بكمية أكبر من المخزون.</div>'}
 function lfWhatsAppDigits(value){const map={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};return String(value||'').replace(/[٠-٩۰-۹]/g,ch=>map[ch]||ch)}
-function lfWhatsAppNumber(value){const raw=lfWhatsAppDigits(value).replace(/[^0-9.]/g,'');const n=Number(raw);return Number.isFinite(n)?n:0}
+function lfWhatsAppNumber(value){const raw=lfWhatsAppDigits(value).replace(/[٬,،]/g,'').replace(/٫/g,'.').replace(/[^0-9.]/g,'');const n=Number(raw);return Number.isFinite(n)?n:0}
 function lfWhatsAppNormalize(value){return String(value||'').toLocaleLowerCase('ar').replace(/[\u064B-\u065F\u0670]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ـ/g,'').replace(/[^\p{L}\p{N}]/gu,'')}
 function importWhatsAppOrder(){
  const source=$('lfWhatsAppOrderText')?.value||'',status=$('lfWhatsAppOrderStatus');
@@ -808,7 +808,7 @@ function importWhatsAppOrder(){
        phoneRaw=field(['الموبايل','الهاتف','رقم الهاتف','رقم التليفون','التليفون']),
        address=field(['العنوان','المنطقة','المحافظة والعنوان']),
        note=field(['ملاحظات']);
- const digits=lfWhatsAppDigits(phoneRaw).replace(/[^0-9]/g,'');
+ const digits=lfWhatsAppDigits(phoneRaw).replace(/[^0-9]/g,''),normalizedDigits=digits.startsWith('00')?digits.slice(2):digits;
  const phoneForMatch=value=>{
   let d=lfWhatsAppDigits(value).replace(/[^0-9]/g,'');
   if(d.startsWith('00'))d=d.slice(2);
@@ -827,8 +827,8 @@ function importWhatsAppOrder(){
   const units=Math.max(1,Number(product.unitsPerCarton)||1),
         cartonsMatch=description.match(/([\d٠-٩۰-۹]+)\s*كرتون(?:ة|ات)?/),
         piecesMatch=description.match(/([\d٠-٩۰-۹]+)\s*قطع(?:ة)?/),
-        cartonPriceMatch=description.match(/[\d٠-٩۰-۹]+\s*كرتون(?:ة|ات)?\s*×\s*([\d٠-٩٠-٩۰-۹٬,،.]+)/),
-        piecePriceMatch=description.match(/[\d٠-٩۰-۹]+\s*قطع(?:ة)?\s*×\s*([\d٠-٩٠-٩۰-۹٬,،.]+)/),
+        cartonPriceMatch=description.match(/[\d٠-٩۰-۹]+\s*كرتون(?:ة|ات)?\s*×\s*([\d٠-٩٠-٩۰-۹٬,،٫.]+)/),
+        piecePriceMatch=description.match(/[\d٠-٩۰-۹]+\s*قطع(?:ة)?\s*×\s*([\d٠-٩٠-٩۰-۹٬,،٫.]+)/),
         cartons=cartonsMatch?Math.max(0,parseInt(lfWhatsAppDigits(cartonsMatch[1]),10)||0):0,
         pieces=piecesMatch?Math.max(0,parseInt(lfWhatsAppDigits(piecesMatch[1]),10)||0):0,
         piecePrice=piecePriceMatch?lfWhatsAppNumber(piecePriceMatch[1]):Math.max(0,Number(product.prices?.[priceKey])||0),
@@ -854,18 +854,18 @@ function importWhatsAppOrder(){
   if(matchedCustomer){$('oCustomerSelect').value=matchedCustomer.id;selectOrderCustomer(matchedCustomer.id,false)}
   else{$('oCustomerSelect').value='__new__';selectOrderCustomer('__new__',false);$('oCustomerNew').value=customerName}
  }
- if($('oPhone'))$('oPhone').value=digits;
+ if($('oPhone'))$('oPhone').value=normalizedDigits;
  if($('oCountryCode')){
   const codes=['20','966','971','965','974','973','968','962','961','964','212','213','216','218','249','1','44','49','33'];
-  const code=codes.sort((a,b)=>b.length-a.length).find(c=>digits.startsWith(c));
-  if(code){$('oCountryCode').value=code;$('oPhone').value=digits.slice(code.length).replace(/^0/,'')}
-  else{$('oCountryCode').value='20';$('oPhone').value=digits.replace(/^0/,'')}
+  const code=codes.sort((a,b)=>b.length-a.length).find(c=>normalizedDigits.startsWith(c));
+  if(code){$('oCountryCode').value=code;$('oPhone').value=normalizedDigits.slice(code.length).replace(/^0/,'')}
+  else{$('oCountryCode').value='20';$('oPhone').value=normalizedDigits.replace(/^0/,'')}
  }
  if($('oArea'))$('oArea').value=address;
  if($('oDeposit'))$('oDeposit').value='0';
  if($('oStatus'))$('oStatus').value='جديد';
- pendingOrderItems=imported;
- renderPendingOrderItems();orderTotal();persistPendingOrderDraft();renderProductCartDock();
+ if(imported.length){pendingOrderItems=imported;persistPendingOrderDraft();}
+ renderPendingOrderItems();orderTotal();renderProductCartDock();
  const warning=unmatched.length?' لم يتم التعرف على: '+[...new Set(unmatched)].join('، ')+'. يمكنك إضافة هذه المنتجات يدويًا بعد المراجعة.':'';
  if(!imported.length)say('تم استخراج بيانات العميل، لكن لم يتم التعرف على منتجات الرسالة. أضف المنتجات يدويًا من قائمة المنتجات.'+warning,'warning');
  else say('تم تحليل الرسالة وتجهيز '+imported.length+' بندًا للطلب. راجع الأسعار والكميات وبيانات العميل قبل تسجيل الطلب.'+warning,unmatched.length?'warning':'success');
