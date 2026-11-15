@@ -745,41 +745,72 @@ function importWhatsAppOrder(){
  const say=(message,kind='info')=>{if(status)status.textContent=message;window.LamsetUI?.toast(message,kind)};
  if(!source.trim())return say('الصق رسالة واتساب أولًا.','error');
  const lines=source.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- const field=(label)=>{const row=lines.find(x=>x.startsWith(label+':')||x.startsWith(label+'：'));return row?row.slice(label.length+1).trim():''};
- const customerName=field('الاسم'),phoneRaw=field('الموبايل')||field('الهاتف')||field('رقم الهاتف'),address=field('العنوان')||field('المنطقة'),note=field('ملاحظات');
+ const field=(labels)=>{for(const label of labels){const row=lines.find(x=>new RegExp('^'+label+'\\s*[:：]').test(x));if(row)return row.replace(new RegExp('^'+label+'\\s*[:：]\\s*'),'').trim()}return ''};
+ const customerName=field(['الاسم','العميل','اسم العميل']),
+       phoneRaw=field(['الموبايل','الهاتف','رقم الهاتف','رقم التليفون','التليفون']),
+       address=field(['العنوان','المنطقة','المحافظة والعنوان']),
+       note=field(['ملاحظات']);
  const digits=lfWhatsAppDigits(phoneRaw).replace(/[^0-9]/g,'');
- let matchedCustomer=(db.customers||[]).find(c=>digits&&customerPhoneDigits(c.phone)===customerPhoneDigits(phoneRaw));
- let customerType=matchedCustomer?.type||'trader',priceKey=catalogPriceKey(customerType);
+ const phoneForMatch=value=>{
+  let d=lfWhatsAppDigits(value).replace(/[^0-9]/g,'');
+  if(d.startsWith('00'))d=d.slice(2);
+  if(d.length===10&&/^1[0125]/.test(d))return '20'+d;
+  if(d.startsWith('0'))return '20'+d.slice(1);
+  return d;
+ };
+ const normalizedPhone=phoneForMatch(phoneRaw);
+ let matchedCustomer=(db.customers||[]).find(c=>normalizedPhone&&phoneForMatch(c.phone)===normalizedPhone);
+ const customerType=matchedCustomer?.type||'trader',priceKey=catalogPriceKey(customerType);
  const imported=[],unmatched=[];
+ const addLine=(name,code,description)=>{
+  const product=(db.products||[]).find(p=>code&&String(p.code||'').trim().toLocaleLowerCase('ar')===String(code).trim().toLocaleLowerCase('ar'))||
+   (db.products||[]).find(p=>lfWhatsAppNormalize(p.name)===lfWhatsAppNormalize(name));
+  if(!product){unmatched.push((name||'منتج غير معروف')+(code?' ('+code+')':''));return}
+  const units=Math.max(1,Number(product.unitsPerCarton)||1),
+        cartonsMatch=description.match(/([\d٠-٩۰-۹]+)\s*كرتون(?:ة|ات)?/),
+        piecesMatch=description.match(/([\d٠-٩۰-۹]+)\s*قطع(?:ة)?/),
+        cartonPriceMatch=description.match(/[\d٠-٩۰-۹]+\s*كرتون(?:ة|ات)?\s*×\s*([\d٠-٩٠-٩۰-۹٬,،.]+)/),
+        piecePriceMatch=description.match(/[\d٠-٩۰-۹]+\s*قطع(?:ة)?\s*×\s*([\d٠-٩٠-٩۰-۹٬,،.]+)/),
+        cartons=cartonsMatch?Math.max(0,parseInt(lfWhatsAppDigits(cartonsMatch[1]),10)||0):0,
+        pieces=piecesMatch?Math.max(0,parseInt(lfWhatsAppDigits(piecesMatch[1]),10)||0):0,
+        piecePrice=piecePriceMatch?lfWhatsAppNumber(piecePriceMatch[1]):Math.max(0,Number(product.prices?.[priceKey])||0),
+        cartonPrice=cartonPriceMatch?lfWhatsAppNumber(cartonPriceMatch[1]):piecePrice*units;
+  if(!cartons&&!pieces){unmatched.push((name||product.name)+' (لم تُقرأ الكمية)');return}
+  const snapshot={name:product.name||'',code:product.code||'',design:product.design||'',contents:product.contents||'',cost:Math.max(0,Number(product.cost)||0),unitsPerCarton:units};
+  if(cartons)imported.push({productId:product.id,productName:product.name,productCode:product.code||'',productSnapshot:snapshot,qty:cartons,unitType:'carton',stockUnits:cartons*units,price:cartonPrice,lineTotal:cartons*cartonPrice});
+  if(pieces)imported.push({productId:product.id,productName:product.name,productCode:product.code||'',productSnapshot:snapshot,qty:pieces,unitType:'piece',stockUnits:pieces,price:piecePrice,lineTotal:pieces*piecePrice});
+ };
+ let currentItem=null;
  for(const row of lines){
-  if(/^(طلب جديد من كتالوج|الإجمالي التقديري|الاسم\s*[:：]|الموبايل\s*[:：]|الهاتف\s*[:：]|رقم الهاتف\s*[:：]|العنوان\s*[:：]|ملاحظات\s*[:：])/i.test(row))continue;
-  const m=row.match(/^(.+?)\s*\(([^)]*)\)\s*:\s*(.+?)(?:\s*=\s*([\d٠-٩۰-۹,،.]+)\s*(?:ج\.?م|جنيه)?\s*)?$/i);
-  if(!m)continue;
-  const productCode=m[2].trim(),description=m[3],product=(db.products||[]).find(p=>String(p.code||'').trim().toLocaleLowerCase('ar')===productCode.toLocaleLowerCase('ar'))||(db.products||[]).find(p=>lfWhatsAppNormalize(p.name)===lfWhatsAppNormalize(m[1]));
-  if(!product){unmatched.push(m[1]+' ('+productCode+')');continue}
-  const cartonsMatch=description.match(/([\d٠-٩۰-۹]+)\s*كرتون(?:ة|ات)?/),piecesMatch=description.match(/([\d٠-٩۰-۹]+)\s*قطع(?:ة)?/);
-  const cartons=cartonsMatch?Math.max(0,parseInt(lfWhatsAppDigits(cartonsMatch[1]),10)||0):0;
-  const pieces=piecesMatch?Math.max(0,parseInt(lfWhatsAppDigits(piecesMatch[1]),10)||0):0;
-  if(!cartons&&!pieces)continue;
-  const units=Math.max(1,Number(product.unitsPerCarton)||1),messagePiece=row.match(/سعر القطعة\s*[:：]\s*([\d٠-٩۰-۹,،.]+)/),messageCarton=row.match(/سعر الكرتونة\s*[:：]\s*([\d٠-٩۰-۹,،.]+)/),piecePrice=messagePiece?lfWhatsAppNumber(messagePiece[1]):Math.max(0,Number(product.prices?.[priceKey])||0),cartonPrice=messageCarton?lfWhatsAppNumber(messageCarton[1]):piecePrice*units;
-  if(cartons)imported.push({productId:product.id,productName:product.name,productCode:product.code||'',productSnapshot:{name:product.name||'',code:product.code||'',design:product.design||'',cost:Math.max(0,Number(product.cost)||0),unitsPerCarton:units},qty:cartons,unitType:'carton',stockUnits:cartons*units,price:cartonPrice,lineTotal:cartons*cartonPrice});
-  if(pieces)imported.push({productId:product.id,productName:product.name,productCode:product.code||'',productSnapshot:{name:product.name||'',code:product.code||'',design:product.design||'',cost:Math.max(0,Number(product.cost)||0),unitsPerCarton:units},qty:pieces,unitType:'piece',stockUnits:pieces,price:piecePrice,lineTotal:pieces*piecePrice});
+  if(/^(طلب جديد من كتالوج|طلب مبدئي|رقم الطلب\s*[:：]|التاريخ\s*[:：]|الإجمالي(?: التقديري)?\s*[:：]|تفاصيل المنتجات\s*[:：]?|الاسم\s*[:：]|العميل\s*[:：]|اسم العميل\s*[:：]|الموبايل\s*[:：]|الهاتف\s*[:：]|رقم الهاتف\s*[:：]|رقم التليفون\s*[:：]|التليفون\s*[:：]|العنوان\s*[:：]|المنطقة\s*[:：]|ملاحظات\s*[:：])/i.test(row))continue;
+  const catalogHeader=row.match(/^\d+\s*[.)-]\s*(.+?)\s*[·•|]\s*(.+?)\s*$/);
+  if(catalogHeader){currentItem={name:catalogHeader[1].trim(),code:catalogHeader[2].trim()};continue}
+  if(currentItem&&/(كرتون|قطع)/.test(row)){
+   addLine(currentItem.name,currentItem.code,row);currentItem=null;continue;
+  }
+  const legacy=row.match(/^(.+?)\s*\(([^)]*)\)\s*:\s*(.+?)(?:\s*=\s*[\d٠-٩۰-۹,،.]+\s*(?:ج\.?م|جنيه)?\s*)?$/i);
+  if(legacy){addLine(legacy[1].trim(),legacy[2].trim(),legacy[3]);currentItem=null}
  }
  if(!customerName||!phoneRaw||!address)return say('لم أستطع استخراج الاسم ورقم الهاتف والعنوان بالكامل. راجع الرسالة وأكمل البيانات يدويًا بعد التحليل.','error');
- if(!imported.length)return say('لم أتعرف على أي منتج وكمياته. تأكد أن الرسالة من كتالوج لمسة فن وأن أكواد المنتجات موجودة في التطبيق.','error');
- pendingOrderItems=imported;
  if($('oCustomerSelect')){
   if(matchedCustomer){$('oCustomerSelect').value=matchedCustomer.id;selectOrderCustomer(matchedCustomer.id,false)}
   else{$('oCustomerSelect').value='__new__';selectOrderCustomer('__new__',false);$('oCustomerNew').value=customerName}
  }
  if($('oPhone'))$('oPhone').value=digits;
- if($('oCountryCode')){const codes=['20','966','971','965','974','973','968','962','961','964','212','213','216','218','249','1','44','49','33'];const code=codes.sort((a,b)=>b.length-a.length).find(c=>digits.startsWith(c));if(code){$('oCountryCode').value=code;$('oPhone').value=digits.slice(code.length).replace(/^0/,'')}else{$('oCountryCode').value='20';$('oPhone').value=digits.replace(/^0/,'')}}
+ if($('oCountryCode')){
+  const codes=['20','966','971','965','974','973','968','962','961','964','212','213','216','218','249','1','44','49','33'];
+  const code=codes.sort((a,b)=>b.length-a.length).find(c=>digits.startsWith(c));
+  if(code){$('oCountryCode').value=code;$('oPhone').value=digits.slice(code.length).replace(/^0/,'')}
+  else{$('oCountryCode').value='20';$('oPhone').value=digits.replace(/^0/,'')}
+ }
  if($('oArea'))$('oArea').value=address;
  if($('oDeposit'))$('oDeposit').value='0';
  if($('oStatus'))$('oStatus').value='جديد';
+ pendingOrderItems=imported;
  renderPendingOrderItems();orderTotal();persistPendingOrderDraft();renderProductCartDock();
- const warning=unmatched.length?' · منتجات لم يتم التعرف عليها: '+unmatched.join('، '):'';
- say('تم تحليل الرسالة وتجهيز '+imported.length+' بندًا للطلب. راجع الأسعار والكميات وبيانات العميل قبل تسجيل الطلب.'+warning,unmatched.length?'warning':'success');
+ const warning=unmatched.length?' لم يتم التعرف على: '+[...new Set(unmatched)].join('، ')+'. يمكنك إضافة هذه المنتجات يدويًا بعد المراجعة.':'';
+ if(!imported.length)say('تم استخراج بيانات العميل، لكن لم يتم التعرف على منتجات الرسالة. أضف المنتجات يدويًا من قائمة المنتجات.'+warning,'warning');
+ else say('تم تحليل الرسالة وتجهيز '+imported.length+' بندًا للطلب. راجع الأسعار والكميات وبيانات العميل قبل تسجيل الطلب.'+warning,unmatched.length?'warning':'success');
  document.getElementById('oCustomerSelect')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
 window.importWhatsAppOrder=importWhatsAppOrder;
