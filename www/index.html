@@ -436,9 +436,7 @@ html{color-scheme:light}html[data-theme="dark"]{color-scheme:dark;--ink:#F7F8FA;
 <button type="button" class="lf-orders-action-card" onclick="setOrdersWorkspaceTab('new')"><span data-lucide="plus-circle" aria-hidden="true"></span><b>تسجيل طلب جديد</b><small>إضافة بيانات العميل والمنتجات وموعد التسليم</small></button>
 <button type="button" class="lf-orders-action-card" onclick="setOrdersWorkspaceTab('history')"><span data-lucide="list-checks" aria-hidden="true"></span><b>متابعة سجل الطلبات</b><small>البحث والتصفية ومراجعة حالات الطلبات</small></button>
 </div>
-<div class="lf-orders-returns card" id="lfOrdersReturns"><h3>المرتجعات والاستبدال</h3><p class="muted">تسجيل عملية مرتجع أو استبدال ومراجعة سجل العمليات السابقة.</p></div>
-<div class="lf-orders-return-content">
-<div class="card"><h3>تسجيل مرتجع أو استبدال</h3><div class="field"><label>الطلب الأصلي</label><select id="returnOrder" onchange="updateReturnForm()"></select></div><div class="field"><label>الصنف داخل الطلب</label><select id="returnOrderItem" onchange="updateReturnForm()"></select></div><div class="row"><div class="field"><label>الكمية المرتجعة</label><input id="returnQty" type="number" min="1" value="1"></div><div class="field"><label>حالة المنتج المرتجع</label><select id="returnCondition"><option value="good">صالح للبيع وإعادة المخزون</option><option value="damaged">تالف ولا يعود للمخزون</option></select></div></div><div class="row"><div class="field"><label>نوع العملية</label><select id="returnType" onchange="updateReturnForm()"><option value="refund">مرتجع</option><option value="exchange">استبدال بمنتج</option></select></div><div class="field"><label>المنتج البديل</label><select id="returnReplacement" onchange="updateReturnForm()"></select></div></div><div class="row"><div class="field"><label>قيمة الاسترداد المستحقة للعميل (لا تُسجل كدفع فعلي)</label><input id="returnRefund" type="number" min="0" step=".01" value="0"></div><div class="field"><label>سعر وحدة المنتج البديل</label><input id="returnReplacementPrice" type="number" min="0" step=".01" value="0"></div></div><div class="field"><label>سبب المرتجع / ملاحظات</label><input id="returnNote"></div><p class="muted" id="returnHint"></p><button onclick="saveReturnExchange()">حفظ العملية</button></div><div class="card"><h3>سجل المرتجعات والاستبدال</h3><div id="returnHistory"></div></div></div>
+<!-- Returns/exchanges UI intentionally disabled; historical records remain preserved. -->
 
 </div>
 
@@ -932,7 +930,7 @@ function renderOrdersOverview(){
  const count=(test)=>active.filter(test).length;
  const fresh=count(o=>['جديد','تم تأكيد الطلب'].includes(String(o.status||'')));
  const production=count(o=>orderWorkflowSnapshot(o).pending>0||['قيد التجهيز','تحت التنفيذ','تحت التصنيع'].includes(String(o.status||'')));
- const ready=count(o=>['جاهز للشحن','جاهز للتسليم'].includes(String(o.status||''))||(!orderWorkflowSnapshot(o).pending&&orderWorkflowSnapshot(o).prepared>0&&!['تم تسليمه لشركة الشحن'].includes(String(o.status||''))));
+ const ready=count(o=>{const flow=orderWorkflowSnapshot(o);return flow.open&&!flow.shipped&&flow.pending===0&&flow.prepared>0});
  const overdue=count(o=>!!(o.due&&o.due<today&&orderWorkflowSnapshot(o).open));
  const outstanding=active.reduce((sum,o)=>sum+Math.max(0,orderDue(o)),0);
  const cards=[
@@ -965,7 +963,7 @@ function setOrdersWorkspaceTab(view){
  if(window.LamsetUI?.mountIcons)window.LamsetUI.mountIcons(document.getElementById('orders'));
 }
 window.setOrdersWorkspaceTab=setOrdersWorkspaceTab;
-function renderOrders(){renderReturnExchange();
+function renderOrders(){
  const archived=o=>['تم التسليم','تم التسليم للعميل','ملغي'].includes(String(o?.status||''));
  const openOrders=(db.orders||[]).filter(o=>!archived(o));
  const archivedOrders=(db.orders||[]).filter(archived);
@@ -975,7 +973,7 @@ function renderOrders(){renderReturnExchange();
  if(openTab){openTab.classList.toggle('active',orderSectionView==='open');openTab.setAttribute('aria-pressed',String(orderSectionView==='open'))}if(archiveTab){archiveTab.classList.toggle('active',orderSectionView==='archive');archiveTab.setAttribute('aria-pressed',String(orderSectionView==='archive'))}const q=String($('orderHistorySearch')?.value||'').trim().toLocaleLowerCase('ar'),status=$('orderHistoryStatus')?.value||'all',today=localDay(),all=(orderSectionView==='archive'?archivedOrders:openOrders).slice().reverse();
  const orders=all.filter(o=>{
   const flow=orderWorkflowSnapshot(o),late=!!(o.due&&o.due<today&&flow.open),unpaid=orderDue(o)>0;
-  const statusMatch=status==='all'||status==='fresh'&&['جديد','تم تأكيد الطلب'].includes(String(o.status||''))||status==='open'&&flow.open||status==='needs-production'&&flow.pending>0||status==='ready'&&flow.open&&flow.pending===0&&!flow.shipped||status==='overdue'&&late||status==='unpaid'&&unpaid||o.status===status;
+  const statusMatch=status==='all'||status==='fresh'&&['جديد','تم تأكيد الطلب'].includes(String(o.status||''))||status==='open'&&flow.open||status==='needs-production'&&flow.pending>0||status==='ready'&&flow.open&&flow.pending===0&&flow.prepared>0&&!flow.shipped||status==='overdue'&&late||status==='unpaid'&&unpaid||o.status===status;
   return statusMatch&&(!q||[o.customer,o.phone,o.id,...(Array.isArray(o.items)?o.items.map(x=>x.productName):[o.productName])].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q)));
  });
  if($('orderHistoryCount'))$('orderHistoryCount').textContent=(orderSectionView==='archive'?'الأرشيف: ':'المفتوحة: ')+orders.length+' من '+all.length+' طلب';
