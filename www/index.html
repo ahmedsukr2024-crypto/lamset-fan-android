@@ -34,6 +34,23 @@ html[data-theme="dark"] .lf-order-item-detail{background:var(--bg);border-color:
 html[data-theme="dark"] .lf-order-actions-secondary button{background:var(--lavender-2)!important;color:var(--purple)!important;border-color:var(--line)!important}
 html[data-theme="dark"] .lf-order-card.is-overdue{background:linear-gradient(145deg,var(--surface),#38232a)}
 @media(max-width:350px){.lf-order-actions-primary,.lf-order-actions-secondary{gap:6px}.lf-order-actions button{min-height:40px;font-size:11px!important;padding:7px 4px!important}}
+</style><style id="lf-order-status-modal-v2">
+.lf-order-status-overlay{position:fixed;inset:0;z-index:12000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,18,22,.62);backdrop-filter:blur(5px)}
+.lf-order-status-overlay.open{display:flex}
+.lf-order-status-dialog{width:min(100%,440px);max-height:calc(100dvh - 36px);overflow:auto;padding:18px;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);box-shadow:0 22px 70px rgba(0,0,0,.28)}
+.lf-order-status-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.lf-order-status-head h3{margin:0;color:var(--ink);font-size:18px;font-weight:900}
+.lf-order-status-head p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
+.lf-order-status-head>button{flex:0 0 38px;width:38px;height:38px;padding:0!important;font-size:22px!important}
+.lf-order-status-dialog .field{margin:0}
+.lf-order-status-dialog .field label{display:block;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:800}
+.lf-order-status-dialog select{width:100%;min-height:46px;padding:9px 12px}
+.lf-order-status-help{margin:12px 0 16px;padding:11px 12px;border:1px solid var(--line);border-right:4px solid var(--purple);border-radius:12px;background:var(--lavender-2);color:var(--ink);font-size:12px;line-height:1.7}
+.lf-order-status-help.is-warning{border-right-color:#d18a22;background:color-mix(in srgb,#fff4d6 72%,var(--surface));color:var(--ink)}
+.lf-order-status-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.lf-order-status-actions button{min-height:44px;font-weight:800}
+@media(max-width:380px){.lf-order-status-overlay{padding:10px}.lf-order-status-dialog{padding:15px;border-radius:17px}.lf-order-status-head h3{font-size:16px}}
+html[data-theme="dark"] .lf-order-status-help.is-warning{background:#3b3020;border-color:#70572b}
 </style></head>')?source.replace('</head>',theme+'</head>'):source.replace('<body',theme+'<body');
 }function showDocumentPreview(html,title,allowTrustedScripts){
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
@@ -568,9 +585,9 @@ html{color-scheme:light}html[data-theme="dark"]{color-scheme:dark;--ink:#F7F8FA;
 <div id="lfOrderStatusModal" class="lf-order-status-overlay" role="dialog" aria-modal="true" aria-labelledby="lfOrderStatusTitle" aria-hidden="true" onclick="if(event.target===this)closeOrderStatusModal()">
  <section class="lf-order-status-dialog">
   <header class="lf-order-status-head"><div><h3 id="lfOrderStatusTitle">تحديث حالة الطلب</h3><p id="lfOrderStatusCurrent">اختر الحالة الجديدة للطلب</p></div><button type="button" class="ghost smallbtn" onclick="closeOrderStatusModal()" aria-label="إغلاق النافذة">×</button></header>
-  <div class="field"><label for="lfOrderStatusSelect">الحالة الجديدة</label><select id="lfOrderStatusSelect"></select></div>
-  <p class="lf-order-status-help">سيتم تطبيق قواعد المخزون والتصنيع والتحصيل المعتادة قبل حفظ التغيير.</p>
-  <div class="lf-order-status-actions"><button type="button" class="ghost" onclick="closeOrderStatusModal()">إلغاء</button><button type="button" onclick="confirmOrderStatusChange()">تأكيد تحديث الحالة</button></div>
+  <div class="field"><label for="lfOrderStatusSelect">الحالة الجديدة</label><select id="lfOrderStatusSelect" onchange="updateOrderStatusPrompt()"></select></div>
+  <p id="lfOrderStatusHelp" class="lf-order-status-help">سيتم تطبيق قواعد المخزون والتصنيع والتحصيل المعتادة قبل حفظ التغيير.</p>
+  <div class="lf-order-status-actions"><button type="button" class="ghost" onclick="closeOrderStatusModal()">إلغاء</button><button id="lfOrderStatusConfirm" type="button" onclick="confirmOrderStatusChange()">تأكيد تحديث الحالة</button></div>
  </section>
 </div>
 
@@ -1085,14 +1102,29 @@ function printInvoice(orderId){let o=db.orders.find(x=>x.id===orderId);if(!o)ret
 function shareInvoiceWhatsApp(orderId){let o=db.orders.find(x=>x.id===orderId);if(!o)return alert('الطلب غير موجود');ensureInvoiceSnapshot(o);let snap=o.invoiceSnapshot,customer=snap.customer||{},business=db.businessProfile||snap.business||{},phone=normalizeWhatsAppPhone(business.whatsapp||business.phone);if(!phone)return alert('لا يوجد رقم واتساب مسجل لك في البروفايل. أضف رقمك في بيانات البروفايل أولاً.');let items=analyticsItems(o),productLines=items.map((x,i)=>{let p=x.productSnapshot||db.products.find(v=>v.id===x.productId)||{};return (i+1)+'. '+(x.productName||p.name||'منتج')+(x.productCode||p.code?' · '+(x.productCode||p.code):'')+' × '+(Number(x.qty)||0)+' '+((x.unitType||o.unitType)==='carton'?'كرتونة':'قطعة')+' — '+money(x.price)}),total=orderGrossTotal(o),lines=['🧾 لمسة فن - فاتورة مبيعات الكتالوج','رقم الفاتورة: '+(o.invoiceNumber||o.id),'التاريخ: '+new Date(snap.date||o.date||Date.now()).toLocaleDateString('ar-EG'),'العميل: '+(customer.name||o.customer||''),'رقم التليفون: '+(customer.phone||o.phone||'غير مسجل'),'','تفاصيل المنتجات:',...productLines,'','إجمالي الطلب: '+money(total),'','شكراً لاختياركم لمسة فن ❤️'];let url='https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n'));let opened=window.open(url,'_blank');if(!opened)location.href=url}function openOrderCollection(orderId){const o=(db.orders||[]).find(x=>x.id===orderId);if(!o)return alert('الطلب غير موجود.');if(orderDue(o)<=0)return window.LamsetUI?.toast('لا يوجد مبلغ متبقٍ على هذا الطلب.','info');tab('collections');renderCollections();const select=$('paymentOrder');if(select){select.value=orderId;if(select.value!==orderId)window.LamsetUI?.toast('تعذر تحديد الطلب في قائمة التحصيل.','warning')}const amount=$('paymentAmount');amount?.focus({preventScroll:true});document.getElementById('collections')?.scrollIntoView({behavior:'smooth',block:'start'});}
 function changeOrderStatus(id){
  const o=(db.orders||[]).find(x=>x.id===id);if(!o)return;
+ if(['تم التسليم','تم التسليم للعميل'].includes(o.status))return alert('هذا الطلب مكتمل ومؤرشف. تم حماية حالته النهائية حتى لا تتغير بيانات التسليم أو الحسابات بالخطأ.');
  const modal=$('lfOrderStatusModal'),select=$('lfOrderStatusSelect'),current=$('lfOrderStatusCurrent');
  if(!modal||!select)return alert('نافذة تحديث الحالة غير متاحة حاليًا.');
  const allowed=['جديد','قيد التجهيز','جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم','ملغي'];
  select.innerHTML=allowed.map(status=>'<option value="'+esc(status)+'" '+(status===o.status?'selected':'')+'>'+esc(status)+'</option>').join('');
  if(current)current.textContent='الحالة الحالية: '+(o.status||'جديد')+' · الطلب #'+String(o.id).slice(-8);
  window.lfOrderStatusTargetId=id;
+ updateOrderStatusPrompt();
  modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('lf-modal-open');
  setTimeout(()=>select.focus(),40);
+}
+function updateOrderStatusPrompt(){
+ const id=window.lfOrderStatusTargetId,select=$('lfOrderStatusSelect'),help=$('lfOrderStatusHelp'),button=$('lfOrderStatusConfirm');
+ if(id===null||id===undefined||!select||!help||!button)return;
+ const o=(db.orders||[]).find(x=>x.id===id);if(!o)return;
+ const next=select.value,previous=o.status||'جديد';
+ help.classList.remove('is-warning');
+ if(next===previous){help.textContent='الحالة المختارة هي الحالة الحالية بالفعل؛ لن يتم إجراء أي تغيير.';button.textContent='الحالة كما هي';button.disabled=true;return}
+ button.disabled=false;button.textContent=next==='ملغي'?'تأكيد إلغاء الطلب':previous==='ملغي'?'تأكيد إعادة فتح الطلب':'تأكيد تحديث الحالة';
+ if(next==='ملغي'){help.textContent='تنبيه: سيتم فحص الشحن والتحصيل والتسويات أولاً. إذا وُجدت حركة مالية أو شحن تمنع الإلغاء، سيُرفض التغيير ولن تُعدّل الكميات.';help.classList.add('is-warning')}
+ else if(previous==='ملغي'){help.textContent='إعادة فتح الطلب ستعيد احتساب الكميات المتاحة بالمخزون، وأي نقص سيعود إلى التصنيع المطلوب.';help.classList.add('is-warning')}
+ else if(['جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(next)){help.textContent='لا يمكن اعتماد هذه المرحلة قبل اكتمال تصنيع جميع الكميات المطلوبة. سيتم التحقق من ذلك قبل الحفظ.'}
+ else{help.textContent='سيتم تسجيل الحالة الجديدة في سجل الطلب مع التاريخ والوقت، مع الحفاظ على قواعد المخزون والتصنيع والتحصيل.'}
 }
 function closeOrderStatusModal(){
  const modal=$('lfOrderStatusModal');if(!modal)return;
@@ -1102,7 +1134,9 @@ function closeOrderStatusModal(){
 function confirmOrderStatusChange(){
  const id=window.lfOrderStatusTargetId,select=$('lfOrderStatusSelect');
  if(id===null||id===undefined||!select)return closeOrderStatusModal();
- const status=select.value;closeOrderStatusModal();
+ const status=select.value;
+ if(select.disabled||status===(db.orders||[]).find(x=>x.id===id)?.status){closeOrderStatusModal();return}
+ closeOrderStatusModal();
  applyOrderStatusChange(id,status);
 }
 function applyOrderStatusChange(id,s){let o=db.orders.find(x=>x.id===id);if(!o)return;
@@ -1110,6 +1144,7 @@ let allowed=['جديد','قيد التجهيز','جاهز للشحن','تم تس
 if(!allowed.includes(s))return alert('الحالة غير معتمدة. اختر حالة من القائمة المعروضة.');
 if(['جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(s)&&orderPendingProductionUnits(o)>0)return alert('لا يمكن نقل الطلب إلى مرحلة الشحن أو التسليم قبل اكتمال التصنيع. توجد '+orderPendingProductionUnits(o)+' قطعة ناقصة في صفحة التصنيع المطلوب.');
 let previous=o.status;if(s===previous)return;
+if(['تم التسليم','تم التسليم للعميل'].includes(previous))return alert('لا يمكن تعديل حالة طلب مكتمل؛ تم الاحتفاظ بسجل التسليم والحسابات كما هو.');
 const cancelling=s==='ملغي'&&previous!=='ملغي',reactivating=previous==='ملغي'&&s!=='ملغي';
 if(cancelling&&['تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(previous))return alert('لا يمكن إلغاء طلب بدأ شحنه أو تم تسليمه؛ حتى لا تعود كمياته إلى المخزون رغم خروجها فعليًا. سجّل مرتجعًا أو راجع التسوية المناسبة بدلًا من إلغاء الطلب.');
 if(cancelling&&(db.returns||[]).some(r=>r.orderId===o.id))return alert('لا يمكن إلغاء الطلب آليًا لوجود مرتجعات أو استبدالات مرتبطة به. راجع حركة المخزون والتسويات أولاً.');
