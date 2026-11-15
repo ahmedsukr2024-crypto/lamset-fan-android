@@ -17,6 +17,10 @@
   --bg:var(--lf-bg);--surface:var(--lf-surface);--card:var(--lf-surface);
   --green:var(--lf-success);--red:var(--lf-danger);--gold:var(--lf-warning);
   --mint:var(--lf-success-soft);
+  --lf-brand:var(--lf-blue);--lf-brand-hover:var(--lf-blue-hover);--lf-brand-soft:var(--lf-blue-soft);
+  --lf-control-radius:12px;--lf-control-bg:var(--lf-surface);--lf-control-text:var(--lf-text);
+  --lf-control-border:var(--lf-border);--lf-control-font:15px;--lf-control-padding-x:16px;
+  --lf-focus-ring:0 0 0 3px rgba(8,102,255,.18);
 }
 html[data-theme="dark"]{
   color-scheme:dark;
@@ -32,6 +36,10 @@ html[data-theme="dark"]{
   --bg:var(--lf-bg);--surface:var(--lf-surface);--card:var(--lf-surface);
   --green:var(--lf-success);--red:var(--lf-danger);--gold:var(--lf-warning);
   --mint:var(--lf-success-soft);
+  --lf-brand:var(--lf-blue);--lf-brand-hover:var(--lf-blue-hover);--lf-brand-soft:var(--lf-blue-soft);
+  --lf-control-radius:12px;--lf-control-bg:var(--lf-surface);--lf-control-text:var(--lf-text);
+  --lf-control-border:var(--lf-border);--lf-control-font:15px;--lf-control-padding-x:16px;
+  --lf-focus-ring:0 0 0 3px rgba(8,102,255,.24);
 }
 html,body{width:100%;max-width:100%;min-height:100%;overflow-x:clip;background:var(--lf-bg)!important;color:var(--lf-text)!important}
 body,button,input,select,textarea{font-family:"Tajawal",Tahoma,Arial,sans-serif!important}
