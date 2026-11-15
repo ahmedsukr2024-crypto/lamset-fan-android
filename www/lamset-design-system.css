@@ -164,3 +164,80 @@ html[data-theme="dark"] .metric,html[data-theme="dark"] .lf-alert-card{backgroun
 .lf-global-search-result-copy small{font-size:12px;color:var(--lf-muted);overflow-wrap:anywhere}
 .lf-global-search-kind{flex:0 0 auto;padding:4px 8px;border-radius:999px;background:var(--lf-surface-2);color:var(--lf-muted);font-size:11px}
 .lf-global-search-empty{margin:0;padding:20px 8px;text-align:center}
+
+/* Mobile drawer + safe-area refinements (v3) */
+.wrap{padding-top:0!important}
+.lf-app-header{top:env(safe-area-inset-top,0px)!important;margin-top:0!important}
+@media(max-width:699px){.wrap{padding-top:0!important}.lf-app-header{top:env(safe-area-inset-top,0px)!important}}
+.nav{direction:rtl!important}
+#lfNavMore{order:-1!important}
+.lf-drawer-backdrop[hidden]{display:none!important}
+.lf-drawer-backdrop{
+ position:fixed!important;z-index:9998!important;
+ inset:calc(env(safe-area-inset-top,0px) + 24px) 0 0!important;
+ display:block;background:rgba(0,0,0,.48)!important;opacity:0;
+ transition:opacity .22s ease;touch-action:none;
+}
+.lf-drawer-backdrop.is-visible{opacity:1}
+.lf-side-drawer{
+ position:fixed!important;z-index:9999!important;
+ top:calc(env(safe-area-inset-top,0px) + 34px)!important;
+ right:0!important;left:auto!important;bottom:0!important;
+ width:min(88vw,390px)!important;height:auto!important;
+ max-height:calc(100dvh - env(safe-area-inset-top,0px) - 34px)!important;
+ display:flex!important;flex-direction:column!important;overflow:hidden!important;
+ direction:rtl!important;text-align:right!important;
+ border:1px solid var(--lf-border,var(--line))!important;
+ border-inline-start:0!important;border-radius:18px 0 0 0!important;
+ background:var(--lf-surface,var(--surface))!important;color:var(--lf-text,var(--ink))!important;
+ box-shadow:-12px 0 36px rgba(0,0,0,.2)!important;
+ transform:translate3d(105%,0,0)!important;
+ transition:transform .24s cubic-bezier(.2,.8,.2,1)!important;
+ overscroll-behavior:contain!important;
+}
+.lf-side-drawer.is-open{transform:translate3d(0,0,0)!important}
+.lf-drawer-head,.lf-drawer-current{flex:0 0 auto!important}
+.lf-drawer-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:16px!important;border-bottom:1px solid var(--lf-border,var(--line))!important}
+.lf-drawer-brand{display:flex!important;align-items:center!important;gap:10px!important;min-width:0}
+.lf-drawer-brand>span:last-child{display:flex;flex-direction:column;gap:2px}
+.lf-drawer-brand b{font-size:17px;font-weight:800}
+.lf-drawer-brand small{font-size:12px;color:var(--lf-muted,var(--muted))}
+.lf-drawer-close{width:42px!important;min-width:42px!important;height:42px!important;min-height:42px!important;padding:0!important;border-radius:50%!important;font-size:24px!important}
+.lf-drawer-current{display:flex!important;flex-direction:column!important;gap:2px!important;margin:12px 14px 8px!important;padding:10px 12px!important;border:1px solid var(--lf-border,var(--line))!important;border-radius:12px!important}
+.lf-drawer-current small{font-size:11px;color:var(--lf-muted,var(--muted))}
+.lf-drawer-current b{font-size:14px}
+.lf-drawer-links{
+ display:block!important;flex:1 1 auto!important;min-height:0!important;
+ overflow-y:auto!important;overflow-x:hidden!important;
+ padding:4px 12px calc(20px + env(safe-area-inset-bottom,0px))!important;
+ -webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain!important;
+ touch-action:pan-y!important;scrollbar-width:thin;
+}
+.lf-drawer-group{display:block!important;margin:0 0 9px!important;border:1px solid var(--lf-border,var(--line))!important;border-radius:12px!important;overflow:hidden!important;background:var(--lf-surface,var(--surface))!important}
+.lf-drawer-group>summary{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ min-height:48px!important;padding:11px 13px!important;cursor:pointer!important;list-style:none!important;
+ font-size:15px!important;font-weight:800!important;color:var(--lf-text,var(--ink))!important;
+ background:var(--lf-surface-2,var(--bg))!important;
+}
+.lf-drawer-group>summary::-webkit-details-marker{display:none!important}
+.lf-drawer-group>summary::after{content:"⌄";font-size:19px;color:var(--lf-muted,var(--muted));transition:transform .18s ease}
+.lf-drawer-group[open]>summary::after{transform:rotate(180deg)}
+.lf-drawer-group-links{display:grid!important;gap:4px!important;padding:7px!important;border-top:1px solid var(--lf-border,var(--line))!important}
+.lf-drawer-link{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:11px!important;
+ width:100%!important;min-height:44px!important;height:auto!important;padding:9px 11px!important;
+ border:1px solid transparent!important;border-radius:10px!important;
+ background:transparent!important;color:var(--lf-text,var(--ink))!important;
+ text-align:right!important;font-size:14px!important;font-weight:600!important;
+}
+.lf-drawer-link [data-lucide],.lf-drawer-link svg{width:19px!important;height:19px!important;flex:0 0 19px!important}
+.lf-drawer-link.active{background:var(--lf-blue-soft,var(--lavender-2))!important;color:var(--lf-blue,var(--purple))!important}
+html[data-theme="dark"] .lf-side-drawer{background:#242526!important;color:#E4E6EB!important;border-color:#3E4042!important}
+html[data-theme="dark"] .lf-drawer-group,html[data-theme="dark"] .lf-drawer-group>summary{background:#242526!important;color:#E4E6EB!important;border-color:#3E4042!important}
+html[data-theme="dark"] .lf-drawer-group-links{border-color:#3E4042!important}
+html[data-theme="dark"] .lf-drawer-link{color:#E4E6EB!important}
+html[data-theme="dark"] .lf-drawer-link.active{background:#263951!important;color:#69AFFF!important}
+body.lf-drawer-open{overscroll-behavior:none!important}
+@media(max-width:380px){.lf-side-drawer{width:min(92vw,360px)!important}.lf-drawer-head{padding:12px!important}.lf-drawer-links{padding-inline:9px!important}}
+@media(prefers-reduced-motion:reduce){.lf-side-drawer,.lf-drawer-backdrop,.lf-drawer-group>summary::after{transition:none!important}}
