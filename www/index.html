@@ -24,6 +24,16 @@ html[data-theme="dark"] .lf-order-details{background:var(--surface,#18191A);bord
 .lf-order-item-numbers b{color:var(--ink);font-size:11px;overflow-wrap:anywhere}
 html[data-theme="dark"] .lf-order-item-detail{background:var(--bg);border-color:var(--line)}
 @media(max-width:380px){.lf-order-item-detail{padding:8px}.lf-order-item-numbers{gap:4px}.lf-order-item-numbers b{font-size:10px}.lf-order-item-name{flex-direction:column;gap:3px}}
+</style><style id="lf-order-actions-mobile-v2">
+.lf-order-actions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+.lf-order-actions-primary,.lf-order-actions-secondary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
+.lf-order-actions button{min-width:0;min-height:42px;padding:8px 6px!important;font-size:12px!important;font-weight:800!important;white-space:normal;line-height:1.35}
+.lf-order-actions-primary .lf-order-status-action{grid-column:1/-1}
+.lf-order-actions-secondary button{background:var(--lavender-2)!important;color:var(--purple)!important;border:1px solid var(--line)!important}
+.lf-order-actions-primary button{box-shadow:none!important}
+html[data-theme="dark"] .lf-order-actions-secondary button{background:var(--lavender-2)!important;color:var(--purple)!important;border-color:var(--line)!important}
+html[data-theme="dark"] .lf-order-card.is-overdue{background:linear-gradient(145deg,var(--surface),#38232a)}
+@media(max-width:350px){.lf-order-actions-primary,.lf-order-actions-secondary{gap:6px}.lf-order-actions button{min-height:40px;font-size:11px!important;padding:7px 4px!important}}
 </style></head>')?source.replace('</head>',theme+'</head>'):source.replace('<body',theme+'<body');
 }function showDocumentPreview(html,title,allowTrustedScripts){
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
