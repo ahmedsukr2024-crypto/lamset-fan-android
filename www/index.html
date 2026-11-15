@@ -780,11 +780,7 @@ function updateOrderWhatsAppLink(){const link=$('lfOrderWhatsAppLink');if(!link)
 function lfOpenOrderWhatsAppConfirmation(order){
  const phone=customerPhoneDigits(order?.phone||'');
  if(!phone||phone.length<7||phone.length>15)return {opened:false,missingPhone:true};
- const allOrders=Array.isArray(db.orders)?db.orders:[];
- const makeCode=length=>'LF-'+String(order.id||'').slice(-length).toUpperCase();
- let code=makeCode(10);
- if(allOrders.some(other=>other.id!==order.id&&makeCodeForOrder(other,10)===code))code=makeCode(12);
- if(allOrders.some(other=>other.id!==order.id&&makeCodeForOrder(other,12)===code))code='LF-'+String(order.id||'').toUpperCase();
+ const code=lfOrderNumber(order);
  const lines=(Array.isArray(order.items)?order.items:[]).map(item=>'- '+String(item.productName||item.productSnapshot?.name||'منتج')+': '+(Number(item.qty)||0)+' '+(item.unitType==='carton'?'كرتونة':'قطعة'));
  const total=orderGrossTotal(order),paid=paidOnOrder(order),remaining=orderDue(order);
  const amount=value=>(Number(value)||0).toLocaleString('ar-EG',{maximumFractionDigits:2})+' جنيه';
