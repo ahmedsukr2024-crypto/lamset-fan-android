@@ -1029,7 +1029,7 @@ function renderOrdersOverview(){
  const active=orders.filter(o=>!['تم التسليم','تم التسليم للعميل','ملغي'].includes(String(o.status||'')));
  const count=(test)=>active.filter(test).length;
  const fresh=count(o=>['جديد','تم تأكيد الطلب'].includes(String(o.status||'')));
- const production=count(o=>orderWorkflowSnapshot(o).pending>0||['قيد التجهيز','تحت التنفيذ','تحت التصنيع'].includes(String(o.status||'')));
+ const production=count(o=>orderWorkflowSnapshot(o).pending>0);
  const ready=count(o=>{const flow=orderWorkflowSnapshot(o);return flow.open&&!flow.shipped&&flow.pending===0&&flow.prepared>0});
  const overdue=count(o=>!!(o.due&&o.due<today&&orderWorkflowSnapshot(o).open));
  const outstanding=active.reduce((sum,o)=>sum+Math.max(0,orderDue(o)),0);
@@ -1045,7 +1045,8 @@ function renderOrdersOverview(){
 }
 function openOrdersOverviewFilter(filter){
  orderSectionView='open';setOrdersWorkspaceTab('history');
- const status=$('orderHistoryStatus');if(status)status.value=filter;
+ const search=$('orderHistorySearch'),from=$('orderHistoryFrom'),to=$('orderHistoryTo'),status=$('orderHistoryStatus');
+ if(search)search.value='';if(from)from.value='';if(to)to.value='';if(status)status.value=filter;
  renderOrders();
 }
 function setOrdersWorkspaceTab(view){
