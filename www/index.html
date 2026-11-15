@@ -1686,7 +1686,7 @@ function lfSaveProductFormDraft(){
  try{
   const values={};lfProductDraftFields.forEach(k=>{const el=$(k);if(el)values[k]=el.value});
   const preview=$('pImagePreview')?.querySelector('img'),imageData=preview?.src?.startsWith('data:image/')?preview.src:(window.__lfProductDraftImage||'');
-  const meaningful=!!(values.pName||values.pCode||values.pDesign||values.pDesc||values.pContents||imageData);
+  const numericDefaults={pCost:0,pDistributor:0,pWholesale:0,pShop:0,pRetail:0,pMin:10,pStock:0,pSuggestedDistributor:0,pSuggestedWholesale:0,pSuggestedShop:0,pSuggestedRetail:0,pUnitsPerCarton:1};const numericChanged=Object.entries(numericDefaults).some(([key,value])=>Number(values[key])!==value);const meaningful=!!(values.pName||values.pCode||values.pDesign||values.pDesc||values.pContents||imageData||numericChanged);
   if(!meaningful){localStorage.removeItem(LF_PRODUCT_FORM_DRAFT_KEY);return true}
   localStorage.setItem(LF_PRODUCT_FORM_DRAFT_KEY,JSON.stringify({productId:values.pId||'',values,imageData,updatedAt:Date.now()}));
   return true;
@@ -1707,7 +1707,7 @@ function lfRestoreProductFormDraft(productId){
 }
 document.addEventListener('input',event=>{if(lfProductDraftFields.includes(event.target?.id))lfSaveProductFormDraft()});
 document.addEventListener('change',event=>{if(lfProductDraftFields.includes(event.target?.id))lfSaveProductFormDraft()});
-const lfProductPreviewObserver=new MutationObserver(()=>{const img=$('pImagePreview')?.querySelector('img');if(img?.src?.startsWith('data:image/')){window.__lfProductDraftImage=img.src;lfSaveProductFormDraft()}});
+const lfProductPreviewObserver=new MutationObserver(()=>{const img=$('pImagePreview')?.querySelector('img');if(img?.src?.startsWith('data:image/')&&$('pImage')?.files?.length){window.__lfProductDraftImage=img.src;lfSaveProductFormDraft()}});
 if($('pImagePreview'))lfProductPreviewObserver.observe($('pImagePreview'),{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
 const lfOriginalShowProductForm=showProductForm;
 showProductForm=async function(product){window.__lfProductDraftImage=null;await lfOriginalShowProductForm(product);lfRestoreProductFormDraft(product?.id||'')};
