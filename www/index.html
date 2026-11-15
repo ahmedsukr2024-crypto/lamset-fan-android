@@ -912,6 +912,7 @@ function importWhatsAppOrder(){
    db.customers.push(newCustomer);
    if(!save()){db=beforeCustomerCreate;return say('تعذر حفظ ملف العميل الجديد. لم يتم اعتماد الاستيراد؛ تحقق من مساحة التخزين وحاول مرة أخرى.','error')}
    matchedCustomer=newCustomer;
+   if(typeSelect)typeSelect.value='';
   }
  }
  if(typeWrap)typeWrap.hidden=true;
