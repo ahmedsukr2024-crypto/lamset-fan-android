@@ -421,12 +421,12 @@ html{color-scheme:light}html[data-theme="dark"]{color-scheme:dark;--ink:#F7F8FA;
 <button type="button" class="lf-orders-nav-tab active" role="tab" aria-selected="true" data-orders-tab="history" onclick="setOrdersWorkspaceTab('history')">سجل الطلبات</button>
 </div>
 <div class="lf-orders-view" data-orders-view="overview" hidden>
-<div class="lf-orders-overview-intro"><span class="lf-orders-overview-icon" data-lucide="clipboard-list" aria-hidden="true"></span><div><h3>إدارة الطلبات</h3><p>اختر المهمة التي تريد تنفيذها وانتقل مباشرة إلى مكانها.</p></div></div>
+<div class="lf-orders-overview-intro"><span class="lf-orders-overview-icon" data-lucide="clipboard-list" aria-hidden="true"></span><div><h3>ملخص الطلبات</h3><p>متابعة سريعة لحالة الطلبات والمبالغ المطلوب تحصيلها.</p></div></div>
+<div id="lfOrdersOverviewStats" class="lf-orders-overview-stats" aria-live="polite"></div>
 <div class="lf-orders-overview-actions">
 <button type="button" class="lf-orders-action-card" onclick="setOrdersWorkspaceTab('new')"><span data-lucide="plus-circle" aria-hidden="true"></span><b>تسجيل طلب جديد</b><small>إضافة بيانات العميل والمنتجات وموعد التسليم</small></button>
 <button type="button" class="lf-orders-action-card" onclick="setOrdersWorkspaceTab('history')"><span data-lucide="list-checks" aria-hidden="true"></span><b>متابعة سجل الطلبات</b><small>البحث والتصفية ومراجعة حالات الطلبات</small></button>
 </div>
-<div class="lf-orders-return-shortcut"><div><b>المرتجعات والاستبدال</b><p>تسجيل عملية ومراجعة السجل السابق.</p></div><button type="button" class="ghost" onclick="document.getElementById('lfOrdersReturns')?.scrollIntoView({behavior:'smooth',block:'start'})">فتح المرتجعات</button></div>
 <div class="lf-orders-returns card" id="lfOrdersReturns"><h3>المرتجعات والاستبدال</h3><p class="muted">تسجيل عملية مرتجع أو استبدال ومراجعة سجل العمليات السابقة.</p></div>
 <div class="lf-orders-return-content">
 <div class="card"><h3>تسجيل مرتجع أو استبدال</h3><div class="field"><label>الطلب الأصلي</label><select id="returnOrder" onchange="updateReturnForm()"></select></div><div class="field"><label>الصنف داخل الطلب</label><select id="returnOrderItem" onchange="updateReturnForm()"></select></div><div class="row"><div class="field"><label>الكمية المرتجعة</label><input id="returnQty" type="number" min="1" value="1"></div><div class="field"><label>حالة المنتج المرتجع</label><select id="returnCondition"><option value="good">صالح للبيع وإعادة المخزون</option><option value="damaged">تالف ولا يعود للمخزون</option></select></div></div><div class="row"><div class="field"><label>نوع العملية</label><select id="returnType" onchange="updateReturnForm()"><option value="refund">مرتجع</option><option value="exchange">استبدال بمنتج</option></select></div><div class="field"><label>المنتج البديل</label><select id="returnReplacement" onchange="updateReturnForm()"></select></div></div><div class="row"><div class="field"><label>قيمة الاسترداد المستحقة للعميل (لا تُسجل كدفع فعلي)</label><input id="returnRefund" type="number" min="0" step=".01" value="0"></div><div class="field"><label>سعر وحدة المنتج البديل</label><input id="returnReplacementPrice" type="number" min="0" step=".01" value="0"></div></div><div class="field"><label>سبب المرتجع / ملاحظات</label><input id="returnNote"></div><p class="muted" id="returnHint"></p><button onclick="saveReturnExchange()">حفظ العملية</button></div><div class="card"><h3>سجل المرتجعات والاستبدال</h3><div id="returnHistory"></div></div></div>
@@ -916,6 +916,31 @@ function setOrderSectionView(view){
 }
 
 let ordersWorkspaceTab='history';
+function renderOrdersOverview(){
+ const orders=Array.isArray(db.orders)?db.orders:[];
+ const today=localDay();
+ const active=orders.filter(o=>!['تم التسليم','تم التسليم للعميل','ملغي'].includes(String(o.status||'')));
+ const count=(test)=>active.filter(test).length;
+ const fresh=count(o=>['جديد','تم تأكيد الطلب'].includes(String(o.status||'')));
+ const production=count(o=>orderWorkflowSnapshot(o).pending>0||['قيد التجهيز','تحت التنفيذ','تحت التصنيع'].includes(String(o.status||'')));
+ const ready=count(o=>['جاهز للشحن','جاهز للتسليم'].includes(String(o.status||''))||(!orderWorkflowSnapshot(o).pending&&orderWorkflowSnapshot(o).prepared>0&&!['تم تسليمه لشركة الشحن'].includes(String(o.status||''))));
+ const overdue=count(o=>!!(o.due&&o.due<today&&orderWorkflowSnapshot(o).open));
+ const outstanding=active.reduce((sum,o)=>sum+Math.max(0,orderDue(o)),0);
+ const cards=[
+  {label:'الطلبات الجديدة',value:fresh,filter:'جديد',icon:'file-plus-2'},
+  {label:'تحت التنفيذ / التصنيع',value:production,filter:'needs-production',icon:'factory'},
+  {label:'جاهزة للتسليم',value:ready,filter:'ready',icon:'package-check'},
+  {label:'الطلبات المتأخرة',value:overdue,filter:'overdue',icon:'alarm-clock'},
+  {label:'المبالغ المتبقية للتحصيل',value:money(outstanding),filter:'unpaid',icon:'wallet'}
+ ];
+ const el=$('lfOrdersOverviewStats');if(!el)return;
+ el.innerHTML=cards.map(x=>'<button type="button" class="lf-orders-stat-card" onclick="openOrdersOverviewFilter('+JSON.stringify(x.filter)+')"><span class="lf-orders-stat-icon" data-lucide="'+x.icon+'" aria-hidden="true"></span><span class="lf-orders-stat-label">'+x.label+'</span><b class="lf-orders-stat-value">'+x.value+'</b></button>').join('');
+}
+function openOrdersOverviewFilter(filter){
+ orderSectionView='open';setOrdersWorkspaceTab('history');
+ const status=$('orderHistoryStatus');if(status)status.value=filter;
+ renderOrders();
+}
 function setOrdersWorkspaceTab(view){
  const allowed=['overview','new','history'];
  ordersWorkspaceTab=allowed.includes(view)?view:'history';
@@ -927,7 +952,7 @@ function setOrdersWorkspaceTab(view){
   const active=panel.dataset.ordersView===ordersWorkspaceTab;
   panel.hidden=!active;panel.classList.toggle('active',active);
  });
- if(ordersWorkspaceTab==='history')renderOrders();
+ if(ordersWorkspaceTab==='history')renderOrders();else if(ordersWorkspaceTab==='overview')renderOrdersOverview();
  if(window.LamsetUI?.mountIcons)window.LamsetUI.mountIcons(document.getElementById('orders'));
 }
 window.setOrdersWorkspaceTab=setOrdersWorkspaceTab;
