@@ -923,9 +923,9 @@ function saveOrder(){
  const deposit=n('oDeposit'),items=pendingOrderItems.map(x=>({...x,productSnapshot:{...x.productSnapshot}}));
  const total=items.reduce((v,x)=>v+x.qty*x.price,0);
  if(customerChoice&&customerChoice!=='__new__'&&!selectedCustomer)return alert('العميل المختار لم يعد موجودًا في قاعدة العملاء؛ حدّث القائمة ثم اختره مرة أخرى.');
- if(!customerName||!items.length||!Number.isFinite(deposit)||deposit<0||deposit>total)return alert('أكمل بيانات العميل وأضف منتجًا واحدًا على الأقل، وتأكد أن العربون لا يتجاوز إجمالي الطلب');
+ if(!customerName||!items.length||!Number.isFinite(total)||total<0||!Number.isFinite(deposit)||deposit<0||deposit>total)return alert('أكمل بيانات العميل وأضف منتجًا واحدًا على الأقل، وتأكد من صحة الإجمالي وأن العربون لا يتجاوز إجمالي الطلب');
  const requiredStockByProduct=new Map();
- for(let item of items){let p=db.products.find(x=>x.id===item.productId);if(!p)return alert('المنتج '+item.productName+' لم يعد موجودًا في سجل المنتجات');const units=Number(item.stockUnits);if(!Number.isInteger(units)||units<1)return alert('كمية المخزون غير صحيحة للمنتج '+p.name);requiredStockByProduct.set(p.id,(requiredStockByProduct.get(p.id)||0)+units)}
+ for(let item of items){let p=db.products.find(x=>x.id===item.productId);if(!p)return alert('المنتج '+(item.productName||'المحدد')+' لم يعد موجودًا في سجل المنتجات');const qty=Number(item.qty),price=Number(item.price),units=Number(item.stockUnits),unitType=item.unitType==='carton'?'carton':item.unitType==='piece'?'piece':'';const unitsPerCarton=Math.max(1,Number(item.productSnapshot?.unitsPerCarton)||Number(p.unitsPerCarton)||1),expectedUnits=qty*(unitType==='carton'?unitsPerCarton:1),lineTotal=qty*price;if(!unitType||!Number.isSafeInteger(qty)||qty<1||!Number.isFinite(price)||price<0||!Number.isFinite(lineTotal)||!Number.isSafeInteger(units)||units<1||!Number.isSafeInteger(expectedUnits)||units!==expectedUnits)return alert('راجع كمية وسعر ووحدة الصنف '+(p.name||item.productName||'')+'؛ توجد قيمة غير صحيحة في تفاصيل الطلب');requiredStockByProduct.set(p.id,(requiredStockByProduct.get(p.id)||0)+units)}
  if(window.__lfOrderSaving)return;
  window.__lfOrderSaving=true;
  const saveButton=document.querySelector('#orders button[onclick="saveOrder()"]');
@@ -933,8 +933,11 @@ function saveOrder(){
  let before=null;
  try{
   before=JSON.parse(JSON.stringify(db));
-  const enteredPhone=normalizePhone($('oPhone').value,$('oCountryCode').value),area=$('oArea').value.trim();
-  const phoneMatches=enteredPhone?(db.customers||[]).filter(c=>customerPhoneDigits(c.phone)===customerPhoneDigits(enteredPhone)):[];
+  const enteredPhone=normalizePhone($('oPhone').value,$('oCountryCode').value),area=$('oArea').value.trim(),dueValue=$('oDue').value,statusValue=$('oStatus').value,phoneDigits=customerPhoneDigits(enteredPhone);
+  if(phoneDigits&&(phoneDigits.length<7||phoneDigits.length>15))return alert('رقم الهاتف غير مكتمل أو أطول من المسموح؛ راجع كود الدولة والرقم المحلي.');
+  if(dueValue&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(dueValue))return alert('موعد التسليم غير صحيح؛ اختر التاريخ من حقل الموعد.');
+  if(!['جديد','قيد التجهيز','تم التسليم','ملغي'].includes(statusValue))return alert('حالة الطلب المختارة غير صحيحة؛ اختر حالة من القائمة.');
+  const phoneMatches=enteredPhone?(db.customers||[]).filter(c=>customerPhoneDigits(c.phone)===phoneDigits):[];
   if(!selectedCustomer&&phoneMatches.length>1)return alert('رقم الهاتف مرتبط بأكثر من عميل. اختر العميل المقصود من القائمة قبل تسجيل الطلب لتجنب ربط الفاتورة بملف خاطئ.');
   const phoneOwner=phoneMatches.length===1?phoneMatches[0]:null;
   if(selectedCustomer&&phoneMatches.length&&!phoneMatches.some(c=>c.id===selectedCustomer.id))return alert('رقم الهاتف الذي أدخلته مرتبط بعميل آخر. اختر العميل الصحيح أو راجع بيانات العملاء قبل تسجيل الطلب.');
