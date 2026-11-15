@@ -924,15 +924,15 @@ function saveOrder(){
  const total=items.reduce((v,x)=>v+x.qty*x.price,0);
  if(customerChoice&&customerChoice!=='__new__'&&!selectedCustomer)return alert('العميل المختار لم يعد موجودًا في قاعدة العملاء؛ حدّث القائمة ثم اختره مرة أخرى.');
  if(!customerName||!items.length||!Number.isFinite(deposit)||deposit<0||deposit>total)return alert('أكمل بيانات العميل وأضف منتجًا واحدًا على الأقل، وتأكد أن العربون لا يتجاوز إجمالي الطلب');
+ const requiredStockByProduct=new Map();
+ for(let item of items){let p=db.products.find(x=>x.id===item.productId);if(!p)return alert('المنتج '+item.productName+' لم يعد موجودًا في سجل المنتجات');const units=Number(item.stockUnits);if(!Number.isInteger(units)||units<1)return alert('كمية المخزون غير صحيحة للمنتج '+p.name);requiredStockByProduct.set(p.id,(requiredStockByProduct.get(p.id)||0)+units)}
  if(window.__lfOrderSaving)return;
  window.__lfOrderSaving=true;
  const saveButton=document.querySelector('#orders button[onclick="saveOrder()"]');
  if(saveButton){saveButton.disabled=true;saveButton.dataset.originalText=saveButton.textContent;saveButton.textContent='جارٍ تسجيل الطلب…'}
- window.setTimeout(()=>{window.__lfOrderSaving=false;if(saveButton){saveButton.disabled=false;saveButton.textContent=saveButton.dataset.originalText||'تسجيل الطلب'}},1800);
- const requiredStockByProduct=new Map();
- for(let item of items){let p=db.products.find(x=>x.id===item.productId);if(!p)return alert('المنتج '+item.productName+' لم يعد موجودًا في سجل المنتجات');const units=Number(item.stockUnits);if(!Number.isInteger(units)||units<1)return alert('كمية المخزون غير صحيحة للمنتج '+p.name);requiredStockByProduct.set(p.id,(requiredStockByProduct.get(p.id)||0)+units)}
- let before=JSON.parse(JSON.stringify(db));
+ let before=null;
  try{
+  before=JSON.parse(JSON.stringify(db));
   const enteredPhone=normalizePhone($('oPhone').value,$('oCountryCode').value),area=$('oArea').value.trim();
   const phoneMatches=enteredPhone?(db.customers||[]).filter(c=>customerPhoneDigits(c.phone)===customerPhoneDigits(enteredPhone)):[];
   if(!selectedCustomer&&phoneMatches.length>1)return alert('رقم الهاتف مرتبط بأكثر من عميل. اختر العميل المقصود من القائمة قبل تسجيل الطلب لتجنب ربط الفاتورة بملف خاطئ.');
@@ -954,7 +954,11 @@ function saveOrder(){
   ['oPhone','oArea','oDue'].forEach(x=>$(x).value='');$('oCountryCode').value='20';$('oDeposit').value=0;$('oQty').value=1;
   renderAll();if(window.lamsetBusinessAlert)window.lamsetBusinessAlert('طلب جديد من '+(customer.name||customerName),'تم تسجيل طلب جديد ويحتاج إلى متابعة.');
   alert('تم تسجيل الطلب بنجاح.'+(shortage?' يوجد '+shortage+' قطعة ناقصة تمت إضافتها إلى صفحة التصنيع المطلوب.':' تم توفير الكميات من المخزون.'))
- }catch(err){db=before;save();console.error(err);alert('تعذر تسجيل الطلب؛ تم التراجع عن التغييرات بالكامل.')}
+ }catch(err){if(before){db=before;save()}console.error(err);alert('تعذر تسجيل الطلب؛ تم التراجع عن التغييرات بالكامل.')}
+ finally{
+  window.__lfOrderSaving=false;
+  if(saveButton){saveButton.disabled=false;saveButton.textContent=saveButton.dataset.originalText||'تسجيل الطلب';delete saveButton.dataset.originalText}
+ }
 }
 function orderReturnLines(o){if(Array.isArray(o?.items)&&o.items.length)return o.items.map((x,i)=>({key:String(i),productId:x.productId,productName:x.productName||x.productSnapshot?.name||db.products.find(p=>p.id===x.productId)?.name||'منتج',qty:Number(x.qty)||0,unitType:x.unitType||'piece',stockUnits:Number(x.stockUnits)||0,price:Number(x.price)||0,productSnapshot:x.productSnapshot||{}}));return [{key:'legacy',productId:o?.productId,productName:o?.productSnapshot?.name||o?.productName||db.products.find(p=>p.id===o?.productId)?.name||'منتج',qty:Number(o?.qty)||0,unitType:o?.unitType||'piece',stockUnits:Number(o?.stockUnits)||0,price:Number(o?.price)||0,productSnapshot:o?.productSnapshot||{}}]}function returnedQtyForOrder(orderId,productId,itemKey){return (db.returns||[]).filter(r=>r.orderId===orderId&&(!itemKey?true:(r.orderItemKey===itemKey||((itemKey==='0'||itemKey==='legacy')&&!r.orderItemKey&&(!productId||r.productId===productId))))&&(!productId||r.productId===productId)).reduce((n,r)=>n+(Number(r.qty)||0),0)}function orderRefundTotal(orderId){return (db.returns||[]).filter(r=>r.orderId===orderId).reduce((n,r)=>n+(r.refundDue!==undefined?(Number(r.refundDue)||0):(Number(r.refund)||0)),0)}
 function updateReturnForm(){let sel=$('returnOrder');if(!sel)return;let o=(db.orders||[]).find(x=>x.id===sel.value),lineSel=$('returnOrderItem'),lines=o?orderReturnLines(o):[];
