@@ -17,10 +17,6 @@
   --bg:var(--lf-bg);--surface:var(--lf-surface);--card:var(--lf-surface);
   --green:var(--lf-success);--red:var(--lf-danger);--gold:var(--lf-warning);
   --mint:var(--lf-success-soft);
-  --lf-brand:var(--lf-blue);--lf-brand-hover:var(--lf-blue-hover);--lf-brand-soft:var(--lf-blue-soft);
-  --lf-control-radius:12px;--lf-control-bg:var(--lf-surface);--lf-control-text:var(--lf-text);
-  --lf-control-border:var(--lf-border);--lf-control-font:15px;--lf-control-padding-x:16px;
-  --lf-focus-ring:0 0 0 3px rgba(8,102,255,.18);
 }
 html[data-theme="dark"]{
   color-scheme:dark;
@@ -36,10 +32,6 @@ html[data-theme="dark"]{
   --bg:var(--lf-bg);--surface:var(--lf-surface);--card:var(--lf-surface);
   --green:var(--lf-success);--red:var(--lf-danger);--gold:var(--lf-warning);
   --mint:var(--lf-success-soft);
-  --lf-brand:var(--lf-blue);--lf-brand-hover:var(--lf-blue-hover);--lf-brand-soft:var(--lf-blue-soft);
-  --lf-control-radius:12px;--lf-control-bg:var(--lf-surface);--lf-control-text:var(--lf-text);
-  --lf-control-border:var(--lf-border);--lf-control-font:15px;--lf-control-padding-x:16px;
-  --lf-focus-ring:0 0 0 3px rgba(8,102,255,.24);
 }
 html,body{width:100%;max-width:100%;min-height:100%;overflow-x:clip;background:var(--lf-bg)!important;color:var(--lf-text)!important}
 body,button,input,select,textarea{font-family:"Tajawal",Tahoma,Arial,sans-serif!important}
@@ -154,12 +146,3 @@ html[data-theme="dark"] .metric,html[data-theme="dark"] .lf-alert-card{backgroun
 @media(min-width:700px){.wrap{padding-inline:16px!important}.lf-app-header{margin-inline:-16px!important;padding-inline:16px!important}}
 @media(max-width:390px){.nav button{min-height:50px!important}.nav button b{font-size:11px!important}.card{padding:12px!important}input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),select,textarea{font-size:16px!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-
-/* Read/unread notification controls and subtle unread emphasis. */
-.lf-alert-read-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 10px}
-.lf-alert-read-filters{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.lf-alert-read-toolbar [data-alert-mark-all-read]{min-height:40px!important}
-.lf-alert-card.is-unread{border-inline-start:4px solid var(--lf-blue)!important;background:color-mix(in srgb,var(--lf-blue-soft) 22%,var(--lf-surface))!important}
-.lf-alert-time{margin-inline-start:auto;font-size:11px;font-weight:500;color:var(--lf-muted);white-space:nowrap}
-.lf-alert-card.is-unread .lf-alert-title::after{content:"جديد";display:inline-block;margin-inline-start:7px;padding:2px 7px;border-radius:999px;background:var(--lf-blue-soft);color:var(--lf-blue);font-size:10px;font-weight:800;vertical-align:middle}
-@media(max-width:420px){.lf-alert-read-toolbar{align-items:stretch}.lf-alert-read-toolbar [data-alert-mark-all-read]{width:100%}.lf-alert-time{font-size:10px}}
