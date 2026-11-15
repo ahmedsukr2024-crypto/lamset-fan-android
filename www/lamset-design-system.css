@@ -146,3 +146,21 @@ html[data-theme="dark"] .metric,html[data-theme="dark"] .lf-alert-card{backgroun
 @media(min-width:700px){.wrap{padding-inline:16px!important}.lf-app-header{margin-inline:-16px!important;padding-inline:16px!important}}
 @media(max-width:390px){.nav button{min-height:50px!important}.nav button b{font-size:11px!important}.card{padding:12px!important}input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),select,textarea{font-size:16px!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Header global search overlay. Search results expose only customer-facing and operational identifiers. */
+.lf-header-search{color:var(--lf-muted)!important}
+.lf-global-search-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:calc(76px + env(safe-area-inset-top,0px)) 16px 20px;background:rgba(24,25,26,.48);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.lf-global-search-modal[hidden]{display:none!important}
+.lf-global-search-dialog{display:flex;flex-direction:column;gap:12px;width:min(620px,100%);max-height:min(82dvh,760px);overflow:hidden;padding:16px;border:1px solid var(--lf-border);border-radius:16px;background:var(--lf-surface);color:var(--lf-text);box-shadow:0 20px 60px rgba(0,0,0,.24)}
+.lf-global-search-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lf-global-search-head h2{margin:0;font-size:20px!important}
+.lf-global-search-dialog input{width:100%;flex:0 0 auto}
+.lf-global-search-results{display:flex;flex-direction:column;gap:7px;min-height:80px;overflow-y:auto;padding:2px}
+.lf-global-search-result{display:flex;align-items:center;gap:10px;width:100%;min-height:58px!important;padding:9px 11px!important;border:1px solid var(--lf-border)!important;border-radius:12px!important;background:var(--lf-surface)!important;color:var(--lf-text)!important;text-align:right!important}
+.lf-global-search-result:hover{background:var(--lf-surface-2)!important}
+.lf-global-search-result-icon{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border-radius:50%;background:var(--lf-blue-soft);color:var(--lf-blue);font-size:18px}
+.lf-global-search-result-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}
+.lf-global-search-result-copy b{font-size:14px;color:var(--lf-text)}
+.lf-global-search-result-copy small{font-size:12px;color:var(--lf-muted);overflow-wrap:anywhere}
+.lf-global-search-kind{flex:0 0 auto;padding:4px 8px;border-radius:999px;background:var(--lf-surface-2);color:var(--lf-muted);font-size:11px}
+.lf-global-search-empty{margin:0;padding:20px 8px;text-align:center}
