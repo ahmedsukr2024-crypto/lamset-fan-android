@@ -61,7 +61,7 @@ function closeDocumentPreview(){const modal=$('lamsetDocumentPreview'),frame=$('
  backdrop.replaceChildren(card);
  function isOrderFormActive(){
   return orders.classList.contains('active')&&
-   window.ordersWorkspaceTab==='new'&&
+   orders.querySelector('[data-orders-tab="new"]')?.getAttribute('aria-selected')==='true'&&
    !orders.querySelector('[data-orders-view="new"]')?.hidden;
  }
  function syncFab(){fab.classList.toggle('is-visible',isOrderFormActive()&&!backdrop.classList.contains('is-open'))}
