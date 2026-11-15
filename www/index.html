@@ -1012,9 +1012,9 @@ function editOrder(id){
  const customer=(db.customers||[]).find(x=>x.id===o.customerId);
  if(customer){$('oCustomerSelect').value=customer.id;selectOrderCustomer(customer.id)}
  else{$('oCustomerSelect').value='__new__';$('oCustomerNew').style.display='block';$('oCustomerNew').value=o.customer||'';$('lfOrderNewCustomerTypeWrap').hidden=false;$('lfOrderNewCustomerType').value=o.customerType||'trader'}
- const rawPhone=String(o.phone||''),digits=rawPhone.replace(/\D/g,'');
- if(digits.startsWith('20')&&digits.length>10){$('oCountryCode').value='20';$('oPhone').value=digits.slice(2).replace(/^0/,'')}
- else{$('oCountryCode').value='20';$('oPhone').value=rawPhone.replace(/^\+?20/,'').replace(/^0/,'')}
+ const rawPhone=String(o.phone||''),digits=rawPhone.replace(/\D/g,''),countryCodes=['966','971','965','974','973','968','962','961','964','212','213','216','218','249','20','44','49','33','1'].sort((a,b)=>b.length-a.length),matchedCode=countryCodes.find(code=>digits.startsWith(code)&&digits.length>code.length);
+ if(matchedCode){$('oCountryCode').value=matchedCode;$('oPhone').value=digits.slice(matchedCode.length).replace(/^0/,'')}
+ else{$('oCountryCode').value='20';$('oPhone').value=digits.replace(/^0/,'')}
  $('oArea').value=o.area||customer?.area||'';$('oDeposit').value=Number(o.deposit)||0;$('oDue').value=o.due||'';$('oStatus').value=o.status||'جديد';
  const source=Array.isArray(o.items)&&o.items.length?o.items:[{productId:o.productId,productName:o.productName||o.productSnapshot?.name,productCode:o.productCode||o.productSnapshot?.code,productSnapshot:o.productSnapshot,qty:o.qty,unitType:o.unitType,stockUnits:o.stockUnits,price:o.price}];
  pendingOrderItems=source.map(x=>{const p=db.products.find(v=>v.id===x.productId),snapshot=JSON.parse(JSON.stringify(x.productSnapshot||{name:x.productName||p?.name||'',code:x.productCode||p?.code||'',design:p?.design||'',unitsPerCarton:Math.max(1,Number(p?.unitsPerCarton)||1)})),qty=Math.max(1,Number(x.qty)||1),unitType=x.unitType==='carton'?'carton':'piece',units=qty*(unitType==='carton'?Math.max(1,Number(snapshot.unitsPerCarton)||1):1);return{productId:x.productId,productName:x.productName||snapshot.name||p?.name||'منتج',productCode:x.productCode||snapshot.code||p?.code||'',productSnapshot:snapshot,qty,unitType,stockUnits:Number(x.stockUnits)||units,price:Math.max(0,Number(x.price)||0),lineTotal:qty*Math.max(0,Number(x.price)||0)}});
