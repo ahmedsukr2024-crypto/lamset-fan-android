@@ -619,7 +619,7 @@ if(!Number.isInteger(values.pMin))return alert('حد تنبيه المخزون �
 let previous=JSON.parse(JSON.stringify(db)),old=db.products.find(x=>x.id===$('pId').value),p={...(old||{}),id:$('pId').value||id(),name,code:$('pCode').value.trim(),design:$('pDesign').value.trim(),cartonType:$('pCartonType').value.trim(),unitsPerCarton:values.pUnitsPerCarton,image:old?.image||'',cost:values.pCost,prices:{distributor:values.pDistributor,wholesale:values.pWholesale,shop:values.pShop,retail:values.pRetail},suggestedPrices:{distributor:values.pSuggestedDistributor,wholesale:values.pSuggestedWholesale,shop:values.pSuggestedShop,retail:values.pSuggestedRetail},min:values.pMin,desc:$('pDesc').value,contents:$('pContents').value.trim(),active:old?old.active!==false:true,stock:values.pStock,costStudy:old?.costStudy};
 let i=db.products.findIndex(x=>x.id===p.id);
 if(i>=0){p.lines=db.products[i].lines||[];p.image=db.products[i].image||'';p.costStudy=db.products[i].costStudy}
-try{let file=$('pImage').files[0];if(file)p.image=await resizeImage(file);const previousStock=Math.max(0,Number(old?.stock)||0),stockDelta=values.pStock-previousStock;if(stockDelta!==0){if(!Array.isArray(db.stockMovements))db.stockMovements=[];db.stockMovements.push({id:id(),productId:p.id,date:new Date().toISOString(),before:previousStock,after:values.pStock,delta:stockDelta,reason:old?'تعديل رصيد من صفحة المنتجات':'رصيد افتتاحي عند إنشاء المنتج'})}if(i>=0)db.products[i]=p;else db.products.push(p);if(!save()){db=previous;alert('تعذر حفظ المنتج بسبب مساحة التخزين أو خطأ في الحفظ. لم يتم اعتماد التعديل؛ حرّر مساحة أو أنشئ نسخة احتياطية ثم حاول مجددًا.');return}hideProductForm();renderAll()}catch(e){db=previous;alert('تعذر تجهيز صورة المنتج أو حفظه. لم يتم اعتماد التعديل؛ بيانات المنتج السابقة محفوظة.')}
+try{let file=$('pImage').files[0];if(file)p.image=await resizeImage(file);else if(window.__lfProductDraftImage&&String(window.__lfProductDraftImage).startsWith('data:image/'))p.image=window.__lfProductDraftImage;const previousStock=Math.max(0,Number(old?.stock)||0),stockDelta=values.pStock-previousStock;if(stockDelta!==0){if(!Array.isArray(db.stockMovements))db.stockMovements=[];db.stockMovements.push({id:id(),productId:p.id,date:new Date().toISOString(),before:previousStock,after:values.pStock,delta:stockDelta,reason:old?'تعديل رصيد من صفحة المنتجات':'رصيد افتتاحي عند إنشاء المنتج'})}if(i>=0)db.products[i]=p;else db.products.push(p);if(!save()){db=previous;alert('تعذر حفظ المنتج بسبب مساحة التخزين أو خطأ في الحفظ. لم يتم اعتماد التعديل؛ حرّر مساحة أو أنشئ نسخة احتياطية ثم حاول مجددًا.');return}hideProductForm();renderAll()}catch(e){db=previous;alert('تعذر تجهيز صورة المنتج أو حفظه. لم يتم اعتماد التعديل؛ بيانات المنتج السابقة محفوظة.')}
 }
 function deleteProduct(pid){let before=JSON.parse(JSON.stringify(db)),p=db.products.find(x=>x.id===pid);if(!p)return;let linked=(db.orders||[]).some(x=>x.productId===pid||(Array.isArray(x.items)&&x.items.some(item=>item.productId===pid)))||(db.productions||[]).some(x=>x.productId===pid)||(db.consignments||[]).some(x=>x.productId===pid)||(db.returns||[]).some(x=>x.productId===pid);if(linked)return alert('لا يمكن حذف هذا المنتج لارتباطه بطلب أو بند داخل طلب متعدد المنتجات أو سجل إنتاج أو أمانة أو مرتجع. احتفظ به في السجل، ويمكن إيقاف استخدامه بدلًا من حذفه.');if(confirm('هل تريد حذف المنتج؟ لا يمكن التراجع عن ذلك.')){db.products=db.products.filter(p=>p.id!==pid);if(!save()){db=before;return alert('تعذر حفظ حذف المنتج؛ تم الاحتفاظ بالبيانات كما كانت.')}renderAll()}}
 function productOptions(id){return '<option value="">اختر المنتج</option>'+db.products.map(p=>`<option value="${p.id}" ${p.id===id?'selected':''}>${esc(p.name)}(${esc(p.code||'بدون كود')})</option>`).join('')}
@@ -1680,6 +1680,43 @@ function lfRestoreOrderFormDraft(){
  }catch(error){console.warn('Unable to restore order form draft:',error)}
 }
 const lfOrderDraftFields=['oCustomerSelect','oCustomerNew','oCountryCode','oPhone','oArea','oDeposit','oDue','oStatus'];
+const LF_PRODUCT_FORM_DRAFT_KEY='lamset_fan_product_form_draft_v1';
+const lfProductDraftFields=['pId','pName','pCode','pDesign','pCost','pDistributor','pWholesale','pShop','pRetail','pMin','pStock','pSuggestedDistributor','pSuggestedWholesale','pSuggestedShop','pSuggestedRetail','pDesc','pContents','pCartonType','pUnitsPerCarton'];
+function lfSaveProductFormDraft(){
+ try{
+  const values={};lfProductDraftFields.forEach(k=>{const el=$(k);if(el)values[k]=el.value});
+  const preview=$('pImagePreview')?.querySelector('img'),imageData=preview?.src?.startsWith('data:image/')?preview.src:(window.__lfProductDraftImage||'');
+  const meaningful=!!(values.pName||values.pCode||values.pDesign||values.pDesc||values.pContents||imageData);
+  if(!meaningful){localStorage.removeItem(LF_PRODUCT_FORM_DRAFT_KEY);return true}
+  localStorage.setItem(LF_PRODUCT_FORM_DRAFT_KEY,JSON.stringify({productId:values.pId||'',values,imageData,updatedAt:Date.now()}));
+  return true;
+ }catch(error){window.LamsetUI?.toast('تعذر حفظ مسودة بيانات المنتج مؤقتًا على الجهاز.','warning');return false}
+}
+function lfRestoreProductFormDraft(productId){
+ try{
+  const raw=localStorage.getItem(LF_PRODUCT_FORM_DRAFT_KEY);if(!raw)return;
+  const draft=JSON.parse(raw);if(String(draft?.productId||'')!==String(productId||''))return;
+  Object.entries(draft.values||{}).forEach(([key,value])=>{const el=$(key);if(el&&key!=='pId')el.value=value??''});
+  if($('pId'))$('pId').value=draft.productId||'';
+  if(draft.imageData&&String(draft.imageData).startsWith('data:image/')){
+   window.__lfProductDraftImage=draft.imageData;
+   if($('pImagePreview'))$('pImagePreview').innerHTML='<img src="'+draft.imageData+'" style="max-width:130px;max-height:130px;border-radius:12px;object-fit:contain">';
+  }
+  if(draft.updatedAt)window.LamsetUI?.toast('تم استعادة مسودة بيانات المنتج. راجعها قبل الحفظ.','info');
+ }catch(error){console.warn('Unable to restore product form draft:',error)}
+}
+document.addEventListener('input',event=>{if(lfProductDraftFields.includes(event.target?.id))lfSaveProductFormDraft()});
+document.addEventListener('change',event=>{if(lfProductDraftFields.includes(event.target?.id))lfSaveProductFormDraft()});
+const lfProductPreviewObserver=new MutationObserver(()=>{const img=$('pImagePreview')?.querySelector('img');if(img?.src?.startsWith('data:image/')){window.__lfProductDraftImage=img.src;lfSaveProductFormDraft()}});
+if($('pImagePreview'))lfProductPreviewObserver.observe($('pImagePreview'),{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
+const lfOriginalShowProductForm=showProductForm;
+showProductForm=async function(product){window.__lfProductDraftImage=null;await lfOriginalShowProductForm(product);lfRestoreProductFormDraft(product?.id||'')};
+const lfOriginalSaveProduct=saveProduct;
+saveProduct=async function(){
+ await lfOriginalSaveProduct();
+ if($('productForm')?.classList.contains('hidden')){try{localStorage.removeItem(LF_PRODUCT_FORM_DRAFT_KEY)}catch(_){}window.__lfProductDraftImage=null}
+};
+
 document.addEventListener('input',event=>{if(lfOrderDraftFields.includes(event.target?.id))lfSaveOrderFormDraft()});
 document.addEventListener('change',event=>{if(lfOrderDraftFields.includes(event.target?.id))lfSaveOrderFormDraft()});
 const lfOriginalSaveOrder=saveOrder;
