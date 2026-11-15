@@ -783,7 +783,7 @@ function importWhatsAppOrder(){
  let currentItem=null;
  for(const row of lines){
   if(/^(طلب جديد من كتالوج|طلب مبدئي|رقم الطلب\s*[:：]|التاريخ\s*[:：]|الإجمالي(?: التقديري)?\s*[:：]|تفاصيل المنتجات\s*[:：]?|الاسم\s*[:：]|العميل\s*[:：]|اسم العميل\s*[:：]|الموبايل\s*[:：]|الهاتف\s*[:：]|رقم الهاتف\s*[:：]|رقم التليفون\s*[:：]|التليفون\s*[:：]|العنوان\s*[:：]|المنطقة\s*[:：]|ملاحظات\s*[:：])/i.test(row))continue;
-  const catalogHeader=row.match(/^\d+\s*[.)-]\s*(.+?)\s*[·•|]\s*(.+?)\s*$/);
+  const catalogHeader=row.match(/^\d+\s*[.)-]\s*(.+?)\s*[·•|]\s*(.*?)\s*$/);
   if(catalogHeader){currentItem={name:catalogHeader[1].trim(),code:catalogHeader[2].trim()};continue}
   if(currentItem&&/(كرتون|قطع)/.test(row)){
    addLine(currentItem.name,currentItem.code,row);currentItem=null;continue;
