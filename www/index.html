@@ -25,6 +25,7 @@ function closeDocumentPreview(){const modal=$('lamsetDocumentPreview'),frame=$('
  if(modal)modal.classList.remove('open');
  if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body></body></html>';
  document.body.classList.remove('lf-modal-open');
+ }
 }
 async function printDocumentPreview(){
  const frame=$('lamsetDocumentFrame');
