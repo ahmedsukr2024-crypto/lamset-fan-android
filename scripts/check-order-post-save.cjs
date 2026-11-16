@@ -8,7 +8,7 @@ function assert(condition, message) {
   }
 }
 const start = html.indexOf('function saveOrder(){');
-const end = html.indexOf('function orderReturnLines', start);
+const end = html.indexOf('function lfOrderStatusKey', start);
 const body = start >= 0 && end > start ? html.slice(start, end) : '';
 assert(!!body, 'saveOrder implementation exists');
 const persisted = body.indexOf("if(!save()){db=before;return alert('تعذر حفظ الطلب");
