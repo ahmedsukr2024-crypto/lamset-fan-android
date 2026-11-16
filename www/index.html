@@ -10,10 +10,11 @@ function lamsetPrintThemeTag(){return '<style id="lamset-unified-document-theme"
  if(source.includes('</head>'))return source.replace('</head>',theme+'</head>');
  return source.replace('<body',theme+'<body');
 }
-function showDocumentPreview(html,title,allowTrustedScripts){
+function showDocumentPreview(html,title,allowTrustedScripts,allowPdfExport){
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
  if(!modal||!frame)return false;
  $('lamsetDocumentTitle').textContent=title||'معاينة المستند';
+ const pdfButton=$('lamsetCatalogPdfButton');if(pdfButton)pdfButton.hidden=!allowPdfExport;
  frame.onload=null;
  const source=String(html||'');
  // Scripts stay disabled for ordinary documents. Only app-generated interactive catalog HTML opts in.
@@ -710,6 +711,7 @@ html[data-theme="dark"] #catalogs .catalog-item .catalog-profit-input{background
    <div class="lf-document-title"><b id="lamsetDocumentTitle">معاينة المستند</b><small id="lamsetDocumentHint">يمكنك مراجعة المستند ثم طباعته أو حفظه PDF</small></div>
    <div class="lf-document-actions">
     <button type="button" class="smallbtn" onclick="printDocumentPreview()" aria-label="طباعة المستند" title="طباعة">🖨️ طباعة</button>
+    <button type="button" class="smallbtn" id="lamsetCatalogPdfButton" onclick="shareCatalogPdf()" title="إنشاء ملف PDF وحفظه ومشاركته" hidden>📄 مشاركة PDF</button>
     <button type="button" class="smallbtn" onclick="shareInteractiveCatalog()" title="تصدير ومشاركة نسخة تفاعلية من الكتالوج">🛒 مشاركة نسخة الطلب</button>
     <button type="button" class="ghost lf-modal-close" onclick="closeDocumentPreview()" aria-label="إغلاق النافذة" title="إغلاق">×</button>
    </div>
@@ -1941,7 +1943,23 @@ function catalogSnapshot(){
   return{name:p.name||'',code:p.code||'',desc:p.desc||'',contents:p.contents||'',cartonType:p.cartonType||'',productId:p.id,image:p.image||'',units,buy,suggest:resale,buyCarton:buy*units,suggestCarton:resale*units,showSuggested:type!=='retail',suggestedResale:resale};
  });
 }
-let lastCatalogInteractiveHtml='';
+let lastCatalogInteractiveHtml='',lastCatalogPdfHtml='';
+function catalogCustomerRows(rows){
+ return (rows||[]).map(row=>({
+  name:String(row.name||''),
+  code:String(row.code||''),
+  desc:String(row.desc||''),
+  contents:String(row.contents||''),
+  cartonType:String(row.cartonType||''),
+  image:String(row.image||''),
+  units:Math.max(1,Number(row.units)||1),
+  buy:Math.max(0,Number(row.buy)||0),
+  buyCarton:Math.max(0,Number(row.buyCarton)||0),
+  suggest:Math.max(0,Number(row.suggest)||0),
+  suggestCarton:Math.max(0,Number(row.suggestCarton)||0),
+  showSuggested:row.showSuggested===true
+ }));
+}
 function makeInteractiveCatalog(html,rows,bp){const waDigits=String(bp.whatsapp||bp.phone||'').replace(/\D/g,'');
  const wa=waDigits.startsWith('0')?'20'+waDigits.slice(1):waDigits;
  const prices=rows.map(r=>({name:r.name,code:r.code,buy:Number(r.buy)||0,carton:Number(r.buyCarton)||0,suggest:Number(r.suggest)||0,suggestCarton:Number(r.suggestCarton)||0,units:Math.max(1,Number(r.units)||1)}));
@@ -1951,6 +1969,21 @@ function makeInteractiveCatalog(html,rows,bp){const waDigits=String(bp.whatsapp|
  const script='<script>(function(){var root=document.querySelector(".online-order"),prices='+safePrices+',wa="'+wa+'";if(!root)return;function collect(){var name=document.getElementById("lamsetOrderName").value.trim(),phone=document.getElementById("lamsetOrderPhone").value.trim(),address=document.getElementById("lamsetOrderAddress").value.trim(),note=document.getElementById("lamsetOrderNote").value.trim(),lines=[],total=0;root.querySelectorAll("[data-carton]").forEach(function(c){var i=Number(c.dataset.carton),cartons=Math.max(0,parseInt(c.value)||0),pieces=Math.max(0,parseInt(root.querySelector("[data-piece=\\\""+i+"\\\"]").value)||0);if(cartons||pieces){var p=prices[i],sum=cartons*p.carton+pieces*p.buy;total+=sum;lines.push({name:p.name,code:p.code,cartons:cartons,pieces:pieces,cartonPrice:p.carton,piecePrice:p.buy,total:sum})}});if(!name||!phone||!address){alert("اكتب الاسم ورقم الموبايل والعنوان.");return null}if(!lines.length){alert("اختار كمية منتج واحد على الأقل.");return null}return{name:name,phone:phone,address:address,note:note,lines:lines,total:total,reference:"LF-"+Date.now().toString(36).toUpperCase()}}function message(d){var date=new Date().toLocaleDateString("ar-EG"),items=d.lines.map(function(x,i){var qty=[];if(x.cartons)qty.push(x.cartons+" كرتونة × "+x.cartonPrice.toLocaleString("ar-EG")+" ج.م");if(x.pieces)qty.push(x.pieces+" قطعة × "+x.piecePrice.toLocaleString("ar-EG")+" ج.م");return (i+1)+". "+x.name+" · "+x.code+"\\n   "+qty.join(" + ")}).join("\\n");return "🧾 طلب مبدئي - لمسة فن\\nرقم الطلب: "+d.reference+"\\nالتاريخ: "+date+"\\nالعميل: "+d.name+"\\nرقم التليفون: "+d.phone+"\\nالعنوان: "+d.address+"\\n\\nتفاصيل المنتجات:\\n"+items+"\\n\\nإجمالي الطلب: "+d.total.toLocaleString("ar-EG")+" ج.م"+(d.note?"\\nملاحظات: "+d.note:"")+"\\n\\nالطلب قيد المراجعة، ولا يعتبر مؤكدًا إلا بعد مراجعة واعتماد لمسة فن.\\nشكرًا لاختياركم لمسة فن ❤️"}function orderDocument(d){var rows=d.lines.map(function(x){return "<tr><td>"+safe(x.name)+"</td><td>"+safe(x.code)+"</td><td>"+(x.cartons||0)+"</td><td>"+(x.pieces||0)+"</td><td>"+x.total.toLocaleString("ar-EG")+" ج.م</td></tr>"}).join("");return "<!doctype html><html lang=\\\"ar\\\" dir=\\\"rtl\\\"><head><meta charset=\\\"utf-8\\\"><meta name=\\\"viewport\\\" content=\\\"width=device-width,initial-scale=1\\\"><title>طلب مبدئي - لمسة فن</title><style>@page{size:A4;margin:16mm}body{font-family:Tahoma,Arial,sans-serif;color:#242526;line-height:1.8}header{border-bottom:3px solid #1877F2;padding-bottom:12px;margin-bottom:18px}h1{color:#1877F2;margin:0}small,.muted{color:#65676B}.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.meta div{background:#F7F8FA;padding:9px;border-radius:8px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #CED0D4;padding:9px;text-align:right}th{background:#F0F2F5}.total{margin-top:16px;padding:14px;background:#F0F2F5;font-size:18px;font-weight:bold}.notice{margin-top:20px;padding:12px;border:1px solid #CED0D4;border-radius:8px}@media print{button{display:none}}</style></head><body><header><h1>لمسة فن</h1><b>طلبية عميل مبدئية</b><br><small>هذه الطلبية غير معتمدة لحين مراجعتها من فريق لمسة فن</small></header><div class=\\\"meta\\\"><div>الاسم: "+safe(d.name)+"</div><div>الموبايل: "+safe(d.phone)+"</div><div style=\\\"grid-column:1/-1\\\">العنوان: "+safe(d.address)+"</div></div><table><thead><tr><th>المنتج</th><th>الكود</th><th>كراتين</th><th>قطع</th><th>الإجمالي</th></tr></thead><tbody>"+rows+"</tbody></table><div class=\\\"total\\\">إجمالي الطلب: "+d.total.toLocaleString("ar-EG")+" ج.م</div>"+(d.note?"<p>ملاحظات: "+safe(d.note)+"</p>":"")+"<div class=\\\"notice\\\">الطلب مبدئي ويخضع لمراجعة واعتماد لمسة فن قبل التأكيد أو التجهيز.</div></body></html>"}function safe(v){return String(v==null?"":v).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",[String.fromCharCode(34)]:"&quot;"}[c]}).split(String.fromCharCode(39)).join("&#39;")}function printDoc(d){var w=window.open("","_blank");if(!w){alert("اسمح بفتح نافذة المستند لإعداد ملف PDF.");return false}w.document.open();w.document.write(orderDocument(d));w.document.close();w.onload=function(){setTimeout(function(){w.focus();w.print()},250)};return true}window.sendLamsetCatalogOrder=function(){var d=collect();if(!d)return;if(!wa)return alert("رقم واتساب المصنع غير مضبوط في بيانات المصنع داخل إعدادات التطبيق.");window.open("https://wa.me/"+wa+"?text="+encodeURIComponent(message(d)),"_blank")};window.printLamsetCatalogOrder=function(){var d=collect();if(d)printDoc(d)};window.shareLamsetCatalogOrderBoth=function(){var d=collect();if(!d)return;if(!wa)return alert("رقم واتساب المصنع غير مضبوط في بيانات المصنع داخل إعدادات التطبيق.");var opened=printDoc(d);if(opened)window.open("https://wa.me/"+wa+"?text="+encodeURIComponent(message(d)),"_blank")};function read(){var total=0;root.querySelectorAll("[data-carton]").forEach(function(c){var i=Number(c.dataset.carton),p=Math.max(0,parseInt(c.value)||0),u=Math.max(0,parseInt(root.querySelector("[data-piece=\\\""+i+"\\\"]").value)||0);total+=p*prices[i].carton+u*prices[i].buy});document.getElementById("lamsetOrderTotal").textContent=total.toLocaleString("ar-EG")+" ج.م";return total}root.addEventListener("input",read);read()})();</scr'+'ipt>';
  const style='<style>.online-order{margin:24px 0;padding:18px;border:2px solid #1877F2;border-radius:16px;background:#F7F8FA;break-inside:avoid}.online-order h2{color:#303133}.order-items{display:grid;gap:9px}.order-product{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:10px;background:white;border:1px solid #F7F8FA;border-radius:10px}.order-product small{grid-column:1/-1;color:#666}.online-order label{display:block;margin:8px 0;font-size:12px;font-weight:700}.online-order input,.online-order textarea{display:block;width:100%;padding:10px;margin-top:5px;border:1px solid #E7F3FF;border-radius:9px;font:inherit}.order-product input{width:76px}.order-share-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.online-order .order-share-actions button{width:100%;border:0;border-radius:10px;padding:13px;background:#168344;color:#fff;font-weight:800;font-size:14px}.online-order .order-share-actions .order-pdf-btn{background:#1877F2}.online-order .order-share-actions .order-both-btn{grid-column:1/-1;background:#303133}.order-total{padding:12px;background:#eaf8ef;color:#14743b;border-radius:10px;font-weight:800}@media(max-width:520px){.order-product{grid-template-columns:1fr 1fr}.order-product b,.order-product small{grid-column:1/-1}}@media print{.online-order{display:none}}</style>';
  return html.replace('</head>',style+'</head>').replace('</main>',panel+'</main>').replace('</body>',script+'</body>');
+}
+async function shareCatalogPdf(){
+ if(!lastCatalogPdfHtml)return alert('افتح الكتالوج أو أعد فتح إصدار محفوظ أولًا.');
+ if(typeof window.lamsetNativeExport!=='function')return alert('إنشاء PDF متاح داخل تطبيق Android فقط.');
+ const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+ const button=$('lamsetCatalogPdfButton');
+ if(button){button.disabled=true;button.textContent='جارٍ إنشاء PDF...'}
+ try{
+  await window.lamsetNativeExport(lastCatalogPdfHtml,'lamset-fan-catalog-'+stamp+'.pdf','application/pdf');
+ }catch(error){
+  console.error('Catalog PDF export failed',error);
+  alert('تعذر إنشاء أو مشاركة ملف PDF: '+String(error?.message||error));
+ }finally{
+  if(button){button.disabled=false;button.textContent='📄 مشاركة PDF'}
+ }
 }
 async function shareInteractiveCatalog(){if(!lastCatalogInteractiveHtml)return alert('افتح الكتالوج أولًا.');try{if(typeof window.lamsetNativeExport==='function'){await window.lamsetNativeExport(lastCatalogInteractiveHtml,'lamset-fan-interactive-catalog.html','text/html');return}const blob=new Blob([lastCatalogInteractiveHtml],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lamset-fan-interactive-catalog.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)}catch(e){alert('تعذر تجهيز الكتالوج للمشاركة: '+(e.message||e))}}
 function catalogHtml(rows,type,template,subtitle,bp){const labels={distributor:'الموزع',trader:'التاجر',wholesale:'تاجر الجملة',shop:'المكتبة أو المحل',retail:'القطاعي'},audience=labels[type]||'قائمة الأسعار',date=new Date().toLocaleDateString('ar-EG');
@@ -1993,7 +2026,7 @@ async function previewCatalog(){
  showDocumentPreview('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><body style="font-family:Tahoma;text-align:center;padding:40px">جارٍ تجهيز الكتالوج...</body></html>','معاينة الكتالوج');
  try{let ready=await Promise.all(rows.map(async r=>({...r,image:await lamsetResolveImage(r.productId,r.image||'')})));
   let bp={...(db.businessProfile||{})};bp.logo=await lamsetResolveImage('business-logo',bp.logo||'');
-  lastCatalogInteractiveHtml=makeInteractiveCatalog(catalogHtml(ready,$('catType').value,$('catTemplate').value,$('catSubtitle').value,bp),ready,bp);showDocumentPreview(lastCatalogInteractiveHtml,'معاينة كتالوج لمسة فن',true);
+  const customerRows=catalogCustomerRows(ready);lastCatalogPdfHtml=catalogHtml(customerRows,$('catType').value,$('catTemplate').value,$('catSubtitle').value,bp);lastCatalogInteractiveHtml=makeInteractiveCatalog(lastCatalogPdfHtml,customerRows,bp);showDocumentPreview(lastCatalogInteractiveHtml,'معاينة كتالوج لمسة فن',true,true);
  }catch(e){closeDocumentPreview();alert('تعذر تجهيز الكتالوج. حاول مرة أخرى.')}
 }
 async function printCatalog(){
@@ -2007,7 +2040,7 @@ async function printCatalog(){
  showDocumentPreview('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><body style="font-family:Tahoma;text-align:center;padding:40px">جارٍ تجهيز الكتالوج...</body></html>','تجهيز الكتالوج للطباعة');
  try{let ready=await Promise.all(rows.map(async r=>({...r,image:await lamsetResolveImage(r.productId,r.image||'')})));
   let bp={...record.businessProfile};bp.logo=bp.catalogLogo||bp.logo||'';bp.logo=await lamsetResolveImage('business-logo',bp.logo);
-  lastCatalogInteractiveHtml=makeInteractiveCatalog(catalogHtml(ready,record.type,record.template,record.subtitle,bp),ready,bp);showDocumentPreview(lastCatalogInteractiveHtml,'الكتالوج · جاهز للطباعة',true);
+  const customerRows=catalogCustomerRows(ready);lastCatalogPdfHtml=catalogHtml(customerRows,record.type,record.template,record.subtitle,bp);lastCatalogInteractiveHtml=makeInteractiveCatalog(lastCatalogPdfHtml,customerRows,bp);showDocumentPreview(lastCatalogInteractiveHtml,'الكتالوج · جاهز للطباعة',true,true);
  }catch(e){closeDocumentPreview();alert('تعذر تجهيز الكتالوج. حاول مرة أخرى.')}
 }
 function renderCatalogHistory(){let el=$('catalogHistory');if(!el)return;let h=db.catalogHistory||[];el.innerHTML=h.length?h.slice(0,20).map(x=>'<div class="collection-row"><span>'+new Date(x.date).toLocaleDateString('ar-EG')+' · '+esc(({distributor:'الموزع',trader:'التاجر',wholesale:'الجملة',shop:'المكتبات',retail:'القطاعي'})[x.type]||x.type)+' · '+x.rows.length+' منتج</span><button class="ghost smallbtn" onclick="reprintCatalog(\''+x.id+'\')">فتح / طباعة</button></div>').join(''):'<p class="muted">لا توجد كتالوجات سابقة.</p>'}
@@ -2016,7 +2049,7 @@ async function reprintCatalog(cid){
  showDocumentPreview('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><body style="font-family:Tahoma;text-align:center;padding:40px">جارٍ تجهيز الكتالوج...</body></html>','إعادة طباعة الكتالوج');
  try{let rows=await Promise.all((x.rows||[]).map(async r=>({...r,image:await lamsetResolveImage(r.productId,r.image||'')})));
   let bp={...(x.businessProfile||{})};bp.logo=bp.catalogLogo||bp.logo||'';bp.logo=await lamsetResolveImage('business-logo',bp.logo);
-  lastCatalogInteractiveHtml=makeInteractiveCatalog(catalogHtml(rows,x.type,x.template,x.subtitle,bp),rows,bp);showDocumentPreview(lastCatalogInteractiveHtml,'الكتالوج السابق · جاهز للطباعة',true);
+  const customerRows=catalogCustomerRows(rows);lastCatalogPdfHtml=catalogHtml(customerRows,x.type,x.template,x.subtitle,bp);lastCatalogInteractiveHtml=makeInteractiveCatalog(lastCatalogPdfHtml,customerRows,bp);showDocumentPreview(lastCatalogInteractiveHtml,'الكتالوج السابق · جاهز للطباعة',true,true);
  }catch(e){closeDocumentPreview();alert('تعذر تجهيز الكتالوج. حاول مرة أخرى.')}
 }function renderConsignment(){
 let cs=$('consCustomer');if(!cs)return;
