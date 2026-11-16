@@ -17,7 +17,10 @@ for (const forbidden of ['cost','unitProfit','profit','margin','suggestedResale'
 assert(html.includes('catalogCustomerRows(ready)') && html.includes('catalogCustomerRows(rows)'), 'preview, new edition, and saved editions sanitize rows');
 assert(html.includes('lastCatalogPdfHtml=catalogHtml(customerRows'), 'PDF uses sanitized customer HTML');
 assert(html.includes('makeInteractiveCatalog(lastCatalogPdfHtml,customerRows,bp)'), 'interactive catalog is built from sanitized rows');
-assert(html.includes('id="lamsetCatalogPdfButton"') && html.includes('shareCatalogPdf()'), 'PDF share action is wired');
+assert(html.includes('id="lamsetCatalogPdfButton"') && html.includes('shareCatalogPdf()'), 'PDF share action is wired');assert(html.includes('window.lamsetShareInteractiveCatalog(lastCatalogInteractiveHtml'), 'interactive catalog uses dedicated native sharing');
+assert(bridge.includes('window.lamsetShareInteractiveCatalog = async'), 'dedicated interactive catalog share bridge exists');
+assert(bridge.includes("mimeType: 'text/html'") && bridge.includes("dialogTitle: 'مشاركة الكتالوج التفاعلي'"), 'interactive catalog is shared as an HTML attachment');
+assert(bridge.includes('اختر واتساب من قائمة المشاركة'), 'sharing guidance tells the user to select WhatsApp');
 assert(bridge.includes("import html2pdf from 'html2pdf.js'"), 'PDF renderer is bundled');
 assert(bridge.includes("mimeType: 'application/pdf'") && bridge.includes("encoding: 'base64'"), 'PDF is written as a binary PDF attachment');
 assert(pkg.dependencies && pkg.dependencies['html2pdf.js'], 'PDF dependency is declared');
