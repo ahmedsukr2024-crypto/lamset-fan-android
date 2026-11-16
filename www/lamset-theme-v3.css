@@ -1151,3 +1151,117 @@ html[data-theme="dark"] button.warning{filter:saturate(.92)}
   #customers .customer-card-bottom{align-items:flex-start!important;flex-direction:column!important}
   #customers .customer-balance{align-self:flex-end!important}
 }
+
+
+/* Product catalogue cards: keep a single readable card column on compact phones. */
+#productList{
+  width:100%!important;
+  min-width:0!important;
+  align-items:stretch!important;
+}
+#productList>.product-tile{
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#productList .product-name,
+#productList .product-stock-line,
+#productList .product-carton-hint,
+#productList .product-code,
+#productList .lf-product-commercial,
+#productList .lf-product-stock-pack,
+#productList .lf-product-quick-add,
+#productList .product-tile-actions{
+  min-width:0!important;
+  max-width:100%!important;
+  overflow-wrap:anywhere!important;
+}
+#productList .product-name{color:var(--lf-text)!important}
+#productList .product-code{
+  background:var(--lf-surface-2)!important;
+  color:var(--lf-muted)!important;
+  border:1px solid var(--lf-border)!important;
+}
+#productList .product-stock-line{
+  background:var(--lf-surface-2)!important;
+  color:var(--lf-text)!important;
+}
+#productList .product-carton-hint{color:var(--lf-muted)!important}
+#productList .product-price{
+  background:var(--lf-brand-soft)!important;
+  color:var(--lf-text)!important;
+  border:1px solid var(--lf-border)!important;
+}
+#productList .product-price small{color:var(--lf-muted)!important}
+#productList .lf-product-commercial>div{
+  min-width:0!important;
+  background:var(--lf-surface-2)!important;
+  border-color:var(--lf-border)!important;
+}
+#productList .lf-product-commercial small,
+#productList .lf-product-stock-pack{color:var(--lf-muted)!important}
+#productList .lf-product-commercial b,
+#productList .lf-product-stock-pack b{color:var(--lf-text)!important}
+#productList .lf-product-commercial .lf-product-profit{
+  background:color-mix(in srgb,var(--lf-success) 12%,var(--lf-surface))!important;
+  border-color:color-mix(in srgb,var(--lf-success) 30%,var(--lf-border))!important;
+}
+#productList .lf-product-commercial .lf-product-profit b{color:var(--lf-success)!important}
+#productList .lf-product-commercial .lf-product-profit.is-loss{
+  background:color-mix(in srgb,var(--lf-danger) 12%,var(--lf-surface))!important;
+  border-color:color-mix(in srgb,var(--lf-danger) 30%,var(--lf-border))!important;
+}
+#productList .lf-product-commercial .lf-product-profit.is-loss b{color:var(--lf-danger)!important}
+#productList .lf-product-stock-pack{
+  background:var(--lf-surface-2)!important;
+  border-color:var(--lf-border)!important;
+}
+#productList .lf-product-quick-add label{color:var(--lf-muted)!important}
+#productList .lf-product-quick-add input,
+#productList .lf-product-quick-add select{
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  background:var(--lf-control-bg)!important;
+  color:var(--lf-control-text)!important;
+  border-color:var(--lf-control-border)!important;
+}
+#productList .product-tile-actions{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+#productList .product-tile-actions button{min-width:0!important;width:100%!important}
+@media(max-width:520px){
+  #productList{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  #productList>.product-tile{
+    display:grid!important;
+    grid-template-columns:112px minmax(0,1fr)!important;
+    gap:7px 11px!important;
+    padding:11px!important;
+  }
+  #productList .product-image-button{
+    grid-column:1!important;grid-row:1 / span 5!important;
+    width:100%!important;height:138px!important;min-width:0!important;
+  }
+  #productList .product-name,
+  #productList .product-code,
+  #productList .product-stock-line,
+  #productList .product-carton-hint,
+  #productList .product-price,
+  #productList .lf-product-commercial,
+  #productList .lf-product-stock-pack,
+  #productList .lf-product-quick-add,
+  #productList .product-tile-actions{grid-column:2!important}
+  #productList .product-name{text-align:right!important}
+  #productList .product-carton-hint{text-align:right!important}
+}
+@media(max-width:390px){
+  #productList{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(max-width:360px){
+  #productList>.product-tile{grid-template-columns:94px minmax(0,1fr)!important;gap:6px 8px!important}
+  #productList .product-image-button{height:120px!important}
+  #productList .lf-product-commercial{grid-template-columns:minmax(0,1fr)!important}
+  #productList .lf-product-commercial .lf-product-profit,
+  #productList .lf-product-commercial .lf-product-no-suggest{grid-column:1!important}
+}
