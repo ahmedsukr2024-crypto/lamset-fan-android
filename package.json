@@ -8,7 +8,7 @@
     "sync:android": "cap sync android",
     "open:android": "cap open android",
     "build:android": "npx esbuild www/mobile-bridge.js --bundle --format=esm --platform=browser --target=es2020 --outfile=www/mobile-bridge.bundle.js && cap sync android && cd android && ./gradlew assembleDebug",
-    "check:all": "npm run check:inline-js && node --check www/mobile-bridge.js && node scripts/check-catalog-export.cjs && node scripts/check-order-validation.cjs && node scripts/check-order-post-save.cjs && node scripts/check-order-status-consistency.cjs && node scripts/check-order-production-consistency.cjs && node scripts/check-customer-linking.cjs && node scripts/check-financial-integrity.cjs && node scripts/check-invoice-design.cjs && node scripts/check-payment-receipt-design.cjs",
+    "check:all": "npm run check:inline-js && node --check www/mobile-bridge.js && node scripts/check-catalog-export.cjs && node scripts/check-order-validation.cjs && node scripts/check-order-post-save.cjs && node scripts/check-order-status-consistency.cjs && node scripts/check-order-production-consistency.cjs && node scripts/check-customer-linking.cjs && node scripts/check-financial-integrity.cjs && node scripts/check-invoice-design.cjs && node scripts/check-payment-receipt-design.cjs && node scripts/check-document-presentation.cjs",
     "check:legacy-material-cleanup": "node scripts/check-legacy-material-cleanup.cjs"
   },
   "dependencies": {
