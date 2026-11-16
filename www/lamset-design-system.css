@@ -262,3 +262,75 @@ body.lf-drawer-open{overscroll-behavior:none!important}
   .lf-header-actions{gap:6px!important}
   .lf-header-actions button{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;padding:0!important}
 }
+
+
+/* Final theme alignment for system messages, toasts and global search overlays. */
+#lf-system-message .lf-system-message-card{
+  background:var(--lf-surface)!important;
+  color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+#lf-system-message h2{color:var(--lf-text)!important}
+#lf-system-message p,
+#lf-system-message .lf-system-message-details pre{color:var(--lf-muted)!important}
+#lf-system-message .lf-system-message-details{
+  background:var(--lf-surface-2)!important;
+  border-color:var(--lf-border)!important;
+}
+#lf-system-message .lf-system-message-details summary{color:var(--lf-text)!important}
+#lf-system-message .lf-system-message-icon{
+  background:color-mix(in srgb,var(--lf-danger) 14%,var(--lf-surface))!important;
+  color:var(--lf-danger)!important;
+}
+#lf-system-message.success .lf-system-message-icon{
+  background:color-mix(in srgb,var(--lf-success) 14%,var(--lf-surface))!important;
+  color:var(--lf-success)!important;
+}
+#lf-system-message.warning .lf-system-message-icon{
+  background:color-mix(in srgb,var(--lf-warning) 18%,var(--lf-surface))!important;
+  color:var(--lf-text)!important;
+}
+#lf-system-message .lf-system-message-close{
+  background:var(--lf-blue)!important;color:#fff!important;
+  border-color:var(--lf-blue)!important;
+}
+#lf-system-message .lf-system-message-copy{
+  background:var(--lf-surface-2)!important;color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+#lf-system-message .lf-system-message-copy.copied{
+  background:color-mix(in srgb,var(--lf-success) 12%,var(--lf-surface))!important;
+  color:var(--lf-success)!important;border-color:var(--lf-success)!important;
+}
+.lf-toast{
+  background:var(--lf-surface)!important;color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+.lf-toast[data-kind="success"]{border-inline-start-color:var(--lf-success)!important}
+.lf-toast[data-kind="error"]{border-inline-start-color:var(--lf-danger)!important}
+.lf-toast[data-kind="info"]{border-inline-start-color:var(--lf-blue)!important}
+.lf-toast .lf-icon{color:var(--lf-blue)!important}
+html[data-theme="dark"] .lf-toast{
+  background:var(--lf-surface)!important;color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+.lf-global-search-modal{background:rgba(24,25,26,.52)!important}
+.lf-global-search-dialog{
+  background:var(--lf-surface)!important;color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+.lf-global-search-head h2,
+.lf-global-search-result-copy b{color:var(--lf-text)!important}
+.lf-global-search-result{
+  background:var(--lf-surface)!important;color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+.lf-global-search-result:hover{background:var(--lf-surface-2)!important}
+.lf-global-search-result-copy small,
+.lf-global-search-empty{color:var(--lf-muted)!important}
+.lf-global-search-result-icon{
+  background:var(--lf-blue-soft)!important;color:var(--lf-blue)!important;
+}
+.lf-global-search-kind{
+  background:var(--lf-surface-2)!important;color:var(--lf-muted)!important;
+}
