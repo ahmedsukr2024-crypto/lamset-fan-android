@@ -381,8 +381,8 @@ textarea[aria-invalid="true"]{
 }
 
 
-/* Four primary bottom-navigation actions after moving Orders to the side drawer. */
-.nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+/* Five bottom-navigation items: dashboard, orders, products, customers, and more. */
+.nav{grid-template-columns:repeat(5,minmax(0,1fr))}
 
 
 /* Dashboard quick shortcuts: equal touch targets, readable labels, and theme-safe contrast. */
