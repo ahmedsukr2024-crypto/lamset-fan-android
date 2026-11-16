@@ -1015,15 +1015,15 @@ html[data-theme="dark"]{
  --lf-brand-soft:#263951;
  --lf-control-border:#3E4042;
  --lf-focus-ring:0 0 0 3px rgba(69,175,255,.24);
- --lf-bg:#17151C;
- --lf-surface:#211E29;
- --lf-surface-2:#2B2735;
- --lf-text:#F5F1FA;
- --lf-muted:#B8B1C5;
- --lf-border:#3D3748;
- --lf-success:#65C98A;
- --lf-warning:#F2C66D;
- --lf-danger:#F17B91;
+ --lf-bg:#18191A;
+ --lf-surface:#242526;
+ --lf-surface-2:#303133;
+ --lf-text:#E4E6EB;
+ --lf-muted:#B0B3B8;
+ --lf-border:#3E4042;
+ --lf-success:#55B96B;
+ --lf-warning:#F7C65F;
+ --lf-danger:#F06A7D;
 }
 button,
 input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),
