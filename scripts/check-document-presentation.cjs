@@ -16,7 +16,12 @@ const invoice = sectionBetween('function invoiceHtml(o)', 'function ensureInvoic
 const receipt = sectionBetween('function paymentReceiptHtml(payment)', 'function previewPaymentReceipt');
 const factory = sectionBetween('function factoryOrderHtml(o)', 'function showFactoryOrderSheet');
 const catalog = sectionBetween('function catalogHtml(rows', 'function openCatalogDocument');
+const interactiveCatalog = sectionBetween('function makeInteractiveCatalog(html,rows,bp)', 'function shareCatalogPdf');
 assert(!!invoice && !!receipt && !!factory && !!catalog, 'all document renderers exist');
+assert(!!interactiveCatalog, 'interactive catalog renderer exists');
+assert(interactiveCatalog.includes('font-family:"Tajawal",Tahoma,Arial,sans-serif') && interactiveCatalog.includes('#0866FF') && interactiveCatalog.includes('#F0F2F5'), 'interactive catalog order panel and generated order use the approved identity');
+assert(!interactiveCatalog.includes('order-both-btn') && !interactiveCatalog.includes('واتساب + PDF'), 'interactive catalog avoids a redundant combined action button');
+assert(interactiveCatalog.includes('طباعة الطلب / حفظ PDF') && interactiveCatalog.includes('إرسال الطلب على واتساب'), 'interactive catalog actions are clearly labeled');
 assert(!invoice.includes('window.print()') && !/<div class="no-print"[^>]*>[\s\S]*?<button/i.test(invoice), 'sales invoice PDF contains no embedded print button');
 assert(!factory.includes('window.print()') && !/<div class="no-print"[^>]*>[\s\S]*?<button/i.test(factory), 'factory PDF contains no embedded print button');
 assert(!catalog.includes('window.print()') && !/<p class="no-print"[^>]*>[\s\S]*?<button/i.test(catalog), 'catalog PDF contains no embedded print button');
