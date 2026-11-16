@@ -53,7 +53,7 @@ function closeDocumentPreview(){const modal=$('lamsetDocumentPreview'),frame=$('
 }
 .lf-app-header.lf-scroll-hidden{
  transform:translate3d(0,-100%,0)!important;
- margin-bottom:calc(-1 * (var(--lf-header-flow-height,64px) + var(--lf-header-flow-gap,12px)))!important;
+ margin-bottom:calc(0px - var(--lf-header-flow-height,64px) - var(--lf-header-flow-gap,12px))!important;
  pointer-events:none!important;
 }
 .nav{
@@ -2753,7 +2753,7 @@ window.renderProductionBatchHistory();
  function measure(){
   const headerStyle=getComputedStyle(header);
   const headerHeight=Math.ceil(header.getBoundingClientRect().height||header.offsetHeight||64);
-  const headerGap=Math.max(0,parseFloat(headerStyle.marginBottom)||0);
+  const previousGap=parseFloat(root.style.getPropertyValue('--lf-header-flow-gap'))||12;\n  const headerGap=header.classList.contains('lf-scroll-hidden')?previousGap:Math.max(0,parseFloat(headerStyle.marginBottom)||0);
   const navHeight=Math.ceil(nav.getBoundingClientRect().height||nav.offsetHeight||70);
   root.style.setProperty('--lf-header-flow-height',headerHeight+'px');
   root.style.setProperty('--lf-header-flow-gap',headerGap+'px');
