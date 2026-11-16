@@ -2016,7 +2016,7 @@ async function reprintCatalog(cid){
  showDocumentPreview('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><body style="font-family:Tahoma;text-align:center;padding:40px">جارٍ تجهيز الكتالوج...</body></html>','إعادة طباعة الكتالوج');
  try{let rows=await Promise.all((x.rows||[]).map(async r=>({...r,image:await lamsetResolveImage(r.productId,r.image||'')})));
   let bp={...(x.businessProfile||{})};bp.logo=bp.catalogLogo||bp.logo||'';bp.logo=await lamsetResolveImage('business-logo',bp.logo);
-  lastCatalogInteractiveHtml=makeInteractiveCatalog(catalogHtml(rows,x.type,x.template,x.subtitle,bp),rows,bp);showDocumentPreview(lastCatalogInteractiveHtml,'الكتالوج السابق · جاهز للطباعة');
+  lastCatalogInteractiveHtml=makeInteractiveCatalog(catalogHtml(rows,x.type,x.template,x.subtitle,bp),rows,bp);showDocumentPreview(lastCatalogInteractiveHtml,'الكتالوج السابق · جاهز للطباعة',true);
  }catch(e){closeDocumentPreview();alert('تعذر تجهيز الكتالوج. حاول مرة أخرى.')}
 }function renderConsignment(){
 let cs=$('consCustomer');if(!cs)return;
