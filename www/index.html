@@ -836,7 +836,7 @@ try{let file=$('pImage').files[0];if(file)p.image=await resizeImage(file);else i
 // Guard the async product save itself, not only its UI button, against duplicate calls.
 let lfProductSaving=false;
 const lfSaveProductCore=saveProduct;
-window.saveProduct=async function(){if(lfProductSaving)return false;lfProductSaving=true;try{return await lfSaveProductCore.apply(this,arguments)}finally{lfProductSaving=false}};
+window.saveProduct=async function(){if(lfProductSaving)return false;lfProductSaving=true;try{return await lfSaveProductCore.apply(this,arguments)}finally{await new Promise(resolve=>setTimeout(resolve,450));lfProductSaving=false}};
 function deleteProduct(pid){let before=JSON.parse(JSON.stringify(db)),p=db.products.find(x=>x.id===pid);if(!p)return;let linked=(db.orders||[]).some(x=>x.productId===pid||(Array.isArray(x.items)&&x.items.some(item=>item.productId===pid)))||(db.productions||[]).some(x=>x.productId===pid)||(db.consignments||[]).some(x=>x.productId===pid);if(linked)return alert('لا يمكن حذف هذا المنتج لارتباطه بطلب أو بند داخل طلب متعدد المنتجات أو سجل إنتاج أو أمانة ؛ احتفظ به في السجل، ويمكن إيقاف استخدامه بدلًا من حذفه.');if(confirm('هل تريد حذف المنتج؟ لا يمكن التراجع عن ذلك.')){db.products=db.products.filter(p=>p.id!==pid);lfRecordActivity('حذف منتج',p.name,'تم حذف المنتج من سجل المنتجات');if(!save()){db=before;return alert('تعذر حفظ حذف المنتج؛ تم الاحتفاظ بالبيانات كما كانت.')}renderAll()}}
 function productOptions(id){return '<option value="">اختر المنتج</option>'+db.products.map(p=>`<option value="${p.id}" ${p.id===id?'selected':''}>${esc(p.name)}(${esc(p.code||'بدون كود')})</option>`).join('')}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -2500,7 +2500,7 @@ window.recordProduction=function(){
 // Guard the production operation itself so repeated/direct calls cannot create duplicate batches.
 let lfProductionSaving=false;
 const lfRecordProductionCore=window.recordProduction;
-window.recordProduction=function(){if(lfProductionSaving)return false;lfProductionSaving=true;try{return lfRecordProductionCore.apply(this,arguments)}finally{lfProductionSaving=false}};
+window.recordProduction=async function(){if(lfProductionSaving)return false;lfProductionSaving=true;try{return lfRecordProductionCore.apply(this,arguments)}finally{await new Promise(resolve=>setTimeout(resolve,450));lfProductionSaving=false}};
 window.cancelProductionBatch=function(batchId){const batch=(db.productions||[]).find(x=>x.id===batchId);
  if(!batch)return alert('دفعة التصنيع غير موجودة.');
  if(batch.status==='cancelled')return alert('هذه الدفعة ملغاة بالفعل.');
