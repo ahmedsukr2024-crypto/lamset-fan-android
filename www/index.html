@@ -1889,7 +1889,7 @@ function catalogFiltered(){
  });
  return items.map(x=>x.p);
 }
-function catalogPriceKey(type){return type==='trader'?'wholesale':type==='retail'?'retail':type==='distributor'?'distributor':type}
+function catalogPriceKey(type){return type==='trader'?'wholesale':type==='retail'?'retail':type==='distributor'?'distributor':type==='online'?'retail':type}
 function renderCatalogSelectionCount(){
  const el=$('catalogSelectionCount');if(!el)return;
  const visible=catalogFiltered(),visibleCount=visible.filter(p=>catalogSelected.has(p.id)).length,totalCount=catalogSelected.size;
