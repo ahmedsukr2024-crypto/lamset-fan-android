@@ -51,5 +51,15 @@ const orderPriceRefresh = html.slice(html.indexOf('function refreshOrderCustomer
 assert(orderPriceSuggestion.includes('catalogPriceKey(type)'), 'order price suggestion uses the central customer price mapping');
 assert(orderPriceRefresh.includes('catalogPriceKey(type)'), 'existing order cart refresh uses the central customer price mapping');
 assert(/let priceKey=catalogPriceKey\(customerType\)/.test(html), 'WhatsApp order import uses the central customer price mapping');
+assert(/id="oDepositMethod"/.test(html) && /<option value="نقدي" selected>نقدي<\/option>/.test(html), 'order form has a cash-default deposit payment method');
+assert(/function lfOrderDepositPayment\(o\)/.test(html), 'deposit payment lookup is centralized');
+assert(/function paidOnOrder\(o\)\{return \(lfOrderDepositPayment\(o\)\?0:/.test(html), 'legacy deposit is excluded after a matching ledger entry exists');
+assert(/function lfMigrateLegacyOrderDeposits\(\)/.test(html) && /legacyMigration:true/.test(html), 'legacy deposits migrate to the unified ledger with an audit marker');
+assert(/if\(lamsetDataReady\)lfMigrateLegacyOrderDeposits\(\)/.test(html), 'legacy deposit migration runs after successful data load');
+assert(/kind:'deposit'/.test(html) && /savedOrder\.depositPaymentId=depositPayment\.id/.test(html), 'new order deposits create a linked ledger payment');
+assert(/lfOrderDepositPayment\(o\)\?0:Math\.max\(0,Number\(o\.deposit\)\|\|0\)/.test(html), 'payment receipt balances avoid counting migrated deposits twice');
+assert(/payment\.kind==='deposit'\?'إيصال عربون':'إيصال تحصيل'/.test(html), 'deposit receipts are identified separately');
+assert(/p\.kind==='deposit'\?'العربون':'الدفعة'/.test(html), 'WhatsApp deposit receipt identifies the deposit amount');
+assert(/lfOrderDraftFields=\[[^\]]*oDepositMethod/.test(html), 'deposit method is included in draft recovery and form events');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Catalog customer-data allowlist, saved-history, and PDF export checks passed.');
