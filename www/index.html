@@ -1308,6 +1308,10 @@ function renderReturnExchange(){let sel=$('returnOrder');if(sel){let old=sel.val
 let list=$('returnHistory');if(!list)return;let rows=(db.returns||[]).slice().reverse();
 list.innerHTML=rows.length?rows.map(r=>'<div class="customer-history"><b>'+esc(r.customerName)+' · '+esc(r.productName)+' · '+(r.type==='exchange'?'استبدال إلى '+esc(r.replacementName||'منتج'):'مرتجع')+'</b><span>العملية: '+esc(r.id)+' · الطلب: '+esc(r.orderId)+' · '+new Date(r.date).toLocaleString('ar-EG')+'</span><span>الكمية: '+r.qty+' · '+(r.condition==='good'?'صالح وأعيد للمخزون':'تالف')+' · المستحق للاسترداد: '+money(r.refundDue!==undefined?r.refundDue:(r.refund||0))+(r.type==='exchange'?' · فرق القيمة: '+money(r.priceDifference||0):'')+'</span><span>'+esc(r.note||'')+'</div>').join(''):'<p class="muted">لا توجد عمليات مرتجع أو استبدال.</p>';
 }
+function lfOrderStatusKey(o){return String(o?.status||'جديد').trim()}
+function lfIsDeliveredOrder(o){return ['تم التسليم','تم التسليم للعميل'].includes(lfOrderStatusKey(o))}
+function lfIsCancelledOrder(o){return lfOrderStatusKey(o)==='ملغي'}
+function lfIsArchivedOrder(o){return ['تم التسليم','تم التسليم للعميل','ملغي','مكتمل','مكتملة','مغلق','مغلقة','مؤرشف','مؤرشفة'].includes(lfOrderStatusKey(o))}
 function orderWorkflowSnapshot(o){
  const lines=orderStockLines(o),total=lines.reduce((n,line)=>n+Math.max(0,Number(line.units)||0),0);
  let prepared=0,pending=0;
@@ -1317,13 +1321,14 @@ function orderWorkflowSnapshot(o){
   prepared+=Math.min(units,deducted+fulfilled);
   pending+=Math.max(0,Number(item.productionPendingUnits)||0);
  });
- const status=String(o?.status||'جديد'),closed=status==='ملغي',delivered=['تم التسليم','تم التسليم للعميل'].includes(status),shipped=status==='تم تسليمه لشركة الشحن',ready=status==='جاهز للشحن';
+ const status=lfOrderStatusKey(o),closed=lfIsArchivedOrder(o),cancelled=lfIsCancelledOrder(o),delivered=lfIsDeliveredOrder(o),shipped=status==='تم تسليمه لشركة الشحن',ready=status==='جاهز للشحن';
  const percent=total?Math.min(100,Math.round(prepared/total*100)):0;
- let stage=closed?'ملغي':delivered?'تم التسليم':shipped?'مع شركة الشحن':pending>0?'بانتظار التصنيع':ready?'جاهز للشحن':'جاهز للتجهيز';
- return{total,prepared,pending,percent,stage,closed,delivered,shipped,ready,open:!closed&&!delivered};
+ let stage=cancelled?'ملغي':delivered?'تم التسليم':closed?'مغلق':shipped?'مع شركة الشحن':pending>0?'بانتظار التصنيع':ready?'جاهز للشحن':'جاهز للتجهيز';
+ return{total,prepared,pending,percent,stage,closed,cancelled,delivered,shipped,ready,open:!closed};
 }
 function orderStageTrackerHtml(o,flow,late){
- if(flow.closed)return '<div class="lf-order-stage-track is-cancelled"><span>تم إلغاء الطلب</span></div>';
+ if(flow.cancelled)return '<div class="lf-order-stage-track is-cancelled"><span>تم إلغاء الطلب</span></div>';
+ if(flow.closed)return '<div class="lf-order-stage-track is-cancelled"><span>الطلب مغلق ومحفوظ في الأرشيف</span></div>';
  const status=String(o?.status||'جديد');
  const active=flow.delivered?4:flow.shipped?3:flow.ready?2:(flow.pending>0||status==='قيد التجهيز'?1:0);
  const stages=['تسجيل الطلب','التصنيع والتجهيز','جاهز','الشحن','التسليم'];
@@ -1340,7 +1345,7 @@ let ordersWorkspaceTab='overview';
 function renderOrdersOverview(){
  const orders=Array.isArray(db.orders)?db.orders:[];
  const today=localDay();
- const active=orders.filter(o=>!['تم التسليم','تم التسليم للعميل','ملغي'].includes(String(o.status||'')));
+ const active=orders.filter(o=>!lfIsArchivedOrder(o));
  const count=(test)=>active.filter(test).length;
  const fresh=count(o=>['جديد','تم تأكيد الطلب'].includes(String(o.status||'')));
  const production=count(o=>orderWorkflowSnapshot(o).pending>0);
@@ -1351,7 +1356,7 @@ function renderOrdersOverview(){
   {label:'الطلبات الجديدة',value:fresh,filter:'fresh',icon:'file-plus-2'},
   {label:'تحت التنفيذ / التصنيع',value:production,filter:'needs-production',icon:'factory'},
   {label:'جاهزة للتسليم',value:ready,filter:'ready',icon:'package-check'},
-  {label:'الطلبات المسلّمة',value:orders.filter(o=>['تم التسليم','تم التسليم للعميل'].includes(String(o.status||''))).length,filter:'delivered',icon:'check-circle-2'},
+  {label:'الطلبات المسلّمة',value:orders.filter(lfIsDeliveredOrder).length,filter:'delivered',icon:'check-circle-2'},
   {label:'الطلبات المتأخرة',value:overdue,filter:'overdue',icon:'alarm-clock'},
   {label:'المبالغ المتبقية للتحصيل',value:money(outstanding),filter:'unpaid',icon:'wallet'}
  ];
@@ -1380,7 +1385,7 @@ function setOrdersWorkspaceTab(view){
 }
 window.setOrdersWorkspaceTab=setOrdersWorkspaceTab;
 function renderOrders(){
- const archived=o=>['تم التسليم','تم التسليم للعميل','ملغي','مكتمل','مكتملة','مغلق','مغلقة','مؤرشف'].includes(String(o?.status||'').trim());
+ const archived=lfIsArchivedOrder;
  const openOrders=(db.orders||[]).filter(o=>!archived(o));
  const archivedOrders=(db.orders||[]).filter(archived);
  if($('lfOpenOrdersCount'))$('lfOpenOrdersCount').textContent=openOrders.length;
