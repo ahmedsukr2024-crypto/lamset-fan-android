@@ -10,7 +10,7 @@ function assert(condition, message) {
 }
 const statusStart = html.indexOf('function lfOrderStatusKey(o)');
 const workflowStart = html.indexOf('function orderWorkflowSnapshot(o)', statusStart);
-const stockStart = html.indexOf('function orderStockLines(o)', workflowStart);
+const stockStart = html.indexOf('function orderStockLines(o)');
 const pendingStart = html.indexOf('function orderPendingProductionUnits(o)', stockStart);
 const needsStart = html.indexOf('function renderProductionNeeds()', pendingStart);
 const allocateStart = html.indexOf('function lfAllocateProduction(productId,quantity)');
