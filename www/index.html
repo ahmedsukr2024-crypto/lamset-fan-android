@@ -713,7 +713,7 @@ html[data-theme="dark"] #catalogs .catalog-item .catalog-profit-input{background
    <div class="lf-document-actions">
     <button type="button" class="smallbtn" onclick="printDocumentPreview()" aria-label="طباعة المستند" title="طباعة">🖨️ طباعة</button>
     <button type="button" class="smallbtn" id="lamsetCatalogPdfButton" onclick="shareCatalogPdf()" title="إنشاء ملف PDF وحفظه ومشاركته" hidden>📄 مشاركة PDF</button>
-    <button type="button" class="smallbtn" onclick="shareInteractiveCatalog()" title="تصدير ومشاركة نسخة تفاعلية من الكتالوج">🛒 مشاركة نسخة الطلب</button>
+    <button type="button" class="smallbtn" onclick="shareInteractiveCatalog()" title="مشاركة ملف الكتالوج التفاعلي عبر قائمة المشاركة؛ اختر واتساب لإرساله">🛒 مشاركة الكتالوج التفاعلي</button>
     <button type="button" class="ghost lf-modal-close" onclick="closeDocumentPreview()" aria-label="إغلاق النافذة" title="إغلاق">×</button>
    </div>
   </header>
@@ -1986,7 +1986,7 @@ async function shareCatalogPdf(){
   if(button){button.disabled=false;button.textContent='📄 مشاركة PDF'}
  }
 }
-async function shareInteractiveCatalog(){if(!lastCatalogInteractiveHtml)return alert('افتح الكتالوج أولًا.');try{if(typeof window.lamsetNativeExport==='function'){await window.lamsetNativeExport(lastCatalogInteractiveHtml,'lamset-fan-interactive-catalog.html','text/html');return}const blob=new Blob([lastCatalogInteractiveHtml],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lamset-fan-interactive-catalog.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)}catch(e){alert('تعذر تجهيز الكتالوج للمشاركة: '+(e.message||e))}}
+async function shareInteractiveCatalog(){if(!lastCatalogInteractiveHtml)return alert('افتح الكتالوج أولًا.');try{if(typeof window.lamsetShareInteractiveCatalog==='function'){await window.lamsetShareInteractiveCatalog(lastCatalogInteractiveHtml,'lamset-fan-interactive-catalog.html');return}if(typeof window.lamsetNativeExport==='function'){await window.lamsetNativeExport(lastCatalogInteractiveHtml,'lamset-fan-interactive-catalog.html','text/html');return}const blob=new Blob([lastCatalogInteractiveHtml],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lamset-fan-interactive-catalog.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)}catch(e){alert('تعذر تجهيز الكتالوج للمشاركة: '+(e.message||e))}}
 function catalogHtml(rows,type,template,subtitle,bp){const labels={distributor:'الموزع',trader:'التاجر',wholesale:'تاجر الجملة',shop:'المكتبة أو المحل',retail:'القطاعي'},audience=labels[type]||'قائمة الأسعار',date=new Date().toLocaleDateString('ar-EG');
  const raw=String(bp.whatsapp||bp.phone||'').replace(/\D/g,''),wa=raw.startsWith('0')?'20'+raw.slice(1):raw,waLink=wa?'<a href="https://wa.me/'+wa+'">'+esc(bp.whatsapp||bp.phone)+'</a>':esc(bp.whatsapp||bp.phone||'غير محدد'),logo=bp.catalogLogo||bp.logo||'';
  const contact=[bp.address,bp.phone,bp.email,bp.website].filter(Boolean).map(esc).join(' • ');
