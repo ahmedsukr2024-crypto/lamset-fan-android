@@ -685,7 +685,7 @@ html[data-theme="dark"] #catalogs .catalog-item .catalog-profit-input{background
   <header class="lf-order-status-head"><div><h3 id="lfOrderStatusTitle">تحديث حالة الطلب</h3><p id="lfOrderStatusCurrent">اختر الحالة الجديدة للطلب</p></div><button type="button" class="ghost smallbtn" onclick="closeOrderStatusModal()" aria-label="إغلاق النافذة">×</button></header>
   <div class="field"><label for="lfOrderStatusSelect">الحالة الجديدة</label><select id="lfOrderStatusSelect" onchange="updateOrderStatusPrompt()"></select></div>
   <p id="lfOrderStatusHelp" class="lf-order-status-help">سيتم تطبيق قواعد المخزون والتصنيع والتحصيل المعتادة قبل حفظ التغيير.</p>
-  <div class="lf-order-status-actions"><button type="button" class="ghost" onclick="closeOrderStatusModal()">إلغاء</button><button id="lfOrderStatusConfirm" type="button" onclick="confirmOrderStatusChange()">تأكيد تحديث الحالة</button></div>
+  <div class="lf-order-status-actions"><button type="button" class="ghost" onclick="closeOrderStatusModal()">إلغاء</button><button id="lfOrderStatusConfirm" type="button" onclick="lamsetRunButtonAction(this,confirmOrderStatusChange,'جارٍ تحديث حالة الطلب…')">تأكيد تحديث الحالة</button></div>
  </section>
 </div>
 
