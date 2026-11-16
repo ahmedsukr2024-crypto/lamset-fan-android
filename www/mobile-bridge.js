@@ -54,6 +54,16 @@ async function lamsetBlobToBase64(blob) {
   }
   return btoa(binary);
 }
+window.lamsetShareInteractiveCatalog = async (html, filename = 'lamset-fan-interactive-catalog.html') => {
+  if (!isNative) throw new Error('مشاركة ملف الكتالوج التفاعلي متاحة داخل تطبيق Android فقط.');
+  if (typeof html !== 'string' || !html.trim()) throw new Error('محتوى الكتالوج التفاعلي فارغ.');
+  const safeName = String(filename || 'lamset-fan-interactive-catalog.html').replace(/[^a-zA-Z0-9._-]/g, '-');
+  if (!/\.html?$/i.test(safeName)) throw new Error('امتداد ملف الكتالوج غير صالح.');
+  const shareCopy = await Filesystem.writeFile({ path: 'LAMSET-FAN/Shared/' + safeName, data: html, directory: Directory.Cache, encoding: Encoding.UTF8, recursive: true });
+  if (!shareCopy?.uri) throw new Error('تعذر تجهيز ملف الكتالوج التفاعلي للمشاركة.');
+  await Share.share({ title: 'كتالوج لمسة فن التفاعلي', text: 'نسخة تفاعلية من كتالوج لمسة فن. اختر واتساب من قائمة المشاركة لإرسال الملف كمرفق.', files: [shareCopy.uri], dialogTitle: 'مشاركة الكتالوج التفاعلي' });
+  return { ...shareCopy, filename: safeName, mimeType: 'text/html' };
+};
 window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
   if (typeof data !== 'string' || !data.length) throw new Error('محتوى التقرير فارغ.');
   const safeName = String(filename || 'lamset-fan-report.csv').replace(/[^a-zA-Z0-9._-]/g, '-');
