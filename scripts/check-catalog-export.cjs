@@ -46,8 +46,10 @@ assert(/type\s*===\s*'online'\s*\?\s*'retail'/.test(priceKeyFunction), 'online c
 assert(/type\s*===\s*'trader'\s*\?\s*'wholesale'/.test(priceKeyFunction), 'trader pricing remains mapped to wholesale');
 assert(/type\s*===\s*'distributor'\s*\?\s*'distributor'/.test(priceKeyFunction), 'distributor pricing remains mapped to distributor');
 assert(/type\s*===\s*'retail'\s*\?\s*'retail'/.test(priceKeyFunction), 'retail pricing remains mapped to retail');
-assert(/function suggestOrderPrice\(\)[\\s\\S]*?catalogPriceKey\(type\)/.test(html), 'order price suggestion uses the central customer price mapping');
-assert(/function refreshOrderCustomerPricing\(\)[\\s\\S]*?catalogPriceKey\(type\)/.test(html), 'existing order cart refresh uses the central customer price mapping');
+const orderPriceSuggestion = html.slice(html.indexOf('function suggestOrderPrice()'), html.indexOf('function refreshOrderCustomerPricing()'));
+const orderPriceRefresh = html.slice(html.indexOf('function refreshOrderCustomerPricing()'), html.indexOf('function addOrderItem()'));
+assert(orderPriceSuggestion.includes('catalogPriceKey(type)'), 'order price suggestion uses the central customer price mapping');
+assert(orderPriceRefresh.includes('catalogPriceKey(type)'), 'existing order cart refresh uses the central customer price mapping');
 assert(/let priceKey=catalogPriceKey\(customerType\)/.test(html), 'WhatsApp order import uses the central customer price mapping');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Catalog customer-data allowlist, saved-history, and PDF export checks passed.');
