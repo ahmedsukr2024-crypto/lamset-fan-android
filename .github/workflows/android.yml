@@ -45,3 +45,13 @@ jobs:
           name: lamset-fan-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Package complete project source and generated Android project
+        run: zip -r lamset-fan-complete-project.zip . -x ".git/*" "node_modules/*" "android/.gradle/*" "android/app/build/*"
+
+      - name: Upload complete project ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: lamset-fan-complete-project
+          path: lamset-fan-complete-project.zip
+          if-no-files-found: error
