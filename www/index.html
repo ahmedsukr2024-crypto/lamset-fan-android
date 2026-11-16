@@ -1253,8 +1253,10 @@ function saveOrder(){
   alert((existingOrder?'تم تعديل الطلب وحفظ التغييرات بنجاح.':'تم تسجيل الطلب الجديد بنجاح.')+(shortage?' يوجد '+shortage+' قطعة ناقصة تمت إضافتها إلى صفحة التصنيع المطلوب.':' تم توفير الكميات من المخزون.')+(whatsappResult.missingPhone?' لم يتم فتح واتساب لأن رقم هاتف العميل غير صالح؛ الطلب محفوظ ويمكن فتح المحادثة بعد تصحيح الرقم.':whatsappResult.opened?' تم تجهيز رسالة تأكيد الطلب في واتساب؛ اضغط إرسال بعد مراجعتها.':' تعذر فتح واتساب تلقائيًا؛ الطلب محفوظ ولم يتم إرساله. افتح محادثة العميل من بطاقة بياناته.'))
  }catch(err){console.error(err);if(before&&!orderCommitted){db=before;save();alert('تعذر تسجيل الطلب؛ تم التراجع عن التغييرات بالكامل.')}else if(orderCommitted){console.error('Order was saved, but a post-save UI step failed:',err);alert((window.__lfLastSavedOrderAction==='update'?'تم حفظ تعديل الطلب بنجاح.':'تم حفظ الطلب الجديد بنجاح.')+' لكن تعذر تحديث بعض عناصر الشاشة. لم يتم التراجع عن البيانات المحفوظة؛ حدّث الصفحة لمراجعة الحالة.')}}
  finally{
-  window.__lfOrderSaving=false;
-  if(saveButton){saveButton.disabled=false;saveButton.textContent=editingOrderId?'حفظ تعديل الطلب':'تسجيل الطلب';delete saveButton.dataset.originalText}
+  setTimeout(()=>{
+   window.__lfOrderSaving=false;
+   if(saveButton){saveButton.disabled=false;saveButton.textContent=editingOrderId?'حفظ تعديل الطلب':'تسجيل الطلب';delete saveButton.dataset.originalText}
+  },450);
  }
 }
 function orderDisplayLines(o){const lines=Array.isArray(o?.items)&&o.items.length?o.items:[o||{}];return lines.map(x=>({productId:x.productId,productName:x.productName||x.productSnapshot?.name||db.products.find(p=>p.id===x.productId)?.name||'منتج',qty:Number(x.qty)||0,unitType:x.unitType||'piece',stockUnits:Number(x.stockUnits)||0,price:Number(x.price)||0,productSnapshot:x.productSnapshot||{}}))}function lfOrderStatusKey(o){return String(o?.status||'جديد').trim()}
@@ -1746,8 +1748,10 @@ function recordPayment(){
    alert('تم حفظ التحصيل بالفعل، لكن تعذر تحديث الشاشة أو التنبيه. لا تعاود تسجيل نفس المبلغ حتى لا يتكرر التحصيل.');
   }
  }finally{
-  window.__lfPaymentSaving=false;
-  if(paymentButton){paymentButton.disabled=false;paymentButton.textContent=originalText;paymentButton.removeAttribute('aria-busy');}
+  setTimeout(()=>{
+   window.__lfPaymentSaving=false;
+   if(paymentButton){paymentButton.disabled=false;paymentButton.textContent=originalText;paymentButton.removeAttribute('aria-busy');}
+  },450);
  }
 }
 function paymentReceiptBalances(payment){
