@@ -21,7 +21,7 @@ if (dateFunction) {
   assert(!validateDate('16-11-2026'), 'incorrect date format is rejected');
 }
 const saveStart = html.indexOf('function saveOrder()');
-const saveEnd = html.indexOf('function orderReturnLines', saveStart);
+const saveEnd = html.indexOf('function lfOrderStatusKey', saveStart);
 const saveOrder = saveStart >= 0 && saveEnd > saveStart ? html.slice(saveStart, saveEnd) : '';
 assert(!!saveOrder, 'saveOrder function can be inspected');
 assert(saveOrder.includes("depositRaw=String($('oDeposit')?.value??'').trim(),deposit=depositRaw===''?0:Number(depositRaw)"), 'deposit is parsed without silently clamping negative values');
