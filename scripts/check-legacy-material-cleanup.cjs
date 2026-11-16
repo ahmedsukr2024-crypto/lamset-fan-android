@@ -69,7 +69,7 @@ for (const key of ['damaged', 'consumedMaterials', 'materialCost', 'materialUnit
 assert(data.orders[0].total === 100, 'customer orders are preserved');
 assert(context.migrate(data) === false, 'migration is idempotent after the first cleanup');
 
-assert(html.includes('const removedLegacyMaterials=lfRemoveLegacyMaterialData(db)'), 'legacy cleanup runs while loading saved app data');
+assert(html.includes('removedLegacyMaterials=lfRemoveLegacyMaterialData(db)'), 'legacy cleanup runs while loading saved app data');
 assert(html.includes('function save(){lfRemoveLegacyReturnData(db);lfRemoveLegacyMaterialData(db);'), 'legacy cleanup also runs before saving app data');
 assert(!html.includes('data-nav-target="materials"') && !html.includes('<section id="materials"'), 'no raw-material page or navigation entry remains');
 assert(!html.includes('id="prodDamaged"') && !html.includes('id="wastePct"'), 'production and costing forms no longer expose scrap or waste controls');
