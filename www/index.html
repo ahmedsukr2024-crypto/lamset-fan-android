@@ -2642,7 +2642,7 @@ window.renderProductionBatchHistory();
 
 // Operation-level locks protect important writes even if the UI guard is bypassed.
 (function(){
- const guardedActions=[['createConsignment','__lfConsignmentCreating'],['addConsignmentPayment','__lfConsignmentPaymentSaving'],['saveBusinessProfile','__lfBusinessProfileSaving'],['importWhatsAppOrder','__lfWhatsAppImporting']];
+ const guardedActions=[['createConsignment','__lfConsignmentCreating'],['addConsignmentPayment','__lfConsignmentPaymentSaving'],['saveBusinessProfile','__lfBusinessProfileSaving'],['saveCustomerForm','__lfCustomerSaving'],['importWhatsAppOrder','__lfWhatsAppImporting']];
  guardedActions.forEach(([name,lock])=>{const core=window[name];if(typeof core!=='function')return;window[name]=async function(){if(window[lock])return false;window[lock]=true;try{return await core.apply(this,arguments)}finally{await new Promise(resolve=>setTimeout(resolve,450));window[lock]=false}}});
 })();
 </script>
