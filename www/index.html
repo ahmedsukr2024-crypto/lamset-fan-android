@@ -2050,7 +2050,7 @@ function catalogPreflightWarnings(rows,type){
  const shown=warnings.slice(0,10),extra=warnings.length-shown.length;
  return confirm('مراجعة الكتالوج قبل الإصدار:\n• '+shown.join('\n• ')+(extra>0?'\n• وهناك '+extra+' ملاحظات أخرى.':'')+'\n\nهل تريد المتابعة رغم هذه الملاحظات؟\nملاحظة: تفاصيل التكلفة للمراجعة الداخلية فقط ولن تظهر في الكتالوج.');
 }
-async function previewCatalog(){
+async async function previewCatalog(){
  let rows=catalogSnapshot();if(!rows.length)return alert('حدد منتجًا واحدًا على الأقل');
  if(!catalogPreflightWarnings(rows,$('catType').value))return;
  showDocumentPreview('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><body style="font-family:Tahoma;text-align:center;padding:40px">جارٍ تجهيز الكتالوج...</body></html>','معاينة الكتالوج');
