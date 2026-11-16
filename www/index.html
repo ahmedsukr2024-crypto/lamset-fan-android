@@ -1765,7 +1765,7 @@ function paymentReceiptHtml(payment){
  const balances=paymentReceiptBalances(payment);if(!balances)return '';
  const {o,previous,current,collectedAfter,remainingAfter}=balances;
  const bp=o.invoiceSnapshot?.business||db.businessProfile||{},customer=o.invoiceSnapshot?.customer||{};
- const brand=bp.name||'لمسة فن',phone=customer.phone||o.phone||'',title=payment.kind==='deposit'?'سند قبض عربون':'سند قبض';
+ const brand=bp.name||'لمسة فن',phone=customer.phone||o.phone||'',receiptType=payment.kind==='deposit'?'إيصال عربون':'إيصال تحصيل',title=payment.kind==='deposit'?'سند قبض عربون':'سند قبض';
  const receiptDate=new Date(payment.date||Date.now()).toLocaleString('ar-EG',{dateStyle:'medium',timeStyle:'short'});
  const orderNo=o.orderNumber||lfOrderNumber(o),invoiceNo=o.invoiceNumber||orderNo;
  const amountWords=paymentReceiptAmountWords(current);
