@@ -1224,7 +1224,7 @@ function saveOrder(){
   if(phoneDigits&&(phoneDigits.length<7||phoneDigits.length>15))return alert('رقم الهاتف غير مكتمل أو أطول من المسموح؛ راجع كود الدولة والرقم المحلي.');
   if(!lfIsValidOrderDate(dueValue))return alert('موعد التسليم غير صحيح؛ اختر تاريخًا صالحًا من حقل الموعد.');
   if(!['جديد','قيد التجهيز'].includes(statusValue))return alert('لا يمكن إنشاء طلب بحالة نهائية. ابدأ الطلب بحالة «جديد» أو «قيد التجهيز»، ثم استخدم تحديث الحالة بعد استكمال التصنيع والإجراءات المطلوبة.');
-  const phoneMatches=enteredPhone?(db.customers||[]).filter(c=>customerPhoneDigits(c.phone)===phoneDigits):[];
+  const phoneMatchKey=customerPhoneMatchKey(enteredPhone),phoneMatches=phoneMatchKey?(db.customers||[]).filter(c=>customerPhoneMatchKey(c.phone)===phoneMatchKey):[];
   if(!selectedCustomer&&phoneMatches.length>1)return alert('رقم الهاتف مرتبط بأكثر من عميل. اختر العميل المقصود من القائمة قبل تسجيل الطلب لتجنب ربط الفاتورة بملف خاطئ.');
   const phoneOwner=phoneMatches.length===1?phoneMatches[0]:null;
   if(selectedCustomer&&phoneMatches.length&&!phoneMatches.some(c=>c.id===selectedCustomer.id))return alert('رقم الهاتف الذي أدخلته مرتبط بعميل آخر. اختر العميل الصحيح أو راجع بيانات العملاء قبل تسجيل الطلب.');
@@ -1573,9 +1573,67 @@ function customerFormMarkup(c){
  '<div class="customer-form-actions"><button onclick="saveCustomerForm()">حفظ البيانات</button><button class="ghost" onclick="cancelCustomerForm()">إلغاء</button></div></div>';
 }
 function previewCustomerPhoto(input){let file=input.files&&input.files[0];if(!file)return;if(!file.type.startsWith('image/')){input.value='';return alert('اختار ملف صورة صحيح')}if(file.size>1500000){input.value='';return alert('حجم الصورة كبير؛ اختار صورة أقل من 1.5 ميجابايت')}resizeImage(file).then(src=>{let p=$('cPhotoPreview');if(p){p.outerHTML='<img class="customer-form-avatar" id="cPhotoPreview" src="'+src+'" alt="معاينة صورة العميل">'}}).catch(()=>alert('تعذر تجهيز الصورة؛ جرّب صورة أخرى'))}function newCustomer(){editingCustomerId='';$('customerProfile').innerHTML='';$('customerForm').innerHTML=customerFormMarkup(null)}function editCustomer(cid){let c=db.customers.find(x=>x.id===cid);if(!c)return;editingCustomerId=cid;$('customerForm').innerHTML=customerFormMarkup(c)}
-function saveCustomerForm(){let before=JSON.parse(JSON.stringify(db)),name=$('cName').value.trim(),phone=normalizePhone($('cPhone').value,$('cCountryCode').value),type=$('cType').value,file=$('cPhoto').files&&$('cPhoto').files[0];if(!name)return alert('اكتب اسم العميل');if(!Array.isArray(db.customers))db.customers=[];if(phone&&db.customers.some(c=>customerPhoneDigits(c.phone)===customerPhoneDigits(phone)&&c.id!==editingCustomerId))return alert('رقم الهاتف مسجل بالفعل؛ راجع العملاء المسجلين بنفس الرقم حتى لو اختلفت طريقة كتابته.');if(file&&(!file.type.startsWith('image/')||file.size>1500000))return alert('اختار صورة صحيحة لا يتجاوز حجمها 1.5 ميجابايت');let finish=photo=>{let c=editingCustomerId?db.customers.find(x=>x.id===editingCustomerId):null;if(!c){c={id:id(),createdAt:new Date().toISOString()};db.customers.push(c)}let previousPhone=c.phone||'';c.name=name;c.type=type;c.phone=phone;c.area=$('cArea').value.trim();c.note=$('cNote').value.trim();if(photo)c.photo=photo;(db.orders||[]).forEach(o=>{if(o.customerId===c.id||(!o.customerId&&previousPhone&&o.phone===previousPhone))o.customerId=c.id});if(!save()){db=before;return alert('تعذر حفظ بيانات العميل؛ لم يتم اعتماد التغييرات.')}let cid=c.id;editingCustomerId='';$('customerForm').innerHTML='';renderAll();openCustomer(cid)};if(file){resizeImage(file).then(photo=>finish(photo)).catch(()=>alert('تعذر تجهيز صورة العميل؛ لم يتم حفظ التغييرات. حاول بصورة أخرى.'))}else finish('')}function cancelCustomerForm(){editingCustomerId='';$('customerForm').innerHTML=''}let activeCustomerId='';
+function saveCustomerForm(){
+ let before=JSON.parse(JSON.stringify(db)),name=$('cName').value.trim(),phone=normalizePhone($('cPhone').value,$('cCountryCode').value),type=$('cType').value,file=$('cPhoto').files&&$('cPhoto').files[0];
+ if(!name)return alert('اكتب اسم العميل');
+ if(!Array.isArray(db.customers))db.customers=[];
+ const existingCustomer=editingCustomerId?(db.customers||[]).find(x=>x.id===editingCustomerId):null;
+ if(editingCustomerId&&!existingCustomer)return alert('العميل الذي تعدله لم يعد موجودًا؛ حدّث القائمة ثم حاول مرة أخرى.');
+ if(phone&&db.customers.some(c=>customerPhoneMatchKey(c.phone)===customerPhoneMatchKey(phone)&&c.id!==editingCustomerId))return alert('رقم الهاتف مسجل بالفعل؛ راجع العملاء المسجلين بنفس الرقم حتى لو اختلفت طريقة كتابته.');
+ if(file&&(!file.type.startsWith('image/')||file.size>1500000))return alert('اختار صورة صحيحة لا يتجاوز حجمها 1.5 ميجابايت');
+ const previousPhone=existingCustomer?.phone||'';
+ const previousPhoneOwner=findUniqueCustomerByPhone(previousPhone);
+ let finish=photo=>{
+  let c=existingCustomer;
+  if(!c){c={id:id(),createdAt:new Date().toISOString()};db.customers.push(c)}
+  c.name=name;c.type=type;c.phone=phone;c.area=$('cArea').value.trim();c.note=$('cNote').value.trim();
+  if(photo)c.photo=photo;
+  linkLegacyOrdersToCustomer(c,previousPhone,previousPhoneOwner?.id===c.id);
+  if(!save()){db=before;return alert('تعذر حفظ بيانات العميل؛ لم يتم اعتماد التغييرات.')}
+  let cid=c.id;editingCustomerId='';$('customerForm').innerHTML='';renderAll();openCustomer(cid);
+ };
+ if(file){resizeImage(file).then(photo=>finish(photo)).catch(()=>alert('تعذر تجهيز صورة العميل؛ لم يتم حفظ التغييرات. حاول بصورة أخرى.'))}
+ else finish('');
+}
+function cancelCustomerForm(){editingCustomerId='';$('customerForm').innerHTML=''}let activeCustomerId='';
 let customerListFilter='all';
-function setCustomerFilter(filter,btn){customerListFilter=filter;document.querySelectorAll('.customer-filter-row button').forEach(x=>x.classList.toggle('active',x===btn));renderCustomers()}function customerPhoneDigits(value){return String(value||'').replace(/[^0-9]/g,'')}function findUniqueCustomerByPhone(value){const digits=customerPhoneDigits(value);if(!digits)return null;const matches=(db.customers||[]).filter(x=>customerPhoneDigits(x.phone)===digits);return matches.length===1?matches[0]:null}function customerOrderMatches(order,customer){if(!order||!customer)return false;if(order.customerId)return order.customerId===customer.id;return findUniqueCustomerByPhone(order.phone)?.id===customer.id}
+function setCustomerFilter(filter,btn){customerListFilter=filter;document.querySelectorAll('.customer-filter-row button').forEach(x=>x.classList.toggle('active',x===btn));renderCustomers()}function customerPhoneDigits(value){return String(value||'').replace(/[^0-9]/g,'')}
+function customerPhoneMatchKey(value){
+ let digits=customerPhoneDigits(value);
+ if(!digits)return '';
+ if(digits.startsWith('00'))digits=digits.slice(2);
+ if(digits.startsWith('20'))return digits;
+ if(digits.startsWith('0')&&digits.length>=9&&digits.length<=11)return '20'+digits.slice(1);
+ if(digits.length===10&&digits.startsWith('1'))return '20'+digits;
+ return digits;
+}
+function findUniqueCustomerByPhone(value){
+ const key=customerPhoneMatchKey(value);
+ if(!key)return null;
+ const matches=(db.customers||[]).filter(customer=>customerPhoneMatchKey(customer.phone)===key);
+ return matches.length===1?matches[0]:null;
+}
+function customerOrderMatches(order,customer){
+ if(!order||!customer)return false;
+ if(order.customerId)return order.customerId===customer.id;
+ return findUniqueCustomerByPhone(order.phone)?.id===customer.id;
+}
+function linkLegacyOrdersToCustomer(customer,previousPhone,previousPhoneWasUnique){
+ const previousKey=customerPhoneMatchKey(previousPhone),currentKey=customerPhoneMatchKey(customer?.phone);
+ const currentOwner=currentKey?findUniqueCustomerByPhone(currentKey):null;
+ const canLinkPrevious=!!previousKey&&previousPhoneWasUnique===true;
+ const canLinkCurrent=!!currentKey&&currentOwner?.id===customer?.id;
+ let linked=0;
+ (db.orders||[]).forEach(order=>{
+  if(!order||order.customerId)return;
+  const orderKey=customerPhoneMatchKey(order.phone);
+  if((canLinkPrevious&&orderKey===previousKey)||(canLinkCurrent&&orderKey===currentKey)){
+   order.customerId=customer.id;
+   linked++;
+  }
+ });
+ return linked;
+}
 function renderCustomers(){let cs=db.customers||[],q=($('customerSearch')?.value||'').trim().toLocaleLowerCase('ar'),orders=db.orders||[],total=0,active=0;cs.forEach(c=>{let os=orders.filter(o=>customerOrderMatches(o,c)&&o.status!=='ملغي');total+=os.reduce((v,o)=>v+orderNetTotal(o),0);if(os.length)active++});$('customerCount').textContent=cs.length+' عميل';$('customerSummary').innerHTML='<div class="customer-stat spent"><span>إجمالي المشتريات</span><b>'+money(total)+' ج.م</b></div><div class="customer-stat count"><span>عدد العملاء</span><b>'+cs.length+'</b></div><div class="customer-stat active"><span>عملاء نشطون</span><b>'+active+'</b></div><div class="customer-stat inactive"><span>بدون طلبات</span><b>'+(cs.length-active)+'</b></div>';let filtered=cs.filter(c=>{let match=[c.name,c.phone,c.area,c.note].some(v=>String(v||'').toLocaleLowerCase('ar').includes(q));let kind=customerListFilter==='all'||(customerListFilter==='active'?!!c.favorite:c.type===customerListFilter);return match&&kind});$('customerList').innerHTML=filtered.length?filtered.map(c=>{let os=orders.filter(o=>customerOrderMatches(o,c)),activeOrders=os.filter(o=>o.status!=='ملغي'),sales=activeOrders.reduce((v,o)=>v+orderNetTotal(o),0),due=activeOrders.reduce((v,o)=>v+orderDue(o),0),credit=activeOrders.reduce((v,o)=>v+orderCredit(o),0),digits=String(c.phone||'').replace(/[^0-9]/g,''),wa=digits.startsWith('00')?digits.slice(2):digits,avatar=c.photo?'<img class="customer-list-avatar" src="'+c.photo+'" alt="">':'<div class="customer-list-avatar customer-list-avatar-empty">♙</div>';return '<article class="customer-card-v2"><button class="customer-open" onclick="openCustomer('+"'"+esc(String(c.id))+"'"+')"><span class="customer-list-avatar-wrap">'+avatar+(c.favorite?'<i>★</i>':'')+'</span><span class="customer-v2-info"><b>'+esc(c.name)+'</b><small>'+esc(c.phone||'بدون هاتف')+'</small><small>⌖ '+esc(c.area||'العنوان غير مسجل')+'</small></span><span class="customer-status '+(activeOrders.length?'is-active':'is-new')+'">'+(activeOrders.length?'نشط':'جديد')+'</span></button><div class="customer-card-bottom"><div class="customer-actions">'+(c.phone?'<a class="customer-action whatsapp" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">◉</a><a class="customer-action call" href="tel:'+esc(c.phone)+'">☎</a>':'')+'<button class="customer-action more" onclick="openCustomer('+"'"+esc(String(c.id))+"'"+')">•••</button><button class="customer-action arrow" onclick="openCustomer('+"'"+esc(String(c.id))+"'"+')">‹</button></div><div class="customer-balance"><span>'+(due>0?'مستحق':credit>0?'رصيد دائن':'رصيد العميل')+'</span><b>'+money(due>0?due:credit>0?credit:0)+' ج.م</b></div></div><button class="customer-card-full" onclick="openCustomer('+"'"+esc(String(c.id))+"'"+')">عرض الملف · '+activeOrders.length+' فاتورة · مشتريات '+money(sales)+' ج.م</button></article>'}).join(''):'<div class="empty">لا توجد نتائج مطابقة.</div>';if(activeCustomerId&&cs.some(c=>c.id===activeCustomerId))openCustomer(activeCustomerId);else $('customerProfile').innerHTML=''}
 function openCustomer(cid){
  let c=(db.customers||[]).find(x=>x.id===cid);if(!c)return;activeCustomerId=cid;
