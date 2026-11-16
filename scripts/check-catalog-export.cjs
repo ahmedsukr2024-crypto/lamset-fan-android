@@ -15,6 +15,23 @@ for (const forbidden of ['cost','unitProfit','profit','margin','suggestedResale'
   assert(!new RegExp('\\b' + forbidden + '\\s*:').test(allowlist), 'allowlist excludes ' + forbidden);
 }
 assert(html.includes('catalogCustomerRows(ready)') && html.includes('catalogCustomerRows(rows)'), 'preview, new edition, and saved editions sanitize rows');
+function sectionBetween(start, end) {
+  const from = html.indexOf(start);
+  const to = html.indexOf(end, from + start.length);
+  return from >= 0 && to > from ? html.slice(from, to) : '';
+}
+const createCatalog = sectionBetween('async function printCatalog()', 'function renderCatalogHistory()');
+const renderHistory = sectionBetween('function renderCatalogHistory()', 'async function reprintCatalog(');
+const reopenCatalog = sectionBetween('async function reprintCatalog(cid)', 'function renderConsignment()');
+assert(!!createCatalog && !!renderHistory && !!reopenCatalog, 'catalog history create, list, and reopen functions exist');
+assert(/rows\s*,/.test(createCatalog) && /db\.catalogHistory\.unshift\(record\)/.test(createCatalog), 'new catalog history stores a snapshot of the selected rows');
+assert(/x\.rows\s*\|\|\s*\[\]/.test(reopenCatalog), 'saved catalog is rebuilt from its stored row snapshot');
+assert(/catalogCustomerRows\(rows\)/.test(reopenCatalog), 'reopened catalog rows pass through the customer-data allowlist');
+assert(/catalogHtml\(customerRows\s*,\s*x\.type\s*,\s*x\.template\s*,\s*x\.subtitle\s*,\s*bp\)/.test(reopenCatalog), 'reopened HTML/PDF uses the saved catalog type, template, subtitle, and business profile');
+assert(/makeInteractiveCatalog\(lastCatalogPdfHtml\s*,\s*customerRows\s*,\s*bp\)/.test(reopenCatalog), 'reopened interactive catalog uses sanitized snapshot rows');
+assert(/reprintCatalog\('\\?\$\{?x\.id/.test(renderHistory) || /reprintCatalog\('.*x\.id/.test(renderHistory), 'history entries reopen by saved catalog id');
+assert(/catalogCustomerRows\(ready\)/.test(createCatalog), 'new catalog output is sanitized before it is rendered');
+assert(/catalogCustomerRows\(rows\)/.test(createCatalog), 'new catalog snapshot output is sanitized before it is rendered');
 assert(html.includes('lastCatalogPdfHtml=catalogHtml(customerRows'), 'PDF uses sanitized customer HTML');
 assert(html.includes('makeInteractiveCatalog(lastCatalogPdfHtml,customerRows,bp)'), 'interactive catalog is built from sanitized rows');
 assert(html.includes('id="lamsetCatalogPdfButton"') && html.includes('shareCatalogPdf()'), 'PDF share action is wired');assert(html.includes('window.lamsetShareInteractiveCatalog(lastCatalogInteractiveHtml'), 'interactive catalog uses dedicated native sharing');
@@ -25,4 +42,4 @@ assert(bridge.includes("import html2pdf from 'html2pdf.js'"), 'PDF renderer is b
 assert(bridge.includes("mimeType: 'application/pdf'") && bridge.includes("encoding: 'base64'"), 'PDF is written as a binary PDF attachment');
 assert(pkg.dependencies && pkg.dependencies['html2pdf.js'], 'PDF dependency is declared');
 if (process.exitCode) process.exit(process.exitCode);
-console.log('Catalog customer-data allowlist and PDF export checks passed.');
+console.log('Catalog customer-data allowlist, saved-history, and PDF export checks passed.');
