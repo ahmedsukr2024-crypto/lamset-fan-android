@@ -59,6 +59,7 @@ assert(html.includes("?order.depositMethod:'غير محدد'"), 'legacy deposits
 assert(/if\(lamsetDataReady\)lfMigrateLegacyOrderDeposits\(\)/.test(html), 'legacy deposit migration runs after successful data load');
 assert(/kind:'deposit'/.test(html) && /savedOrder\.depositPaymentId=depositPayment\.id/.test(html), 'new order deposits create a linked ledger payment');
 assert(/lfOrderDepositPayment\(o\)\?0:Math\.max\(0,Number\(o\.deposit\)\|\|0\)/.test(html), 'payment receipt balances avoid counting migrated deposits twice');
+assert(/paymentEntries=\[\.\.\.\(lfOrderDepositPayment\(o\)\?\[\]:/.test(html), 'invoice payment ledger does not duplicate a deposit already stored in payments');
 assert(/payment\.kind==='deposit'\?'إيصال عربون':'إيصال تحصيل'/.test(html), 'deposit receipts are identified separately');
 assert(/p\.kind==='deposit'\?'العربون':'الدفعة'/.test(html), 'WhatsApp deposit receipt identifies the deposit amount');
 assert(/lfOrderDraftFields=\[[^\]]*oDepositMethod/.test(html), 'deposit method is included in draft recovery and form events');
