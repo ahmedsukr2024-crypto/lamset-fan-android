@@ -720,6 +720,58 @@ html[data-theme="dark"] .lf-order-status-dialog .field select{background:var(--l
 }
 
 
+/* Product detail + stock adjustment dialogs: align every surface with shared theme tokens. */
+#productDetailModal .product-detail-shell{
+ background:var(--lf-surface)!important;color:var(--lf-text)!important;
+ border:1px solid var(--lf-border)!important;box-shadow:var(--lf-shadow-raised)!important;
+}
+#productDetailModal .product-detail-head{
+ color:var(--lf-text)!important;border-color:var(--lf-border)!important;
+}
+#productDetailModal .product-detail-info h2,
+#productDetailModal .product-detail-price,
+#productDetailModal .product-detail-price-row,
+#productDetailModal .product-detail-price-row strong{
+ color:var(--lf-text)!important;
+}
+#productDetailModal .product-detail-photo{
+ background:var(--lf-surface-2)!important;border-color:var(--lf-border)!important;
+}
+#productDetailModal .product-detail-price-panel,
+#productDetailModal .product-detail-stock,
+#productDetailModal .product-detail-cost{
+ background:var(--lf-surface-2)!important;color:var(--lf-text)!important;
+ border-color:var(--lf-border)!important;
+}
+#productDetailModal .product-detail-stock strong{color:var(--lf-success)!important}
+#productDetailModal .product-detail-cost{background:var(--lf-surface)!important}
+#productDetailModal .product-movement{border-color:var(--lf-border)!important;color:var(--lf-text)!important}
+#productDetailModal .product-movement small{color:var(--lf-muted)!important}
+#lfStockAdjustModal>.card{
+ background:var(--lf-surface)!important;color:var(--lf-text)!important;
+ border-color:var(--lf-border)!important;
+}
+#lfStockAdjustModal .result{
+ background:var(--lf-surface-2)!important;color:var(--lf-text)!important;
+ border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] #productDetailModal .product-detail-shell,
+html[data-theme="dark"] #productDetailModal .product-detail-head,
+html[data-theme="dark"] #productDetailModal .product-detail-price-panel,
+html[data-theme="dark"] #productDetailModal .product-detail-stock,
+html[data-theme="dark"] #productDetailModal .product-detail-cost{
+ background:var(--lf-surface)!important;color:var(--lf-text)!important;
+ border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] #productDetailModal .product-detail-photo{
+ background:var(--lf-surface-2)!important;border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] #productDetailModal .product-detail-info h2,
+html[data-theme="dark"] #productDetailModal .product-detail-price,
+html[data-theme="dark"] #productDetailModal .product-detail-price-row{
+ color:var(--lf-text)!important;
+}
+
 /* Order actions: separate the two frequent actions from supporting actions. */
 #orders #orderList .lf-order-card>.lf-order-actions{
  display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin:0!important;
