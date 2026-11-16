@@ -2339,7 +2339,7 @@ function lfMigrateLegacyOrderDeposits(){
    const amount=Math.max(0,Number(order.deposit)||0);if(amount<=0)return;
    const existing=lfOrderDepositPayment(order);
    if(existing){if(order.depositPaymentId!==existing.id){order.depositPaymentId=existing.id;changed=true}return}
-   const method=['نقدي','تحويل بنكي','محفظة إلكترونية','أخرى'].includes(order.depositMethod)?order.depositMethod:'نقدي';
+   const method=['نقدي','تحويل بنكي','محفظة إلكترونية','أخرى'].includes(order.depositMethod)?order.depositMethod:'غير محدد';
    const payment={id:id(),orderId:order.id,amount,method,note:'عربون محفوظ سابقًا على الطلب',date:order.depositDate||order.date||new Date().toISOString(),kind:'deposit',legacyMigration:true};
    db.payments.push(payment);order.depositPaymentId=payment.id;changed=true;
   });
