@@ -88,6 +88,17 @@ const saveOrder = orderStart >= 0 && orderEnd > orderStart ? html.slice(orderSta
 assert(saveOrder.includes('customerPhoneMatchKey(enteredPhone)'), 'new order customer lookup uses normalized phone keys');
 assert(saveOrder.includes('customerPhoneMatchKey(c.phone)===phoneMatchKey'), 'new order lookup compares normalized customer phone keys');
 
+const startupStart = html.indexOf('const lamsetDataReady=load()');
+const startupEnd = html.indexOf('renderAutoBackupSettings()', startupStart);
+const startup = startupStart >= 0 && startupEnd > startupStart
+  ? html.slice(startupStart, startupEnd)
+  : '';
+assert(!!startup, 'startup legacy-order migration can be inspected');
+assert(startup.includes("if(!o.customerId&&o.phone){let c=findUniqueCustomerByPhone(o.phone);if(c)o.customerId=c.id}"), 'startup links only to a uniquely matched customer phone');
+assert(!startup.includes('x.phone===o.phone'), 'startup never selects the first customer by exact phone');
+assert(!startup.includes('x.name===o.customer'), 'startup never auto-links an order by customer name alone');
+assert(!startup.includes("name:o.customer||'عميل سابق'"), 'startup does not create guessed customer profiles from ambiguous legacy orders');
+
 const invoiceStart = html.indexOf('function ensureInvoiceSnapshot(');
 const invoiceEnd = html.indexOf('function previewInvoice(', invoiceStart + 'function ensureInvoiceSnapshot('.length);
 const invoice = invoiceStart >= 0 && invoiceEnd > invoiceStart ? html.slice(invoiceStart, invoiceEnd) : '';
