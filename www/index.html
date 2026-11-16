@@ -1756,7 +1756,7 @@ function sharePaymentReceiptWhatsApp(paymentId){
  const p=(db.payments||[]).find(x=>x.id===paymentId),balances=p&&paymentReceiptBalances(p);if(!p||!balances)return alert('إيصال التحصيل غير موجود.');
  const {o,previous,current,collectedAfter,remainingAfter}=balances,customer=o.invoiceSnapshot?.customer||{},phone=normalizeWhatsAppPhone(customer.phone||o.phone||'');
  if(!phone)return alert('رقم هاتف العميل غير مسجل.');
- const lines=['🧾 '+(p.kind==='deposit'?'إيصال عربون':'إيصال تحصيل')+' - لمسة فن','رقم الإيصال: '+p.id,'رقم الطلب / الفاتورة: '+(o.invoiceNumber||lfOrderNumber(o)),'العميل: '+(customer.name||o.customer||''),'قيمة '+(p.kind==='deposit'?'العربون':'الدفعة')+': '+money(current),'المحصل قبل هذه الدفعة: '+money(previous),'إجمالي المحصل بعد الدفعة: '+money(collectedAfter),'المتبقي بعد هذه الدفعة: '+money(remainingAfter),'طريقة الدفع: '+(p.method||''),'التاريخ: '+new Date(p.date||Date.now()).toLocaleString('ar-EG')];
+ const lines=['🧾 إيصال تحصيل - لمسة فن','رقم الإيصال: '+p.id,'رقم الطلب / الفاتورة: '+(o.invoiceNumber||lfOrderNumber(o)),'العميل: '+(customer.name||o.customer||''),'قيمة '+(p.kind==='deposit'?'العربون':'الدفعة')+': '+money(current),'المحصل قبل هذه الدفعة: '+money(previous),'إجمالي المحصل بعد الدفعة: '+money(collectedAfter),'المتبقي بعد هذه الدفعة: '+money(remainingAfter),'طريقة الدفع: '+(p.method||''),'التاريخ: '+new Date(p.date||Date.now()).toLocaleString('ar-EG')];
  const url='https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\\n'));const opened=window.open(url,'_blank');if(!opened)location.href=url;
 }
 function renderExecutiveManager(){const orders=Array.isArray(db.orders)?db.orders:[],today=localDay(),open=orders.filter(o=>!['ملغي','تم التسليم','تم التسليم للعميل'].includes(String(o.status||'')));
@@ -2339,7 +2339,7 @@ function lfMigrateLegacyOrderDeposits(){
    const amount=Math.max(0,Number(order.deposit)||0);if(amount<=0)return;
    const existing=lfOrderDepositPayment(order);
    if(existing){if(order.depositPaymentId!==existing.id){order.depositPaymentId=existing.id;changed=true}return}
-   const method=['نقدي','تحويل بنكي','محفظة إلكترونية','أخرى'].includes(order.depositMethod)?order.depositMethod:'غير محدد';
+   const method=['نقدي','تحويل بنكي','محفظة إلكترونية','أخرى'].includes(order.depositMethod)?order.depositMethod:'نقدي';
    const payment={id:id(),orderId:order.id,amount,method,note:'عربون محفوظ سابقًا على الطلب',date:order.depositDate||order.date||new Date().toISOString(),kind:'deposit',legacyMigration:true};
    db.payments.push(payment);order.depositPaymentId=payment.id;changed=true;
   });
