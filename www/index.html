@@ -1799,7 +1799,7 @@ function sharePaymentReceiptWhatsApp(paymentId){
  const {o,previous,current,collectedAfter,remainingAfter}=balances,customer=o.invoiceSnapshot?.customer||{},phone=normalizeWhatsAppPhone(customer.phone||o.phone||'');
  if(!phone)return alert('رقم هاتف العميل غير مسجل.');
  const lines=['🧾 فاتورة تحصيل - لمسة فن','رقم فاتورة التحصيل: '+p.id,'رقم الطلب / الفاتورة: '+(o.invoiceNumber||lfOrderNumber(o)),'العميل: '+(customer.name||o.customer||''),'قيمة '+(p.kind==='deposit'?'العربون':'الدفعة')+': '+money(current),'المحصل قبل هذه الدفعة: '+money(previous),'إجمالي المحصل بعد الدفعة: '+money(collectedAfter),'المتبقي بعد هذه الدفعة: '+money(remainingAfter),'طريقة الدفع: '+(p.method||''),'التاريخ: '+new Date(p.date||Date.now()).toLocaleString('ar-EG')];
- const url='https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\\n'));const opened=window.open(url,'_blank');if(!opened)location.href=url;
+ const url='https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n'));const opened=window.open(url,'_blank');if(!opened)location.href=url;
 }
 function renderExecutiveManager(){const orders=Array.isArray(db.orders)?db.orders:[],today=localDay(),open=orders.filter(o=>!['ملغي','تم التسليم','تم التسليم للعميل'].includes(String(o.status||'')));
  const overdue=open.filter(o=>o.due&&o.due<today),production=open.map(o=>({order:o,flow:orderWorkflowSnapshot(o)})).filter(x=>x.flow.pending>0);
