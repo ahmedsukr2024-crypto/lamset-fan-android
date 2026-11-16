@@ -8,7 +8,7 @@
     "sync:android": "cap sync android",
     "open:android": "cap open android",
     "build:android": "npx esbuild www/mobile-bridge.js --bundle --format=esm --platform=browser --target=es2020 --outfile=www/mobile-bridge.bundle.js && cap sync android && cd android && ./gradlew assembleDebug",
-    "check:all": "npm run check:inline-js && node --check www/mobile-bridge.js"
+    "check:all": "npm run check:inline-js && node --check www/mobile-bridge.js && node scripts/check-catalog-export.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
@@ -19,7 +19,8 @@
     "@capacitor/share": "^7.0.2",
     "@aparajita/capacitor-biometric-auth": "^9.1.2",
     "@capgo/capacitor-updater": "lts-v7",
-    "@capacitor/clipboard": "^7.0.1"
+    "@capacitor/clipboard": "^7.0.1",
+    "html2pdf.js": "^0.10.3"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.3",
