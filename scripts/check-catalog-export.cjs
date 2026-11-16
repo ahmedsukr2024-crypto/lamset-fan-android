@@ -40,5 +40,14 @@ assert(bridge.includes('اختر واتساب من قائمة المشاركة')
 assert(bridge.includes("import html2pdf from 'html2pdf.js'"), 'PDF renderer is bundled');
 assert(bridge.includes("mimeType: 'application/pdf'") && bridge.includes("encoding: 'base64'"), 'PDF is written as a binary PDF attachment');
 assert(pkg.dependencies && pkg.dependencies['html2pdf.js'], 'PDF dependency is declared');
+const priceKeyFunction = html.match(/function catalogPriceKey\(type\)\s*\{([^}]+)\}/)?.[1] || '';
+assert(!!priceKeyFunction, 'central customer price-key mapper exists');
+assert(/type\s*===\s*'online'\s*\?\s*'retail'/.test(priceKeyFunction), 'online customers use the retail product price');
+assert(/type\s*===\s*'trader'\s*\?\s*'wholesale'/.test(priceKeyFunction), 'trader pricing remains mapped to wholesale');
+assert(/type\s*===\s*'distributor'\s*\?\s*'distributor'/.test(priceKeyFunction), 'distributor pricing remains mapped to distributor');
+assert(/type\s*===\s*'retail'\s*\?\s*'retail'/.test(priceKeyFunction), 'retail pricing remains mapped to retail');
+assert(/function suggestOrderPrice\(\)[\\s\\S]*?catalogPriceKey\(type\)/.test(html), 'order price suggestion uses the central customer price mapping');
+assert(/function refreshOrderCustomerPricing\(\)[\\s\\S]*?catalogPriceKey\(type\)/.test(html), 'existing order cart refresh uses the central customer price mapping');
+assert(/let priceKey=catalogPriceKey\(customerType\)/.test(html), 'WhatsApp order import uses the central customer price mapping');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Catalog customer-data allowlist, saved-history, and PDF export checks passed.');
