@@ -463,19 +463,19 @@ html:not([data-theme="dark"]) #dashboard .dash-shortcuts button{
 #orders #orderList .lf-order-card.is-overdue{
   border-inline-start-color:var(--lf-danger)!important;
 }
-#orders #orderList .lf-order-card>.sectionhead{
+#orders #orderList .lf-order-card>.lf-order-card-head{
   display:flex!important;
   align-items:flex-start!important;
   justify-content:space-between!important;
   gap:10px!important;
   margin:0!important;
 }
-#orders #orderList .lf-order-card>.sectionhead>div{
+#orders #orderList .lf-order-card>.lf-order-card-head>div{
   display:grid!important;
   gap:4px!important;
   min-width:0!important;
 }
-#orders #orderList .lf-order-card>.sectionhead>div>b{
+#orders #orderList .lf-order-card>.lf-order-card-head>div>b{
   color:var(--lf-text)!important;
   font-size:16px!important;
   font-weight:900!important;
@@ -694,7 +694,7 @@ html[data-theme="dark"] #orders #orderList .lf-order-archive-note{
 }
 @media(max-width:380px){
   #orders #orderList .lf-order-card{padding:12px!important;gap:10px!important}
-  #orders #orderList .lf-order-card>.sectionhead>div>b{font-size:14px!important}
+  #orders #orderList .lf-order-card>.lf-order-card-head>div>b{font-size:14px!important}
   #orders #orderList .lf-order-meta{grid-template-columns:minmax(0,1fr)!important}
   #orders #orderList .lf-order-progress-stats{gap:3px!important}
   #orders #orderList .lf-order-progress-stats>span{font-size:9px!important}
