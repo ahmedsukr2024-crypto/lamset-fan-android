@@ -1248,3 +1248,31 @@ html[data-theme="dark"] button.warning{filter:saturate(.92)}
   #productList .lf-product-commercial .lf-product-profit,
   #productList .lf-product-commercial .lf-product-no-suggest{grid-column:1!important}
 }
+
+/* Invoice, receipt and document preview surfaces — shared light/dark app tokens. */
+.lf-document-shell,#invoicePreview .preview-shell{
+  background:var(--lf-surface)!important;color:var(--lf-text)!important;
+  border:1px solid var(--lf-border)!important;
+}
+.lf-document-toolbar,#invoicePreview .preview-tools{
+  background:var(--lf-surface)!important;color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
+.lf-document-title b,#invoicePreview .preview-tools>b{color:var(--lf-text)!important}
+.lf-document-title small{color:var(--lf-muted)!important}
+.lf-document-actions button.smallbtn{
+  background:var(--lf-blue,#0866FF)!important;color:#fff!important;
+  border:1px solid var(--lf-blue,#0866FF)!important;box-shadow:none!important;
+}
+.lf-modal-close{
+  background:var(--lf-danger-soft)!important;color:var(--lf-danger)!important;
+  border-color:color-mix(in srgb,var(--lf-danger) 38%,var(--lf-border))!important;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] .lf-document-shell,
+html[data-theme="dark"] .lf-document-toolbar,
+html[data-theme="dark"] #invoicePreview .preview-shell,
+html[data-theme="dark"] #invoicePreview .preview-tools{
+  background:var(--lf-surface)!important;color:var(--lf-text)!important;
+  border-color:var(--lf-border)!important;
+}
