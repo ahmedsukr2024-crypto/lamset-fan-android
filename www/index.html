@@ -1216,7 +1216,7 @@ function saveOrder(){
  window.__lfOrderSaving=true;
  const saveButton=document.querySelector('#orders button[onclick="saveOrder()"]');
  if(saveButton){saveButton.disabled=true;saveButton.dataset.originalText=saveButton.textContent;saveButton.textContent='جارٍ تسجيل الطلب…'}
- let before=null;
+ let before=null,orderCommitted=false;
  try{
   before=JSON.parse(JSON.stringify(db));
   const enteredPhone=normalizePhone($('oPhone').value,$('oCountryCode').value),area=$('oArea').value.trim(),dueValue=$('oDue').value,statusValue=$('oStatus').value,phoneDigits=customerPhoneDigits(enteredPhone);
@@ -1249,14 +1249,14 @@ function saveOrder(){
    lfRecordActivity('تسجيل عربون',savedOrder.orderNumber,'تم تسجيل عربون '+money(deposit)+' بطريقة '+depositMethod);
   }
   db.orderDraft=[];
-  if(!save()){db=before;return alert('تعذر حفظ الطلب؛ تم التراجع عن تعديل العميل والمخزون والطلب بالكامل. حرّر مساحة التخزين أو أنشئ نسخة احتياطية ثم حاول مجددًا.')}const shortage=items.reduce((sum,x)=>sum+(Number(x.productionPendingUnits)||0),0);
+  if(!save()){db=before;return alert('تعذر حفظ الطلب؛ تم التراجع عن تعديل العميل والمخزون والطلب بالكامل. حرّر مساحة التخزين أو أنشئ نسخة احتياطية ثم حاول مجددًا.')}orderCommitted=true;window.__lfLastSavedOrderId=savedOrder.id;window.__lfLastSavedOrderAction=existingOrder?'update':'create';const shortage=items.reduce((sum,x)=>sum+(Number(x.productionPendingUnits)||0),0);
   pendingOrderItems=[];db.orderDraft=[];editingOrderId=null;
   lfStartNewOrder(true);
   const saveButtonAfter=document.querySelector('#orders button[onclick="saveOrder()"]');if(saveButtonAfter)saveButtonAfter.textContent='تسجيل الطلب';
   renderAll();if(window.lamsetBusinessAlert)window.lamsetBusinessAlert(existingOrder?'تم تعديل طلب '+lfOrderNumber(savedOrder):'طلب جديد من '+(customer.name||customerName),existingOrder?'تم حفظ تعديلات الطلب.':'تم تسجيل طلب جديد ويحتاج إلى متابعة.');
   const whatsappResult=lfOpenOrderWhatsAppConfirmation(savedOrder);
-  alert('تم تسجيل الطلب بنجاح.'+(shortage?' يوجد '+shortage+' قطعة ناقصة تمت إضافتها إلى صفحة التصنيع المطلوب.':' تم توفير الكميات من المخزون.')+(whatsappResult.missingPhone?' لم يتم فتح واتساب لأن رقم هاتف العميل غير صالح؛ الطلب محفوظ ويمكن فتح المحادثة بعد تصحيح الرقم.':whatsappResult.opened?' تم تجهيز رسالة تأكيد الطلب في واتساب؛ اضغط إرسال بعد مراجعتها.':' تعذر فتح واتساب تلقائيًا؛ الطلب محفوظ ولم يتم إرساله. افتح محادثة العميل من بطاقة بياناته.'))
- }catch(err){if(before){db=before;save()}console.error(err);alert('تعذر تسجيل الطلب؛ تم التراجع عن التغييرات بالكامل.')}
+  alert((existingOrder?'تم تعديل الطلب وحفظ التغييرات بنجاح.':'تم تسجيل الطلب الجديد بنجاح.')+(shortage?' يوجد '+shortage+' قطعة ناقصة تمت إضافتها إلى صفحة التصنيع المطلوب.':' تم توفير الكميات من المخزون.')+(whatsappResult.missingPhone?' لم يتم فتح واتساب لأن رقم هاتف العميل غير صالح؛ الطلب محفوظ ويمكن فتح المحادثة بعد تصحيح الرقم.':whatsappResult.opened?' تم تجهيز رسالة تأكيد الطلب في واتساب؛ اضغط إرسال بعد مراجعتها.':' تعذر فتح واتساب تلقائيًا؛ الطلب محفوظ ولم يتم إرساله. افتح محادثة العميل من بطاقة بياناته.'))
+ }catch(err){console.error(err);if(before&&!orderCommitted){db=before;save();alert('تعذر تسجيل الطلب؛ تم التراجع عن التغييرات بالكامل.')}else if(orderCommitted){console.error('Order was saved, but a post-save UI step failed:',err);alert((window.__lfLastSavedOrderAction==='update'?'تم حفظ تعديل الطلب بنجاح.':'تم حفظ الطلب الجديد بنجاح.')+' لكن تعذر تحديث بعض عناصر الشاشة. لم يتم التراجع عن البيانات المحفوظة؛ حدّث الصفحة لمراجعة الحالة.')}}
  finally{
   window.__lfOrderSaving=false;
   if(saveButton){saveButton.disabled=false;saveButton.textContent=editingOrderId?'حفظ تعديل الطلب':'تسجيل الطلب';delete saveButton.dataset.originalText}
@@ -2327,9 +2327,10 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pagehide',()=>lfSaveOrderFormDraft());
 const lfOriginalSaveOrder=saveOrder;
 saveOrder=function(){
- const beforeCount=(db.orders||[]).length;
+ const previousSavedOrderId=window.__lfLastSavedOrderId||null;
  const result=lfOriginalSaveOrder();
- if((db.orders||[]).length>beforeCount){try{localStorage.removeItem(LF_ORDER_FORM_DRAFT_KEY)}catch(_){}}
+ const savedOrderId=window.__lfLastSavedOrderId||null;
+ if(savedOrderId&&savedOrderId!==previousSavedOrderId){try{localStorage.removeItem(LF_ORDER_FORM_DRAFT_KEY)}catch(error){console.warn('Order saved, but its local draft could not be cleared:',error)}}
  return result;
 };
 const lfOriginalImportWhatsAppOrder=importWhatsAppOrder;
