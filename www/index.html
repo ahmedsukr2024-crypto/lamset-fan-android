@@ -2753,7 +2753,8 @@ window.renderProductionBatchHistory();
  function measure(){
   const headerStyle=getComputedStyle(header);
   const headerHeight=Math.ceil(header.getBoundingClientRect().height||header.offsetHeight||64);
-  const previousGap=parseFloat(root.style.getPropertyValue('--lf-header-flow-gap'))||12;\n  const headerGap=header.classList.contains('lf-scroll-hidden')?previousGap:Math.max(0,parseFloat(headerStyle.marginBottom)||0);
+  const previousGap=parseFloat(root.style.getPropertyValue('--lf-header-flow-gap'))||12;
+  const headerGap=header.classList.contains('lf-scroll-hidden')?previousGap:Math.max(0,parseFloat(headerStyle.marginBottom)||0);
   const navHeight=Math.ceil(nav.getBoundingClientRect().height||nav.offsetHeight||70);
   root.style.setProperty('--lf-header-flow-height',headerHeight+'px');
   root.style.setProperty('--lf-header-flow-gap',headerGap+'px');
