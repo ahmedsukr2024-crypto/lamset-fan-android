@@ -20,7 +20,7 @@ for (const token of [
   '--receipt-line:#CED0D4',
   'font-family:"Tajawal"',
   '@page{size:A5 portrait;margin:10mm}',
-  'سند قبض عربون',
+  'فاتورة تحصيل عربون',
   'رقم السند:',
   'رقم الطلب',
   'رقم الفاتورة',
