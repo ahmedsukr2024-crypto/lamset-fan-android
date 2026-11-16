@@ -89,7 +89,7 @@ assert(saveOrder.includes('customerPhoneMatchKey(enteredPhone)'), 'new order cus
 assert(saveOrder.includes('customerPhoneMatchKey(c.phone)===phoneMatchKey'), 'new order lookup compares normalized customer phone keys');
 
 const invoiceStart = html.indexOf('function ensureInvoiceSnapshot(');
-const invoiceEnd = html.indexOf('\nfunction previewInvoice(', invoiceStart);
+const invoiceEnd = html.indexOf('function previewInvoice(', invoiceStart + 'function ensureInvoiceSnapshot('.length);
 const invoice = invoiceStart >= 0 && invoiceEnd > invoiceStart ? html.slice(invoiceStart, invoiceEnd) : '';
 assert(invoice.includes('findUniqueCustomerByPhone(phone)'), 'invoice snapshot fallback uses unique customer matching');
 assert(invoice.includes('o.customerId?null:findUniqueCustomerByPhone(phone)'), 'invoice snapshot never overrides an existing customerId');
