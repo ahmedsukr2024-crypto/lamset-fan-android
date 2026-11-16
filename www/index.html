@@ -361,20 +361,7 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{outline:3px s
 .lf-order-track-note{margin:4px 0 9px;padding:7px 10px;border-radius:8px;background:#fff7e5;color:#8b5a00;font-size:11px;font-weight:700}
 .lf-order-track-note.is-late{background:#fff0f1;color:#b4233d}
 @media(max-width:380px){.lf-order-stage-track{gap:1px}.lf-order-stage-track li{font-size:9px}.lf-order-stage-track .lf-order-stage-dot{width:20px;height:20px}.lf-order-stage-track li:not(:last-child)::after{top:9px}}
-</style><style id="LAMSET_SCROLL_CHROME_V1_STYLE">
-/* Facebook-like scroll chrome; the Android system status bar remains native and visible. */
-.lf-app-header{transition:transform .28s cubic-bezier(.2,.75,.25,1),margin-bottom .28s cubic-bezier(.2,.75,.25,1)!important;will-change:transform}
-.lf-app-header.lf-scroll-hidden{transform:translate3d(0,-115%,0)!important;margin-bottom:-80px!important;pointer-events:none!important}
-.lf-header-menu{display:none!important}
-.lf-header-actions{gap:8px}
-.lf-header-search,.lf-header-alerts,.lf-header-settings{width:42px;height:42px;flex:0 0 42px;border-radius:13px!important}
-.lf-header-settings{display:grid;place-items:center;background:var(--lavender-2)!important;color:var(--purple)!important;border:1px solid var(--line)!important;box-shadow:none!important}
-.lf-header-settings [data-lucide]{width:21px;height:21px}
-.nav{transition:transform .28s cubic-bezier(.2,.75,.25,1)!important;will-change:transform}
-.nav.lf-scroll-hidden{transform:translate3d(0,110%,0)!important;pointer-events:none!important}
-@media(prefers-reduced-motion:reduce){.lf-app-header,.nav{transition:none!important}}
-</style>
-<style id="LAMSET_HOME_DASHBOARD_DESIGN_V1">
+</style><style id="LAMSET_HOME_DASHBOARD_DESIGN_V1">
 /* Homepage-only visual alignment with the approved Facebook-inspired design system. */
 #dashboard{
   --lf-home-primary:#0866FF;
@@ -2682,84 +2669,6 @@ window.renderProductionBatchHistory();
   return typeof previousBack==='function'?previousBack():false;
  };
  if(window.LamsetUI?.mountIcons)window.LamsetUI.mountIcons(drawer);
-})();
-</script>
-<script id="LAMSET_SCROLL_CHROME_V2">
-(function(){
- 'use strict';
- const header=document.querySelector('.lf-app-header');
- const nav=document.getElementById('nav');
- if(!header||!nav||window.__lamsetScrollChromeV2)return;
- window.__lamsetScrollChromeV2=true;
- const root=document.documentElement;
- const threshold=14,topReset=24;
- let lastY=Math.max(0,window.scrollY||root.scrollTop||0);
- let direction=0,distance=0,raf=0,resizeObserver=null;
- function currentY(){return Math.max(0,window.scrollY||root.scrollTop||document.body.scrollTop||0)}
- function measure(){
-  const headerStyle=getComputedStyle(header);
-  const headerHeight=Math.ceil(header.getBoundingClientRect().height||header.offsetHeight||64);
-  const previousGap=parseFloat(root.style.getPropertyValue('--lf-header-flow-gap'))||12;
-  const headerGap=header.classList.contains('lf-scroll-hidden')?previousGap:Math.max(0,parseFloat(headerStyle.marginBottom)||0);
-  const navHeight=Math.ceil(nav.getBoundingClientRect().height||nav.offsetHeight||70);
-  root.style.setProperty('--lf-header-flow-height',headerHeight+'px');
-  root.style.setProperty('--lf-header-flow-gap',headerGap+'px');
-  root.style.setProperty('--lf-nav-space',navHeight+'px');
- }
- function showBars(){
-  header.classList.remove('lf-scroll-hidden');
-  nav.classList.remove('lf-scroll-hidden');
- }
- function hideBars(){
-  header.classList.add('lf-scroll-hidden');
-  nav.classList.add('lf-scroll-hidden');
- }
- function overlayOpen(){
-  return !!document.querySelector('.lf-side-drawer.is-open,.lf-global-search-modal.open,.lf-global-search-modal:not([hidden]),.modal.open,[role="dialog"].open');
- }
- function editingField(){
-  const active=document.activeElement;
-  return !!(active&&((active.matches&&active.matches('input,textarea,select,[contenteditable="true"]'))));
- }
- function reset(y){
-  lastY=y;direction=0;distance=0;showBars();
- }
- function onScroll(){
-  if(raf)return;
-  raf=requestAnimationFrame(function(){
-   raf=0;
-   const y=currentY(),delta=y-lastY;
-   if(overlayOpen()||editingField()||y<=topReset){reset(y);return}
-   if(Math.abs(delta)>0.5){
-    const nextDirection=delta>0?1:-1;
-    if(nextDirection!==direction){direction=nextDirection;distance=0}
-    distance+=Math.abs(delta);
-    if(distance>=threshold){
-     if(direction>0)hideBars();
-     else showBars();
-     distance=0;
-    }
-   }
-   lastY=y;
-  });
- }
- window.addEventListener('scroll',onScroll,{passive:true});
- window.addEventListener('resize',measure,{passive:true});
- window.addEventListener('orientationchange',function(){reset(currentY());measure()},{passive:true});
- window.addEventListener('pageshow',function(){measure();reset(currentY())});
- document.addEventListener('visibilitychange',function(){if(!document.hidden){measure();reset(currentY())}});
- document.addEventListener('click',function(event){
-  if(event.target&&event.target.closest&&event.target.closest('#lfNavMore,[data-nav-target],[data-tab]'))reset(currentY());
- },true);
- const observer=new MutationObserver(function(){
-  if(overlayOpen())reset(currentY());
- });
- observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});
- if(typeof ResizeObserver==='function'){
-  resizeObserver=new ResizeObserver(measure);
-  resizeObserver.observe(header);resizeObserver.observe(nav);
- }
- measure();showBars();
 })();
 </script>
 </body></html>
