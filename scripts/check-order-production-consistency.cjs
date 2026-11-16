@@ -43,9 +43,9 @@ assert(api.lfIsArchivedOrder(context.db.orders.find(o => o.id === 'archived')), 
 assert(api.orderPendingProductionUnits(context.db.orders.find(o => o.id === 'archived')) === 0, 'archived order has no active production pending count');
 assert(context.db.orders.find(o => o.id === 'archived').items[0].productionPendingUnits === 5, 'archived historical production quantities are not mutated');
 assert(context.db.orders.find(o => o.id === 'cancelled').items[0].productionPendingUnits === 2, 'cancelled order is not mutated');
-const needsStart = html.indexOf('function renderProductionNeeds()');
-const needsEnd = html.indexOf('\nfunction ', needsStart + 10);
-const needsSource = needsStart >= 0 ? html.slice(needsStart, needsEnd > needsStart ? needsEnd : needsStart + 5000) : '';
+const needsRenderStart = html.indexOf('function renderProductionNeeds()');
+const needsRenderEnd = html.indexOf('\nfunction ', needsRenderStart + 10);
+const needsSource = needsRenderStart >= 0 ? html.slice(needsRenderStart, needsRenderEnd > needsRenderStart ? needsRenderEnd : needsRenderStart + 5000) : '';
 assert(needsSource.includes('!lfIsArchivedOrder(o)'), 'renderProductionNeeds excludes archived orders');
 assert(!html.includes('id="prodDamaged"'), 'production form no longer records scrap quantities');
 assert(!html.includes('id="wastePct"'), 'cost study no longer applies a waste percentage');
