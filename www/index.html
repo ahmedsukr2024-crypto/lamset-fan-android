@@ -37,6 +37,7 @@ async function printDocumentPreview(){
   if(!doc?.documentElement)throw new Error('محتوى المعاينة غير جاهز.');
   const html='<!doctype html>'+doc.documentElement.outerHTML;
   if(window.Capacitor?.isNativePlatform?.()&&typeof window.lamsetNativeExport==='function'){
+   if(!$('lamsetCatalogPdfButton')?.hidden&&lastCatalogPdfHtml){await shareCatalogPdf();return;}
    const stamp=new Date().toISOString().replace(/[:.]/g,'-');
    await window.lamsetNativeExport(html,'lamset-fan-print-'+stamp+'.html','text/html');
    return;
