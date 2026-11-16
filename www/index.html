@@ -356,6 +356,7 @@ html{color-scheme:light}html[data-theme="dark"]{color-scheme:dark;--ink:#F7F8FA;
 .lf-order-stage-track li.is-done::after{background:#16834a}
 .lf-order-stage-track small{font-size:inherit;line-height:1.35}
 .lf-order-stage-track.is-cancelled{display:block;padding:8px 10px;border-radius:9px;background:#fff0f1;color:#b4233d;font-weight:800;text-align:center}
+.lf-order-stage-track.is-archived{display:block;padding:8px 10px;border-radius:9px;background:var(--surface);color:var(--muted);font-weight:800;text-align:center;border:1px solid var(--border)}
 .lf-order-track-note{margin:4px 0 9px;padding:7px 10px;border-radius:8px;background:#fff7e5;color:#8b5a00;font-size:11px;font-weight:700}
 .lf-order-track-note.is-late{background:#fff0f1;color:#b4233d}
 @media(max-width:380px){.lf-order-stage-track{gap:1px}.lf-order-stage-track li{font-size:9px}.lf-order-stage-track .lf-order-stage-dot{width:20px;height:20px}.lf-order-stage-track li:not(:last-child)::after{top:9px}}
@@ -1328,7 +1329,7 @@ function orderWorkflowSnapshot(o){
 }
 function orderStageTrackerHtml(o,flow,late){
  if(flow.cancelled)return '<div class="lf-order-stage-track is-cancelled"><span>تم إلغاء الطلب</span></div>';
- if(flow.closed)return '<div class="lf-order-stage-track is-cancelled"><span>الطلب مغلق ومحفوظ في الأرشيف</span></div>';
+ if(flow.closed)return '<div class="lf-order-stage-track is-archived"><span>الطلب مغلق ومحفوظ في الأرشيف</span></div>';
  const status=String(o?.status||'جديد');
  const active=flow.delivered?4:flow.shipped?3:flow.ready?2:(flow.pending>0||status==='قيد التجهيز'?1:0);
  const stages=['تسجيل الطلب','التصنيع والتجهيز','جاهز','الشحن','التسليم'];
