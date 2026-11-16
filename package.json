@@ -8,7 +8,7 @@
     "sync:android": "cap sync android",
     "open:android": "cap open android",
     "build:android": "npx esbuild www/mobile-bridge.js --bundle --format=esm --platform=browser --target=es2020 --outfile=www/mobile-bridge.bundle.js && cap sync android && cd android && ./gradlew assembleDebug",
-    "check:all": "npm run check:inline-js && node --check www/mobile-bridge.js && node scripts/check-catalog-export.cjs && node scripts/check-order-validation.cjs && node scripts/check-order-post-save.cjs && node scripts/check-order-status-consistency.cjs && node scripts/check-order-production-consistency.cjs"
+    "check:all": "npm run check:inline-js && node --check www/mobile-bridge.js && node scripts/check-catalog-export.cjs && node scripts/check-order-validation.cjs && node scripts/check-order-post-save.cjs && node scripts/check-order-status-consistency.cjs && node scripts/check-order-production-consistency.cjs && node scripts/check-customer-linking.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
