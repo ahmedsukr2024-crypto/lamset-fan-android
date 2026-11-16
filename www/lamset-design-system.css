@@ -241,3 +241,24 @@ html[data-theme="dark"] .lf-drawer-link.active{background:#263951!important;colo
 body.lf-drawer-open{overscroll-behavior:none!important}
 @media(max-width:380px){.lf-side-drawer{width:min(92vw,360px)!important}.lf-drawer-head{padding:12px!important}.lf-drawer-links{padding-inline:9px!important}}
 @media(prefers-reduced-motion:reduce){.lf-side-drawer,.lf-drawer-backdrop,.lf-drawer-group>summary::after{transition:none!important}}
+
+/* LAMSET HEADER COMPACT FIX — remove duplicated Android safe-area spacing */
+@media(max-width:699px){
+  .wrap{padding-top:0!important;margin-top:0!important}
+  .lf-app-header{
+    position:sticky!important;top:0!important;
+    min-height:64px!important;height:64px!important;
+    margin:0 -14px 12px!important;
+    padding:7px 12px!important;
+    border-radius:0 0 14px 14px!important;
+    gap:8px!important;
+  }
+  .lf-app-brand{gap:8px!important}
+  .lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{
+    width:42px!important;height:42px!important;flex-basis:42px!important;
+  }
+  .lf-app-brand-copy b{font-size:16px!important;line-height:1.2!important}
+  .lf-app-brand-copy small{font-size:9px!important;line-height:1.2!important}
+  .lf-header-actions{gap:6px!important}
+  .lf-header-actions button{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;padding:0!important}
+}
