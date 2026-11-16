@@ -1418,6 +1418,8 @@ if(!allowed.includes(s))return alert('الحالة غير معتمدة. اختر
 if(['جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(s)&&orderPendingProductionUnits(o)>0)return alert('لا يمكن نقل الطلب إلى مرحلة الشحن أو التسليم قبل اكتمال التصنيع. توجد '+orderPendingProductionUnits(o)+' قطعة ناقصة في صفحة التصنيع المطلوب.');
 let previous=o.status;if(s===previous)return;
 if(['تم التسليم','تم التسليم للعميل'].includes(previous))return alert('لا يمكن تعديل حالة طلب مكتمل؛ تم الاحتفاظ بسجل التسليم والحسابات كما هو.');
+const wasShipped=previous==='تم تسليمه لشركة الشحن'||!!o.shippedAt;
+if(wasShipped&&!['تم التسليم للعميل','تم التسليم'].includes(s))return alert('تم تسليم الطلب لشركة الشحن بالفعل؛ لا يمكن إرجاعه إلى مرحلة سابقة أو إلغاؤه. حدّث حالته عند تأكيد استلام العميل فقط.');
 const cancelling=s==='ملغي'&&previous!=='ملغي',reactivating=previous==='ملغي'&&s!=='ملغي';
 if(cancelling&&['تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(previous))return alert('لا يمكن إلغاء طلب بدأ شحنه أو تم تسليمه؛ حتى لا تعود كمياته إلى المخزون رغم خروجها فعليًا. راجع حركة المخزون والتسويات يدويًا قبل إلغاء الطلب.');
 
@@ -1428,9 +1430,13 @@ for(const line of stockLines){if(!db.products.some(x=>x.id===line.productId))ret
 const before=JSON.parse(JSON.stringify(db));
 try{
 if(cancelling){for(const line of stockLines){const p=db.products.find(x=>x.id===line.productId),deducted=line.item?.stockDeductedUnits===undefined?line.units:Math.max(0,Number(line.item.stockDeductedUnits)||0),producedForOrder=Math.max(0,Number(line.item?.productionFulfilledUnits)||0);p.stock=(Number(p.stock)||0)+deducted+producedForOrder;if(line.item){line.item.stockDeductedUnits=0;line.item.productionPendingUnits=0;line.item.productionFulfilledUnits=0;}}o.stockReturnedOnCancel=true;}
-if(reactivating&&o.stockReturnedOnCancel===true){const byProduct=new Map();for(const line of stockLines)byProduct.set(line.productId,(byProduct.get(line.productId)||0)+line.units);for(const [productId,required] of byProduct){const p=db.products.find(x=>x.id===productId);let available=Math.max(0,Number(p.stock)||0),deduction=Math.min(available,required);p.stock=available-deduction;let remaining=deduction;for(const line of stockLines.filter(x=>x.productId===productId)){const take=Math.min(line.units,remaining);line.item.stockDeductedUnits=take;line.item.productionPendingUnits=line.units-take;line.item.productionFulfilledUnits=0;remaining-=take;}}o.stockReturnedOnCancel=false;}o.status=s;
-if(['تم التسليم','تم التسليم للعميل','ملغي'].includes(s)){o.closedAt=new Date().toISOString();o.closedStatus=s;}else{delete o.closedAt;delete o.closedStatus;}if(!Array.isArray(o.statusHistory))o.statusHistory=[];
-o.statusHistory.push({status:s,previousStatus:previous,date:new Date().toISOString()});
+if(reactivating&&o.stockReturnedOnCancel===true){const byProduct=new Map();for(const line of stockLines)byProduct.set(line.productId,(byProduct.get(line.productId)||0)+line.units);for(const [productId,required] of byProduct){const p=db.products.find(x=>x.id===productId);let available=Math.max(0,Number(p.stock)||0),deduction=Math.min(available,required);p.stock=available-deduction;let remaining=deduction;for(const line of stockLines.filter(x=>x.productId===productId)){const take=Math.min(line.units,remaining);line.item.stockDeductedUnits=take;line.item.productionPendingUnits=line.units-take;line.item.productionFulfilledUnits=0;remaining-=take;}}o.stockReturnedOnCancel=false;}
+const statusChangedAt=new Date().toISOString();
+if(s==='تم تسليمه لشركة الشحن'&&!o.shippedAt)o.shippedAt=statusChangedAt;
+if(['تم التسليم','تم التسليم للعميل'].includes(s)){if(!o.shippedAt)o.shippedAt=statusChangedAt;o.deliveredAt=statusChangedAt;}
+o.status=s;
+if(['تم التسليم','تم التسليم للعميل','ملغي'].includes(s)){o.closedAt=statusChangedAt;o.closedStatus=s;}else{delete o.closedAt;delete o.closedStatus;}if(!Array.isArray(o.statusHistory))o.statusHistory=[];
+o.statusHistory.push({status:s,previousStatus:previous,date:statusChangedAt});
 if(o.statusHistory.length>100)o.statusHistory=o.statusHistory.slice(-100);
 if(!save()){db=before;alert('تعذر حفظ تغيير الحالة؛ تم التراجع عن الحالة وحركة المخزون.');return}
 if(window.lamsetBusinessAlert)window.lamsetBusinessAlert('تحديث حالة طلب '+lfOrderNumber(o),'العميل '+(o.customer||'')+' · الحالة الجديدة: '+s);
