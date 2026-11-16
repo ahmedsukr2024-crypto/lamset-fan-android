@@ -993,9 +993,9 @@ input,select,textarea{width:100%}
 
 /* Lamset Fan design tokens — one source of truth for app colors and controls. */
 :root{
- --lf-brand:#7654E8;
- --lf-brand-hover:#6543D6;
- --lf-brand-soft:#F0EBFF;
+ --lf-brand:#0866FF;
+ --lf-brand-hover:#075CE5;
+ --lf-brand-soft:#E7F3FF;
  --lf-control-height:44px;
  --lf-control-radius:12px;
  --lf-control-padding-x:14px;
@@ -1004,17 +1004,17 @@ input,select,textarea{width:100%}
  --lf-control-border:var(--lf-border);
  --lf-control-bg:var(--lf-surface);
  --lf-control-text:var(--lf-text);
- --lf-focus-ring:0 0 0 3px rgba(118,84,232,.18);
+ --lf-focus-ring:0 0 0 3px rgba(8,102,255,.18);
  --lf-blue:var(--lf-brand);
  --lf-blue-hover:var(--lf-brand-hover);
  --lf-blue-soft:var(--lf-brand-soft);
 }
 html[data-theme="dark"]{
- --lf-brand:#A78BFA;
- --lf-brand-hover:#B9A5FF;
- --lf-brand-soft:#352A4A;
- --lf-control-border:#494252;
- --lf-focus-ring:0 0 0 3px rgba(167,139,250,.24);
+ --lf-brand:#69AFFF;
+ --lf-brand-hover:#8BC2FF;
+ --lf-brand-soft:#263951;
+ --lf-control-border:#3E4042;
+ --lf-focus-ring:0 0 0 3px rgba(69,175,255,.24);
  --lf-bg:#17151C;
  --lf-surface:#211E29;
  --lf-surface-2:#2B2735;
