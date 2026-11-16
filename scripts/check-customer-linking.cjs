@@ -83,7 +83,7 @@ assert(saveCustomer.includes('linkLegacyOrdersToCustomer(c,previousPhone,previou
 assert(!saveCustomer.includes('o.phone===previousPhone'), 'customer save does not rely on exact historical phone string equality');
 
 const orderStart = html.indexOf('function saveOrder()');
-const orderEnd = html.indexOf('function orderReturnLines', orderStart);
+const orderEnd = html.indexOf('function lfOrderStatusKey', orderStart);
 const saveOrder = orderStart >= 0 && orderEnd > orderStart ? html.slice(orderStart, orderEnd) : '';
 assert(saveOrder.includes('customerPhoneMatchKey(enteredPhone)'), 'new order customer lookup uses normalized phone keys');
 assert(saveOrder.includes('customerPhoneMatchKey(c.phone)===phoneMatchKey'), 'new order lookup compares normalized customer phone keys');
