@@ -7,14 +7,89 @@ window.lamsetReadClipboardText = async () => {
   return String(result?.value || '');
 };
 
+async function lamsetCreatePdfBlob(html) {
+  const frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;height:1123px;border:0;visibility:hidden;';
+  document.body.appendChild(frame);
+  try {
+    const doc = frame.contentDocument;
+    if (!doc) throw new Error('تعذر تجهيز صفحة PDF.');
+    doc.open();
+    doc.write(String(html || ''));
+    doc.close();
+    if (doc.fonts?.ready) await doc.fonts.ready;
+    await Promise.all(Array.from(doc.images || []).map(image => {
+      if (typeof image.decode === 'function') return image.decode().catch(() => undefined);
+      if (image.complete) return Promise.resolve();
+      return new Promise(resolve => { image.onload = resolve; image.onerror = resolve; });
+    }));
+    frame.style.height = Math.max(1123, doc.documentElement?.scrollHeight || 0) + 'px';
+    const root = doc.querySelector('.lf-doc') || doc.body;
+    if (!root || !root.children.length) throw new Error('محتوى الكتالوج فارغ.');
+    return await html2pdf().set({
+      margin: [10, 10, 13, 10],
+      image: { type: 'jpeg', quality: 0.96 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        windowWidth: 794,
+        scrollX: 0,
+        scrollY: 0
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+      pagebreak: { mode: ['css', 'legacy'] }
+    }).from(root).outputPdf('blob');
+  } finally {
+    frame.remove();
+  }
+}
+async function lamsetBlobToBase64(blob) {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+  }
+  return btoa(binary);
+}
 window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
   if (typeof data !== 'string' || !data.length) throw new Error('محتوى التقرير فارغ.');
   const safeName = String(filename || 'lamset-fan-report.csv').replace(/[^a-zA-Z0-9._-]/g, '-');
-  const isDocument = mimeType === 'text/html' || /\.html?$/i.test(safeName);
+  const isPdf = mimeType === 'application/pdf' || /\.pdf$/i.test(safeName);
+  const isDocument = isPdf || mimeType === 'text/html' || /\.html?$/i.test(safeName);
 
-  // Android scoped storage may deny direct writes to shared Documents.
-  // Interactive HTML catalogs are staged in the app cache and shared from
-  // there; the receiving app can let the user save or print the file.
+  if (isPdf) {
+    const pdfBlob = await lamsetCreatePdfBlob(data);
+    if (!pdfBlob || pdfBlob.size < 100) throw new Error('تعذر إنشاء ملف PDF صالح.');
+    const base64 = await lamsetBlobToBase64(pdfBlob);
+    const shareCopy = await Filesystem.writeFile({
+      path: 'LAMSET-FAN/Shared/' + safeName,
+      data: base64,
+      directory: Directory.Cache,
+      encoding: 'base64',
+      recursive: true
+    });
+    if (!shareCopy?.uri) throw new Error('تعذر تجهيز ملف PDF للمشاركة.');
+    const saved = await Filesystem.writeFile({
+      path: 'LAMSET-FAN/' + safeName,
+      data: base64,
+      directory: Directory.Documents,
+      encoding: 'base64',
+      recursive: true
+    });
+    if (!saved?.uri) throw new Error('تم إنشاء PDF لكن تعذر حفظ نسخة في المستندات.');
+    await Share.share({
+      title: 'كتالوج لمسة فن PDF',
+      text: 'كتالوج لمسة فن جاهز للمشاركة والطباعة.',
+      files: [shareCopy.uri],
+      dialogTitle: 'مشاركة كتالوج PDF'
+    });
+    return { ...saved, shareUri: shareCopy.uri, mimeType: 'application/pdf', size: pdfBlob.size };
+  }
+
+  // Keep interactive HTML catalogs as HTML so customer order controls remain usable.
   const shareCopy = await Filesystem.writeFile({
     path: 'LAMSET-FAN/Shared/' + safeName,
     data,
@@ -44,6 +119,7 @@ window.lamsetNativeExport = async (data, filename, mimeType = 'text/csv') => {
   });
   return { ...saved, shareUri: shareCopy.uri, mimeType };
 };
+import html2pdf from 'html2pdf.js';
 import { App } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
