@@ -43,12 +43,20 @@ assert(api.lfIsArchivedOrder(context.db.orders.find(o => o.id === 'archived')), 
 assert(api.orderPendingProductionUnits(context.db.orders.find(o => o.id === 'archived')) === 0, 'archived order has no active production pending count');
 assert(context.db.orders.find(o => o.id === 'archived').items[0].productionPendingUnits === 5, 'archived historical production quantities are not mutated');
 assert(context.db.orders.find(o => o.id === 'cancelled').items[0].productionPendingUnits === 2, 'cancelled order is not mutated');
-for (const fn of ['productionMaterialNeeds', 'productionRecipeIssues', 'renderProductionNeeds']) {
-  const start = html.indexOf('function ' + fn + '(');
-  const end = html.indexOf('\nfunction ', start + 10);
-  const source = start >= 0 ? html.slice(start, end > start ? end : start + 5000) : '';
-  assert(source.includes('!lfIsArchivedOrder(o)'), fn + ' excludes archived orders');
-}
+const needsStart = html.indexOf('function renderProductionNeeds()');
+const needsEnd = html.indexOf('\nfunction ', needsStart + 10);
+const needsSource = needsStart >= 0 ? html.slice(needsStart, needsEnd > needsStart ? needsEnd : needsStart + 5000) : '';
+assert(needsSource.includes('!lfIsArchivedOrder(o)'), 'renderProductionNeeds excludes archived orders');
+assert(!html.includes('id="prodDamaged"'), 'production form no longer records scrap quantities');
+assert(!html.includes('id="wastePct"'), 'cost study no longer applies a waste percentage');
+assert(!html.includes('function productionMaterialNeeds'), 'raw-material requirement tracking is removed');
+assert(!html.includes('function consumeProductionMaterials'), 'production no longer consumes raw-material inventory');
+assert(html.includes('function lfRemoveLegacyMaterialData(data)'), 'legacy raw-material and scrap data migration exists');
+const productionStart = html.indexOf('window.recordProduction=function()');
+const productionEnd = html.indexOf('window.cancelProductionBatch=function()', productionStart);
+const productionSource = productionStart >= 0 ? html.slice(productionStart, productionEnd > productionStart ? productionEnd : productionStart + 12000) : '';
+assert(productionSource.includes('net=gross'), 'full recorded production quantity is treated as usable output');
+assert(!productionSource.includes('damaged') && !productionSource.includes('materialUse'), 'new production batches contain no scrap or raw-material deductions');
 const reportStart = html.indexOf('function printProductionNeedsReport()');
 const reportEnd = html.indexOf('\nfunction ', reportStart + 10);
 assert(html.slice(reportStart, reportEnd).includes('!lfIsArchivedOrder(o)'), 'printed production report excludes archived orders');
