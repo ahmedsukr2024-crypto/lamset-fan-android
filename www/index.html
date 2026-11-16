@@ -607,7 +607,7 @@ html[data-theme="dark"] #catalogs .catalog-item .catalog-profit-input{background
   <div class="field"><label for="lfStockAdjustReason">سبب الحركة</label><select id="lfStockAdjustReason"><option value="توريد / إضافة للمخزون">توريد / إضافة للمخزون</option><option value="صرف داخلي">صرف داخلي</option><option value="تالف أو فاقد">تالف أو فاقد</option><option value="تسوية جرد">تسوية جرد</option><option value="تصحيح رصيد سابق">تصحيح رصيد سابق</option><option value="سبب آخر">سبب آخر</option></select></div>
   <div class="field"><label for="lfStockAdjustNote">ملاحظات (اختياري)</label><input id="lfStockAdjustNote" type="text" maxlength="180" placeholder="رقم فاتورة التوريد أو توضيح الحركة"></div>
   <div class="result" id="lfStockAdjustPreview">الرصيد بعد الحركة: 0 قطعة</div>
-  <div class="actions"><button type="button" onclick="saveStockAdjustment()">حفظ حركة المخزون</button><button type="button" class="ghost" onclick="closeStockAdjustment()">إلغاء</button></div>
+  <div class="actions"><button type="button" onclick="lamsetRunButtonAction(this,saveStockAdjustment,'جارٍ حفظ حركة المخزون…')">حفظ حركة المخزون</button><button type="button" class="ghost" onclick="closeStockAdjustment()">إلغاء</button></div>
   <div class="muted" style="margin-top:10px">يتم تسجيل كل حركة في سجل المنتج، ولا يتم تعديل بيانات المنتج أو أسعار البيع أو وصفة التصنيع.</div>
  </div>
 </div>
