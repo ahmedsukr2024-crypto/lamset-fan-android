@@ -30,7 +30,7 @@ function toCents(value) {
 function normalizeBusinessDate(value, fallback = new Date()) {
   const raw = String(value || '');
   const candidate = raw || [fallback.getFullYear(), String(fallback.getMonth() + 1).padStart(2, '0'), String(fallback.getDate()).padStart(2, '0')].join('-');
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(candidate)) throw new Error('تاريخ الحركة غير صحيح.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(candidate)) throw new Error('تاريخ الحركة غير صحيح.');
   const parsed = new Date(candidate + 'T00:00:00.000Z');
   if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== candidate) throw new Error('تاريخ الحركة غير صحيح.');
   return candidate;
