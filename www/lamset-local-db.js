@@ -199,10 +199,12 @@ class LamsetLocalDatabase {
     const transaction = database.transaction([META, MOVEMENTS], 'readwrite');
     const meta = transaction.objectStore(META);
     const movements = transaction.objectStore(MOVEMENTS);
-    const [currentRecord, sequenceRecord] = await Promise.all([
+    const [currentRecord, sequenceRecord, openingRecord] = await Promise.all([
       requestValue(meta.get('treasury.balance.cents')),
-      requestValue(meta.get('treasury.movement.sequence'))
+      requestValue(meta.get('treasury.movement.sequence')),
+      requestValue(meta.get('treasury.opening'))
     ]);
+    if (!openingRecord?.value) { transaction.abort(); throw new Error('سجّل الرصيد الافتتاحي أولاً قبل إضافة حركات الخزينة.'); }
     const before = Number(currentRecord?.value || 0);
     const sequence = Number(sequenceRecord?.value || 0) + 1;
     const movementNo = 'TR-' + String(sequence).padStart(6, '0');
@@ -244,12 +246,15 @@ class LamsetLocalDatabase {
     const transaction = database.transaction([META, CASH_LINKS], 'readwrite');
     const meta = transaction.objectStore(META);
     const links = transaction.objectStore(CASH_LINKS);
-    const [balanceRecord, previous] = await Promise.all([
+    const [balanceRecord, previous, openingRecord] = await Promise.all([
       requestValue(meta.get('treasury.balance.cents')),
-      requestValue(links.get(id))
+      requestValue(links.get(id)),
+      requestValue(meta.get('treasury.opening'))
     ]);
+    if (!openingRecord?.value) { transaction.abort(); throw new Error('سجّل الرصيد الافتتاحي أولاً قبل ربط التحصيلات أو المصروفات بالخزينة.'); }
     const before = Number(balanceRecord?.value || 0);
     const date = normalizeBusinessDate(effectiveDate);
+    if (date < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ العملية يسبق تاريخ بدء سجل الخزينة. راجع تاريخ الرصيد الافتتاحي.'); }
     const label = String(reason || (type === 'collection' ? 'تحصيل نقدي' : 'مصروف نقدي'));
     if (previous?.status === 'active' && previous.type === type && Number(previous.amountCents) === amountCents && previous.effectiveDate === date && previous.reason === label) {
       transaction.abort();
@@ -317,10 +322,13 @@ class LamsetLocalDatabase {
     const transaction = database.transaction([META, CLOSEOUTS], 'readwrite');
     const meta = transaction.objectStore(META);
     const closeouts = transaction.objectStore(CLOSEOUTS);
-    const [existing, balanceRecord] = await Promise.all([
+    const [existing, balanceRecord, openingRecord] = await Promise.all([
       requestValue(closeouts.index('businessDate').get(date)),
-      requestValue(meta.get('treasury.balance.cents'))
+      requestValue(meta.get('treasury.balance.cents')),
+      requestValue(meta.get('treasury.opening'))
     ]);
+    if (!openingRecord?.value) { transaction.abort(); throw new Error('سجّل الرصيد الافتتاحي أولاً قبل إقفال الخزينة.'); }
+    if (date < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ الإقفال يسبق تاريخ بدء سجل الخزينة.'); }
     if (existing) { transaction.abort(); throw new Error('تم إقفال هذا اليوم من قبل.'); }
     const expectedCents = Number(balanceRecord?.value || 0);
     const differenceCents = actualCents - expectedCents;
