@@ -25,6 +25,9 @@ assert(html.includes('async function showTreasuryMovementDetails(movementId)'),'
 assert(html.includes('if(data.pendingCashLinks>0)return alert('),'Daily closeout must be blocked while cash links remain pending');
 assert(html.includes('رصيد بداية الفترة')&&html.includes('رصيد نهاية الفترة بعد الإقفالات'),'Treasury reports must show opening and ending balances');
 assert(html.includes('الإقفالات والفروق'),'Treasury reports must include closeout differences');
+assert(html.includes('async function shareTreasuryPdf()')&&html.includes('application/pdf'),'Treasury reports must support native PDF sharing');
+assert(html.includes('function previewTreasuryReportPdf()')&&html.includes('async function previewTreasuryCloseoutPdf(businessDate)'),'Treasury reports and closeouts must have PDF previews');
+assert(html.includes('تفاصيل / PDF'),'Closeout history must expose its PDF detail action');
 assert(html.includes('x.status===\'active\''),'Treasury reports must exclude cancelled movements from totals');
 
 assert(html.includes('window.lamsetRequireOwnerPin(\'تعديل حركة خزينة'),'Movement edits must require owner PIN');
