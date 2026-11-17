@@ -205,6 +205,8 @@ class LamsetLocalDatabase {
       requestValue(meta.get('treasury.opening'))
     ]);
     if (!openingRecord?.value) { transaction.abort(); throw new Error('سجّل الرصيد الافتتاحي أولاً قبل إضافة حركات الخزينة.'); }
+    const effectiveDate = normalizeBusinessDate(input.effectiveDate);
+    if (effectiveDate < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ الحركة يسبق تاريخ بدء سجل الخزينة.'); }
     const before = Number(currentRecord?.value || 0);
     const sequence = Number(sequenceRecord?.value || 0) + 1;
     const movementNo = 'TR-' + String(sequence).padStart(6, '0');
@@ -213,7 +215,7 @@ class LamsetLocalDatabase {
     const movement = {
       id: movementNo, movementNo, type, amountCents, reason,
       notes: String(input.notes || ''),
-      effectiveDate: normalizeBusinessDate(input.effectiveDate),
+      effectiveDate,
       createdAt: new Date().toISOString(), balanceBeforeCents: before, balanceAfterCents: after,
       status: 'active'
     };
