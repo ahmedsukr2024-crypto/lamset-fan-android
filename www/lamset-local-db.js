@@ -246,6 +246,12 @@ class LamsetLocalDatabase {
       requestValue(links.get(id))
     ]);
     const before = Number(balanceRecord?.value || 0);
+    const date = normalizeBusinessDate(effectiveDate);
+    const label = String(reason || (type === 'collection' ? 'تحصيل نقدي' : 'مصروف نقدي'));
+    if (previous?.status === 'active' && previous.type === type && Number(previous.amountCents) === amountCents && previous.effectiveDate === date && previous.reason === label) {
+      transaction.abort();
+      return { ...previous, amount: fromCents(amountCents), balanceBefore: fromCents(previous.balanceBeforeCents), balanceAfter: fromCents(previous.balanceAfterCents) };
+    }
     const sign = type === 'collection' ? 1 : -1;
     const oldImpact = previous?.status === 'active' ? Number(previous.amountCents || 0) * (previous.type === 'collection' ? 1 : -1) : 0;
     const nextImpact = amountCents * sign;
@@ -253,8 +259,8 @@ class LamsetLocalDatabase {
     if (after < 0) { transaction.abort(); throw new Error('الرصيد النقدي لا يكفي لتسجيل المصروف.'); }
     const now = new Date().toISOString();
     const record = {
-      id, type, amountCents, effectiveDate: String(effectiveDate || now.slice(0, 10)),
-      reason: String(reason || (type === 'collection' ? 'تحصيل نقدي' : 'مصروف نقدي')),
+      id, type, amountCents, effectiveDate: date,
+      reason: label,
       status: 'active', createdAt: previous?.createdAt || now, updatedAt: now,
       balanceBeforeCents: before, balanceAfterCents: after,
       audit: [...(previous?.audit || []), { at: now, previousAmountCents: previous?.amountCents || 0, previousStatus: previous?.status || 'new', amountCents, status: 'active' }]
