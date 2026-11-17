@@ -16,6 +16,9 @@ assert(db.includes('async cancelTreasuryMovement(movementId, cancellationReason)
 assert(db.includes('async recomputeTreasuryLedger(transaction)'),'Dated treasury changes must recalculate the full ledger');
 assert(db.includes('originalExpectedCents')&&db.includes('originalDifferenceCents'),'Historical closeout original snapshots must be preserved');
 assert(db.includes('pendingInitialSnapshot'),'New closeouts must capture the actual original expected balance');
+assert(db.includes('closeout.corrections = [...(closeout.corrections || []),'),'Historical closeouts must retain an explicit correction log');
+assert(db.includes("action: 'edit'")&&db.includes("action: 'cancel'"),'Movement correction actions must be identified in the audit log');
+assert(html.includes("(x.corrections||[]).length"),'Closeout history must indicate linked historical corrections');
 assert(db.includes('database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], \'readwrite\')'),'Ledger recalculation must run atomically across treasury stores');
 assert(html.includes('async function editTreasuryMovement(movementId,button)')&&html.includes('async function cancelTreasuryMovement(movementId,button)'),'Treasury movement edit and cancel controls must be available');
 assert(html.includes('async function showTreasuryMovementDetails(movementId)'),'Movement audit history must be viewable');
