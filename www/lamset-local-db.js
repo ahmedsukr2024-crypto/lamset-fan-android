@@ -217,13 +217,13 @@ class LamsetLocalDatabase {
     };
     movements.add(movement);
     meta.put({ key: 'treasury.movement.sequence', value: sequence });
-    await this.recomputeTreasuryLedger(transaction);
+    await this.recomputeTreasuryLedger(transaction, { action: 'add', movementId: movementNo, reason: 'تسجيل حركة خزينة', effectiveDate, at: new Date().toISOString() });
     const saved = await requestValue(movements.get(movementNo));
     await transactionDone(transaction);
     return { ...saved, amount: fromCents(amountCents), balanceBefore: fromCents(saved.balanceBeforeCents), balanceAfter: fromCents(saved.balanceAfterCents) };
   }
 
-  async recomputeTreasuryLedger(transaction) {
+  async recomputeTreasuryLedger(transaction, correction = null) {
     const meta = transaction.objectStore(META);
     const movementsStore = transaction.objectStore(MOVEMENTS);
     const linksStore = transaction.objectStore(CASH_LINKS);
@@ -276,6 +276,15 @@ class LamsetLocalDatabase {
         }
         closeout.expectedCents = balance;
         closeout.differenceCents = Number(closeout.actualCents || 0) - balance;
+        if (correction && date >= correction.effectiveDate) {
+          closeout.corrections = [...(closeout.corrections || []), {
+            ...correction,
+            originalExpectedCents: closeout.originalExpectedCents,
+            correctedExpectedCents: closeout.expectedCents,
+            originalDifferenceCents: closeout.originalDifferenceCents,
+            correctedDifferenceCents: closeout.differenceCents
+          }];
+        }
         closeoutsStore.put(closeout);
         balance = Number(closeout.actualCents || 0);
       }
@@ -315,7 +324,8 @@ class LamsetLocalDatabase {
       }]
     };
     store.put(next);
-    const balance = await this.recomputeTreasuryLedger(transaction);
+    const correctionDate = [previous.effectiveDate, effectiveDate].sort()[0];
+    const balance = await this.recomputeTreasuryLedger(transaction, { action: 'edit', movementId: id, reason: reasonForChange, effectiveDate: correctionDate, at: now });
     await transactionDone(transaction);
     return { ...next, amount: fromCents(amountCents), balance };
   }
@@ -339,7 +349,7 @@ class LamsetLocalDatabase {
       }]
     };
     store.put(next);
-    const balance = await this.recomputeTreasuryLedger(transaction);
+    const balance = await this.recomputeTreasuryLedger(transaction, { action: 'cancel', movementId: id, reason, effectiveDate: previous.effectiveDate, at: now });
     await transactionDone(transaction);
     return { ...next, amount: fromCents(previous.amountCents), balance };
   }
@@ -387,7 +397,7 @@ class LamsetLocalDatabase {
       audit: [...(previous?.audit || []), { at: now, previousAmountCents: previous?.amountCents || 0, previousStatus: previous?.status || 'new', amountCents, status: 'active' }]
     };
     links.put(record);
-    await this.recomputeTreasuryLedger(transaction);
+    await this.recomputeTreasuryLedger(transaction, { action: 'cash-link', referenceId: id, reason: label, effectiveDate: date, at: now });
     const saved = await requestValue(links.get(id));
     await transactionDone(transaction);
     return { ...saved, amount: fromCents(amountCents), balanceBefore: fromCents(saved.balanceBeforeCents), balanceAfter: fromCents(saved.balanceAfterCents) };
@@ -406,7 +416,7 @@ class LamsetLocalDatabase {
     const record = { ...previous, status: 'cancelled', updatedAt: now,
       audit: [...(previous.audit || []), { at: now, previousAmountCents: previous.amountCents, previousStatus: previous.status, status: 'cancelled', reason: String(reason || '') }] };
     links.put(record);
-    const balance = await this.recomputeTreasuryLedger(transaction);
+    const balance = await this.recomputeTreasuryLedger(transaction, { action: 'cash-link-cancel', referenceId: id, reason: String(reason || ''), effectiveDate: previous.effectiveDate, at: now });
     await transactionDone(transaction);
     return { ...record, balance };
   }
