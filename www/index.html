@@ -567,6 +567,7 @@ html[data-theme="dark"] .lf-treasury-tabs button.active{color:#fff}
 </section>
 <section id="treasury" class="panel">
  <div class="sectionhead"><div><h2>الخزينة</h2><p class="muted">متابعة النقدية الفعلية وحركاتها وإقفال اليوم</p></div><span class="pill">لصاحب التطبيق فقط</span></div>
+ <div class="card" id="lfTreasurySyncWarning" role="alert" hidden></div>
  <div class="lf-treasury-tabs" role="tablist" aria-label="أقسام الخزينة">
   <button type="button" class="active" data-treasury-tab="overview" onclick="setTreasuryTab('overview')">نظرة عامة</button>
   <button type="button" data-treasury-tab="movements" onclick="setTreasuryTab('movements')">حركة الخزينة</button>
@@ -2404,11 +2405,11 @@ async function lfTreasuryReconcileCashPayments(){
 }
 async function lfTreasuryData(){
  if(!window.LamsetLocalDB)throw new Error('قاعدة بيانات الخزينة غير متاحة.');
- await lfTreasuryReconcileCashPayments();
+ const pendingCashLinks=await lfTreasuryReconcileCashPayments();
  const [balance,movements,links,closeouts,opening]=await Promise.all([
   LamsetLocalDB.getTreasuryBalance(),LamsetLocalDB.listTreasuryMovements(),LamsetLocalDB.listCashLinks(),LamsetLocalDB.listTreasuryCloseouts(),LamsetLocalDB.getMeta('treasury.opening')
  ]);
- return {balance,movements,links,closeouts,opening};
+ return {balance,movements,links,closeouts,opening,pendingCashLinks};
 }
 function lfTreasuryMovementRow(x){
  const positive=x.type==='deposit',label=positive?'إيداع':'سحب';
@@ -2419,6 +2420,7 @@ async function renderTreasury(){
   const data=await lfTreasuryData(),today=lfTreasuryToday(),todayMoves=data.movements.filter(x=>x.effectiveDate===today&&x.status==='active'),todayLinks=data.links.filter(x=>x.effectiveDate===today&&x.status==='active');
   const sum=(arr,type)=>arr.filter(x=>!type||x.type===type).reduce((v,x)=>v+(Number(x.amount)||0),0);
   const set=(id,value)=>{const el=$(id);if(el)el.textContent=value};
+  const syncWarning=$('lfTreasurySyncWarning');if(syncWarning){syncWarning.hidden=!data.pendingCashLinks;syncWarning.textContent=data.pendingCashLinks?'تنبيه: يوجد '+data.pendingCashLinks+' تحصيل/مصروف نقدي محفوظ لم يكتمل ربطه بالخزينة بعد. لا تعاود تسجيل العملية؛ راجع الاتصال ثم افتح الخزينة للمحاولة مرة أخرى.':'';}
   set('lfTreasuryBalance',lfTreasuryAmount(data.balance));
   set('lfTreasuryDeposits',lfTreasuryAmount(sum(todayMoves,'deposit')));
   set('lfTreasuryWithdrawals',lfTreasuryAmount(sum(todayMoves,'withdrawal')));
