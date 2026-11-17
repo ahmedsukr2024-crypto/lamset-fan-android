@@ -265,6 +265,32 @@ class LamsetLocalDatabase {
     return { ...record, amount: fromCents(amountCents), balanceBefore: fromCents(before), balanceAfter: fromCents(after) };
   }
 
+  async removeCashLink(referenceId, reason = 'إلغاء العملية المالية') {
+    this.requireOwnerSession();
+    const id = String(referenceId || '').trim();
+    if (!id) throw new Error('مرجع العملية المالية مطلوب.');
+    const database = await this.open();
+    const transaction = database.transaction([META, CASH_LINKS], 'readwrite');
+    const meta = transaction.objectStore(META);
+    const links = transaction.objectStore(CASH_LINKS);
+    const [balanceRecord, previous] = await Promise.all([
+      requestValue(meta.get('treasury.balance.cents')),
+      requestValue(links.get(id))
+    ]);
+    if (!previous || previous.status !== 'active') { transaction.abort(); return false; }
+    const before = Number(balanceRecord?.value || 0);
+    const impact = Number(previous.amountCents || 0) * (previous.type === 'collection' ? 1 : -1);
+    const after = before - impact;
+    if (after < 0) { transaction.abort(); throw new Error('لا يمكن إلغاء الربط؛ سيؤدي ذلك إلى رصيد خزينة سالب.'); }
+    const now = new Date().toISOString();
+    const record = { ...previous, status: 'cancelled', updatedAt: now,
+      audit: [...(previous.audit || []), { at: now, previousAmountCents: previous.amountCents, previousStatus: previous.status, status: 'cancelled', reason: String(reason || '') }] };
+    links.put(record);
+    meta.put({ key: 'treasury.balance.cents', value: after });
+    await transactionDone(transaction);
+    return { ...record, balanceBefore: fromCents(before), balanceAfter: fromCents(after) };
+  }
+
   async listCashLinks() {
     const database = await this.open();
     const transaction = database.transaction(CASH_LINKS, 'readonly');
