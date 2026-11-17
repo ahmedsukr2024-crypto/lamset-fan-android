@@ -1822,7 +1822,7 @@ async function recordPayment(){
   db.payments.push(payment);
   if(!save()){db=before;alert('تعذر حفظ التحصيل؛ تم التراجع عن العملية دون تغيير رصيد الطلب.');return;}
   paymentCommitted=true;
-  if(payment.method==='نقدي'&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(payment.id,'collection',payment.amount,lfTreasuryDate(payment.date),'تحصيل نقدي · '+(o.orderNumber||o.id));}catch(linkError){console.error('Treasury cash link pending:',linkError);alert('تم حفظ التحصيل، لكن تعذر تحديث رصيد الخزينة. لا تعاود تسجيل التحصيل؛ افتح الدعم لمراجعة ربط العملية.');}}
+  if(payment.method==='نقدي'&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(payment.id,'collection',payment.amount,lfTreasuryDate(payment.date),'تحصيل نقدي · '+(o.orderNumber||o.id));}catch(linkError){console.error('Treasury cash link pending:',linkError);alert('تم حفظ التحصيل، وسيعيد التطبيق محاولة ربطه بالخزينة تلقائيًا عند فتح قسم الخزينة. لا تعاود تسجيل التحصيل.');}}
   if(amountInput)amountInput.value='';
   if(noteInput)noteInput.value='';
   renderAll();
@@ -2308,8 +2308,18 @@ function lfTreasuryToday(){const d=new Date();return d.getFullYear()+'-'+String(
 function lfTreasuryDate(value){return String(value||'').slice(0,10)}
 function lfTreasuryAmount(value){return money(Number(value)||0)}
 function lfTreasuryEsc(value){return typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function lfTreasuryReconcileCashPayments(){
+ if(!window.LamsetLocalDB)return;
+ const payments=Array.isArray(db.payments)?db.payments:[];
+ for(const payment of payments){
+  if(payment?.id&&payment.method==='نقدي'&&Number(payment.amount)>0){
+   await LamsetLocalDB.applyCashLink(payment.id,'collection',payment.amount,lfTreasuryDate(payment.date),'تحصيل نقدي · '+(payment.orderNumber||payment.orderId||'طلب'));
+  }
+ }
+}
 async function lfTreasuryData(){
  if(!window.LamsetLocalDB)throw new Error('قاعدة بيانات الخزينة غير متاحة.');
+ await lfTreasuryReconcileCashPayments();
  const [balance,movements,links,closeouts,opening]=await Promise.all([
   LamsetLocalDB.getTreasuryBalance(),LamsetLocalDB.listTreasuryMovements(),LamsetLocalDB.listCashLinks(),LamsetLocalDB.listTreasuryCloseouts(),LamsetLocalDB.getMeta('treasury.opening')
  ]);
