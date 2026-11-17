@@ -162,6 +162,7 @@ class LamsetLocalDatabase {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const hash = await derivePinHash(value, salt);
     await this.setMeta('owner.pin', { salt: bytesToBase64(salt), hash: bytesToBase64(hash), algorithm: 'PBKDF2-SHA256', iterations: 210000, updatedAt: new Date().toISOString() });
+    this.ownerSessionExpiresAt = 0;
     return true;
   }
 
