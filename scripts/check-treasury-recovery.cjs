@@ -19,6 +19,11 @@ assert(db.includes('pendingInitialSnapshot'),'New closeouts must capture the act
 assert(db.includes('database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], \'readwrite\')'),'Ledger recalculation must run atomically across treasury stores');
 assert(html.includes('async function editTreasuryMovement(movementId,button)')&&html.includes('async function cancelTreasuryMovement(movementId,button)'),'Treasury movement edit and cancel controls must be available');
 assert(html.includes('async function showTreasuryMovementDetails(movementId)'),'Movement audit history must be viewable');
+assert(html.includes('if(data.pendingCashLinks>0)return alert('),'Daily closeout must be blocked while cash links remain pending');
+assert(html.includes('رصيد بداية الفترة')&&html.includes('رصيد نهاية الفترة بعد الإقفالات'),'Treasury reports must show opening and ending balances');
+assert(html.includes('الإقفالات والفروق'),'Treasury reports must include closeout differences');
+assert(html.includes('x.status===\'active\''),'Treasury reports must exclude cancelled movements from totals');
+
 assert(html.includes('window.lamsetRequireOwnerPin(\'تعديل حركة خزينة'),'Movement edits must require owner PIN');
 assert(html.includes('window.lamsetRequireOwnerPin(\'إلغاء حركة خزينة'),'Movement cancellation must require owner PIN');
 
