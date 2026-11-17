@@ -2389,7 +2389,7 @@ async function lfTreasuryReconcileCashPayments(){
  const payments=Array.isArray(db.payments)?db.payments:[];let pending=0;
  for(const payment of payments){
   if(payment?.id&&payment.method==='نقدي'&&Number(payment.amount)>0){
-   try{await LamsetLocalDB.applyCashLink(payment.id,'collection',payment.amount,lfTreasuryDate(payment.date),'تحصيل نقدي · '+(payment.orderNumber||payment.orderId||'طلب'));}
+   try{await LamsetLocalDB.applyCashLink(payment.id,'collection',payment.amount,lfTreasuryDate(payment.date),'تحصيل نقدي · '+(((db.orders||[]).find(order=>order.id===payment.orderId)||{}).orderNumber||payment.orderId||'طلب'));}
    catch(error){pending+=1;console.warn('Treasury cash link remains pending for payment '+payment.id,error);}
   }
  }
