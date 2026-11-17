@@ -1,0 +1,11 @@
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const root=path.resolve(__dirname,'..');
+const db=fs.readFileSync(path.join(root,'www/lamset-local-db.js'),'utf8');
+const html=fs.readFileSync(path.join(root,'www/index.html'),'utf8');
+assert(db.includes('ownerSessionExpiresAt = Date.now() + 120000'),'Successful PIN verification must grant a short-lived session');
+assert(db.includes('requireOwnerSession();'),'Sensitive treasury writes must validate the PIN session in the database layer');
+assert(db.includes('normalizeBusinessDate(input.effectiveDate)'),'Treasury dates must be calendar-validated');
+assert(html.includes('async function lfTreasuryReconcileCashPayments()'),'Cash collection reconciliation must be available');
+assert(html.includes('await lfTreasuryReconcileCashPayments();'),'Treasury load must retry previously saved but unlinked cash collections');
+assert(html.includes('سيعيد التطبيق محاولة ربطه بالخزينة تلقائيًا'),'A failed link must not encourage duplicate collection entry');
+console.log('Owner PIN session, treasury date validation, and cash-link recovery checks passed.');
