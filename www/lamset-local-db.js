@@ -224,6 +224,122 @@ class LamsetLocalDatabase {
     return { ...movement, amount: fromCents(amountCents), balanceBefore: fromCents(before), balanceAfter: fromCents(after) };
   }
 
+  async recomputeTreasuryLedger(transaction) {
+    const meta = transaction.objectStore(META);
+    const movementsStore = transaction.objectStore(MOVEMENTS);
+    const linksStore = transaction.objectStore(CASH_LINKS);
+    const closeoutsStore = transaction.objectStore(CLOSEOUTS);
+    const [openingRecord, movements, links, closeouts] = await Promise.all([
+      requestValue(meta.get('treasury.opening')),
+      requestValue(movementsStore.getAll()),
+      requestValue(linksStore.getAll()),
+      requestValue(closeoutsStore.getAll())
+    ]);
+    if (!openingRecord?.value) throw new Error('الرصيد الافتتاحي غير مسجل.');
+    const opening = openingRecord.value;
+    const dates = new Set();
+    for (const item of movements) if (item.effectiveDate >= opening.businessDate) dates.add(item.effectiveDate);
+    for (const item of links) if (item.effectiveDate >= opening.businessDate) dates.add(item.effectiveDate);
+    for (const item of closeouts) if (item.businessDate >= opening.businessDate) dates.add(item.businessDate);
+    let balance = Number(opening.cents || 0);
+    for (const date of Array.from(dates).sort()) {
+      const events = [
+        ...movements.filter(item => item.effectiveDate === date).map(item => ({ kind: 'movement', item })),
+        ...links.filter(item => item.effectiveDate === date).map(item => ({ kind: 'link', item }))
+      ].sort((a, b) => String(a.item.createdAt || '').localeCompare(String(b.item.createdAt || '')));
+      for (const event of events) {
+        const item = event.item;
+        if (item.status !== 'active') continue;
+        const before = balance;
+        const signed = Number(item.amountCents || 0) * (
+          event.kind === 'movement'
+            ? (item.type === 'deposit' ? 1 : -1)
+            : (item.type === 'collection' ? 1 : -1)
+        );
+        balance += signed;
+        if (balance < 0) throw new Error('التعديل سيؤدي إلى رصيد خزينة سالب بتاريخ ' + date + '.');
+        item.balanceBeforeCents = before;
+        item.balanceAfterCents = balance;
+        if (event.kind === 'movement') movementsStore.put(item);
+        else linksStore.put(item);
+      }
+      const closeout = closeouts.find(item => item.businessDate === date);
+      if (closeout) {
+        const originalExpected = closeout.originalExpectedCents ?? closeout.expectedCents;
+        const originalDifference = closeout.originalDifferenceCents ?? closeout.differenceCents;
+        closeout.originalExpectedCents = originalExpected;
+        closeout.originalDifferenceCents = originalDifference;
+        closeout.expectedCents = balance;
+        closeout.differenceCents = Number(closeout.actualCents || 0) - balance;
+        closeout.recalculatedAt = new Date().toISOString();
+        closeoutsStore.put(closeout);
+        balance = Number(closeout.actualCents || 0);
+      }
+    }
+    meta.put({ key: 'treasury.balance.cents', value: balance });
+    return fromCents(balance);
+  }
+
+  async updateTreasuryMovement(movementId, input, changeReason) {
+    this.requireOwnerSession();
+    const id = String(movementId || '').trim();
+    const reasonForChange = String(changeReason || '').trim();
+    if (!id || !reasonForChange) throw new Error('رقم الحركة وسبب التعديل مطلوبان.');
+    const type = String(input?.type || '');
+    if (!['deposit', 'withdrawal'].includes(type)) throw new Error('نوع حركة الخزينة غير صحيح.');
+    const amountCents = toCents(input?.amount);
+    const reason = String(input?.reason || '').trim();
+    if (!reason) throw new Error('سبب الحركة مطلوب.');
+    const effectiveDate = normalizeBusinessDate(input?.effectiveDate);
+    const database = await this.open();
+    const transaction = database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], 'readwrite');
+    const store = transaction.objectStore(MOVEMENTS);
+    const previous = await requestValue(store.get(id));
+    if (!previous || previous.status !== 'active') { transaction.abort(); throw new Error('الحركة غير موجودة أو سبق إلغاؤها.'); }
+    const openingRecord = await requestValue(transaction.objectStore(META).get('treasury.opening'));
+    if (!openingRecord?.value || effectiveDate < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ الحركة يجب ألا يسبق تاريخ بدء الخزينة.'); }
+    const now = new Date().toISOString();
+    const next = {
+      ...previous,
+      type, amountCents, reason, effectiveDate,
+      notes: String(input.notes || ''),
+      updatedAt: now,
+      audit: [...(previous.audit || []), {
+        action: 'edit', at: now, reason: reasonForChange,
+        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '' },
+        next: { type, amountCents, reason, effectiveDate, notes: String(input.notes || '') }
+      }]
+    };
+    store.put(next);
+    const balance = await this.recomputeTreasuryLedger(transaction);
+    await transactionDone(transaction);
+    return { ...next, amount: fromCents(amountCents), balance };
+  }
+
+  async cancelTreasuryMovement(movementId, cancellationReason) {
+    this.requireOwnerSession();
+    const id = String(movementId || '').trim();
+    const reason = String(cancellationReason || '').trim();
+    if (!id || !reason) throw new Error('رقم الحركة وسبب الإلغاء مطلوبان.');
+    const database = await this.open();
+    const transaction = database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], 'readwrite');
+    const store = transaction.objectStore(MOVEMENTS);
+    const previous = await requestValue(store.get(id));
+    if (!previous || previous.status !== 'active') { transaction.abort(); throw new Error('الحركة غير موجودة أو سبق إلغاؤها.'); }
+    const now = new Date().toISOString();
+    const next = {
+      ...previous, status: 'cancelled', cancelledAt: now, cancellationReason: reason,
+      audit: [...(previous.audit || []), {
+        action: 'cancel', at: now, reason,
+        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '' }
+      }]
+    };
+    store.put(next);
+    const balance = await this.recomputeTreasuryLedger(transaction);
+    await transactionDone(transaction);
+    return { ...next, amount: fromCents(previous.amountCents), balance };
+  }
+
   async listTreasuryMovements() {
     const database = await this.open();
     const transaction = database.transaction(MOVEMENTS, 'readonly');
