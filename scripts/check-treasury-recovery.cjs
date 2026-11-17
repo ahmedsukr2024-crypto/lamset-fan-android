@@ -13,7 +13,7 @@ assert(db.includes('candidate.split(\'-\')'),'Treasury date validation must pars
 assert(db.includes('async removeCashLink(referenceId'),'Linked cash transactions must support audited reversal');
 assert(db.includes('async updateTreasuryMovement(movementId, input, changeReason)'),'Treasury movements must support audited edits');
 assert(db.includes('async cancelTreasuryMovement(movementId, cancellationReason)'),'Treasury movements must support audited cancellation');
-assert(db.includes('async recomputeTreasuryLedger(transaction)'),'Dated treasury changes must recalculate the full ledger');
+assert(db.includes('async recomputeTreasuryLedger(transaction, correction = null)'),'Dated treasury changes must recalculate the full ledger and track corrections');
 assert(db.includes('originalExpectedCents')&&db.includes('originalDifferenceCents'),'Historical closeout original snapshots must be preserved');
 assert(db.includes('pendingInitialSnapshot'),'New closeouts must capture the actual original expected balance');
 assert(db.includes('closeout.corrections = [...(closeout.corrections || []),'),'Historical closeouts must retain an explicit correction log');
