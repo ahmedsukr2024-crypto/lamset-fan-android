@@ -8,8 +8,8 @@ const html = fs.readFileSync(path.join(root, 'www/index.html'), 'utf8');
 
 assert(database.includes("indexedDB.open(DB_NAME, DB_VERSION)"), 'Local IndexedDB database must be initialized');
 assert(database.includes("store.createIndex('movementNo', 'movementNo', { unique: true })"), 'Treasury movement numbers must be unique');
-assert(database.includes("database.transaction([META, MOVEMENTS], 'readwrite')"), 'Treasury movement and balance must share one read-write transaction');
-assert(database.includes('if (after < 0)'), 'Withdrawals must not produce a negative balance');
+assert(database.includes("database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], 'readwrite')"), 'Treasury movement, cash links, closeouts, and balance must share one read-write transaction');
+assert(database.includes("if (balance < 0) throw new Error('التعديل سيؤدي إلى رصيد خزينة سالب بتاريخ ' + date + '.')"), 'Treasury ledger recalculation must reject negative dated balances');
 assert(database.includes("'TR-' + String(sequence).padStart(6, '0')"), 'Treasury movement numbers must be generated serially');
 assert(database.includes("iterations: 210000") && database.includes("hash: 'SHA-256'"), 'Owner PIN must use PBKDF2-SHA256');
 assert(!/localStorage\.(?:setItem|getItem)\([^\n]*pin/i.test(database), 'Owner PIN must not be stored in localStorage');
