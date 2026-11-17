@@ -139,6 +139,87 @@ import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
 const isNative = !!window.Capacitor?.isNativePlatform?.();
+
+import { LamsetLocalDB } from './lamset-local-db.js';
+window.LamsetLocalDB = LamsetLocalDB;
+
+// The owner PIN is a local-device gate. It is not server-side authentication.
+window.lamsetRequireOwnerPin = async (reason = 'تأكيد صلاحية المالك') => {
+  if (!(await LamsetLocalDB.ownerPinConfigured())) {
+    window.alert('يجب إعداد رمز المالك أولاً من الإعدادات ← الأمان والخصوصية.');
+    return false;
+  }
+  return new Promise(resolve => {
+    let overlay = document.getElementById('lamset-owner-pin-dialog');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'lamset-owner-pin-dialog';
+      overlay.dir = 'rtl';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px';
+      overlay.innerHTML = '<section role="dialog" aria-modal="true" aria-labelledby="lamsetOwnerPinTitle" style="width:min(100%,360px);background:var(--lf-card,#fff);color:var(--lf-text,#1c1e21);border:1px solid var(--lf-line,#ddd);border-radius:20px;padding:22px;box-shadow:0 18px 55px #0003"><h3 id="lamsetOwnerPinTitle" style="margin:0 0 8px">تأكيد رمز المالك</h3><p id="lamsetOwnerPinReason" style="margin:0 0 14px;color:var(--lf-muted,#65676b)"></p><input id="lamsetOwnerPinInput" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="أدخل الرمز المكوّن من 6 أرقام" style="width:100%;padding:13px;border:1px solid var(--lf-line,#ccc);border-radius:12px;font-size:20px;letter-spacing:7px;text-align:center"><p id="lamsetOwnerPinError" role="alert" style="min-height:20px;color:#c62828"></p><div style="display:flex;gap:9px"><button type="button" id="lamsetOwnerPinConfirm" style="flex:1">تأكيد</button><button type="button" id="lamsetOwnerPinCancel" class="ghost" style="flex:1">إلغاء</button></div></section>';
+      document.body.appendChild(overlay);
+    }
+    const input = overlay.querySelector('#lamsetOwnerPinInput');
+    const error = overlay.querySelector('#lamsetOwnerPinError');
+    const finish = value => { overlay.style.display = 'none'; input.value = ''; error.textContent = ''; resolve(value); };
+    overlay.querySelector('#lamsetOwnerPinReason').textContent = String(reason || 'تأكيد صلاحية المالك');
+    overlay.style.display = 'flex';
+    const confirm = async () => {
+      const button = overlay.querySelector('#lamsetOwnerPinConfirm');
+      button.disabled = true;
+      error.textContent = '';
+      try {
+        if (await LamsetLocalDB.verifyOwnerPin(input.value)) finish(true);
+        else { error.textContent = 'رمز المالك غير صحيح. حاول مرة أخرى.'; input.value = ''; input.focus(); }
+      } catch (failure) { error.textContent = String(failure?.message || 'تعذر التحقق من الرمز.'); }
+      finally { button.disabled = false; }
+    };
+    overlay.querySelector('#lamsetOwnerPinConfirm').onclick = confirm;
+    overlay.querySelector('#lamsetOwnerPinCancel').onclick = () => finish(false);
+    input.onkeydown = event => { if (event.key === 'Enter') confirm(); if (event.key === 'Escape') finish(false); };
+    setTimeout(() => input.focus(), 40);
+  });
+};
+
+function mountOwnerPinSettings() {
+  const securityCard = document.querySelector('#settings .security-card');
+  if (!securityCard || document.getElementById('lamsetOwnerPinSettings')) return;
+  const section = document.createElement('div');
+  section.id = 'lamsetOwnerPinSettings';
+  section.style.cssText = 'margin-top:16px;padding-top:15px;border-top:1px solid var(--lf-line,#ddd)';
+  section.innerHTML = '<h4 style="margin:0 0 6px">رمز المالك للعمليات الإدارية</h4><p class="muted" style="margin:0 0 12px">رمز محلي من 6 أرقام للتحقق قبل العمليات الحساسة. لا يُحفظ الرمز نفسه؛ يُحفظ ناتج تشفير مشتق منه داخل قاعدة البيانات المحلية.</p><div class="field" id="lfOwnerOldPinField" hidden><label for="lfOwnerOldPin">رمز المالك الحالي</label><input id="lfOwnerOldPin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6 أرقام"></div><div class="field"><label for="lfOwnerNewPin">رمز المالك الجديد</label><input id="lfOwnerNewPin" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" placeholder="6 أرقام"></div><div class="field"><label for="lfOwnerConfirmPin">تأكيد رمز المالك</label><input id="lfOwnerConfirmPin" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" placeholder="أعد إدخال الرمز"></div><div class="actions"><button type="button" id="lfOwnerPinSave">حفظ رمز المالك</button></div><small id="lfOwnerPinStatus" class="muted" role="status">جارٍ التحقق من حالة إعداد الرمز...</small>';
+  securityCard.appendChild(section);
+  const status = section.querySelector('#lfOwnerPinStatus');
+  const oldField = section.querySelector('#lfOwnerOldPinField');
+  const saveButton = section.querySelector('#lfOwnerPinSave');
+  LamsetLocalDB.ownerPinConfigured().then(configured => {
+    oldField.hidden = !configured;
+    saveButton.textContent = configured ? 'تغيير رمز المالك' : 'إعداد رمز المالك';
+    status.textContent = configured ? 'تم إعداد رمز المالك على هذا الجهاز.' : 'لم يتم إعداد رمز المالك بعد.';
+  }).catch(error => { status.textContent = String(error?.message || 'تعذر فتح قاعدة البيانات المحلية.'); saveButton.disabled = true; });
+  saveButton.addEventListener('click', async () => {
+    const oldPin = section.querySelector('#lfOwnerOldPin').value;
+    const newPin = section.querySelector('#lfOwnerNewPin').value;
+    const confirmPin = section.querySelector('#lfOwnerConfirmPin').value;
+    saveButton.disabled = true;
+    status.textContent = 'جارٍ حفظ رمز المالك بأمان...';
+    try {
+      if (newPin !== confirmPin) throw new Error('تأكيد الرمز غير مطابق.');
+      if (await LamsetLocalDB.ownerPinConfigured()) await LamsetLocalDB.changeOwnerPin(oldPin, newPin);
+      else await LamsetLocalDB.setOwnerPin(newPin);
+      section.querySelector('#lfOwnerOldPin').value = '';
+      section.querySelector('#lfOwnerNewPin').value = '';
+      section.querySelector('#lfOwnerConfirmPin').value = '';
+      oldField.hidden = false;
+      saveButton.textContent = 'تغيير رمز المالك';
+      status.textContent = 'تم إعداد رمز المالك بنجاح على هذا الجهاز.';
+    } catch (error) { status.textContent = String(error?.message || 'تعذر حفظ رمز المالك.'); }
+    finally { saveButton.disabled = false; }
+  });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountOwnerPinSettings, { once: true });
+else mountOwnerPinSettings();
+
 if (isNative) {
   App.addListener('backButton', () => {
     try {
