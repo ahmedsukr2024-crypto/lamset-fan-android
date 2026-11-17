@@ -7,7 +7,7 @@ for(const tab of ['overview','movements','closeout','reports'])assert(html.inclu
 assert(html.includes("t==='treasury'&&!options.ownerPinVerified"),'Treasury navigation must require owner PIN');
 assert(html.includes("case'treasury':renderTreasuryPage();break;"),'Treasury page renderer must be wired');
 assert(db.includes('applyCashLink')&&db.includes('CASH_LINKS'),'Cash links must be idempotent in IndexedDB');
-assert(db.includes("database.transaction([META, CASH_LINKS], 'readwrite')"),'Cash link and balance must update atomically');
+assert(db.includes("database.transaction([META, CASH_LINKS, MOVEMENTS, CLOSEOUTS], 'readwrite')"),'Cash links, movements, closeouts, and balance must update atomically');
 assert(db.includes('createTreasuryCloseout'),'Daily closeout must be persisted');
 assert(html.includes("await LamsetLocalDB.applyCashLink(payment.id,'collection'"),'Cash collection must update treasury once');
 console.log('Treasury section, owner gate, atomic cash links, and closeout checks passed.');
