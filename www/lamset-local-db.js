@@ -147,8 +147,8 @@ class LamsetLocalDatabase {
     return true;
   }
 
-  async setOpeningBalance(amount, businessDate, ownerPin) {
-    if (!(await this.verifyOwnerPin(ownerPin))) throw new Error('يلزم التحقق برمز المالك.');
+  async setOpeningBalance(amount, businessDate, ownerPinVerified) {
+    if (ownerPinVerified !== true) throw new Error('يلزم التحقق برمز المالك قبل تسجيل الرصيد الافتتاحي.');
     const cents = toCents(amount);
     const database = await this.open();
     const transaction = database.transaction(META, 'readwrite');
