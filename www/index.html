@@ -27,6 +27,7 @@ function showDocumentPreview(html,title,allowTrustedScripts,allowPdfExport,whats
  return true;
 }
 function closeDocumentPreview(){
+ window.lfCurrentDocumentKind='';
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
  if(modal)modal.classList.remove('open');
  if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body></body></html>';}
@@ -39,6 +40,7 @@ async function printDocumentPreview(){
   if(!doc?.documentElement)throw new Error('محتوى المعاينة غير جاهز.');
   const html='<!doctype html>'+doc.documentElement.outerHTML;
   if(window.Capacitor?.isNativePlatform?.()&&typeof window.lamsetNativeExport==='function'){
+   if(window.lfCurrentDocumentKind==='treasury'&&lastTreasuryPdfHtml){await shareTreasuryPdf();return;}
    if(!$('lamsetCatalogPdfButton')?.hidden&&lastCatalogPdfHtml){await shareCatalogPdf();return;}
    const stamp=new Date().toISOString().replace(/[:.]/g,'-');
    await window.lamsetNativeExport(html,'lamset-fan-print-'+stamp+'.html','text/html');
@@ -2105,6 +2107,7 @@ function catalogSnapshot(){
  });
 }
 let lastCatalogInteractiveHtml='',lastCatalogPdfHtml='';
+let lastTreasuryPdfHtml='',lastTreasuryPdfName='';
 function catalogCustomerRows(rows){
  return (rows||[]).map(row=>({
   name:String(row.name||''),
@@ -2493,7 +2496,7 @@ async function renderTreasury(){
   const preview=$('lfTreasuryMovementPreview');if(preview)preview.textContent='الرصيد المتاح حاليًا: '+lfTreasuryAmount(data.balance);
   const closeStatus=$('lfTreasuryCloseoutStatus');if(closeStatus)closeStatus.textContent=closed?'تم إقفال اليوم بالفعل. لا يمكن تكرار الإقفال.':'رصيد الخزينة المتوقع حاليًا: '+lfTreasuryAmount(data.balance);
   const actual=$('lfTreasuryActualCash');if(actual&&!actual.value)actual.value=data.balance.toFixed(2);
-  const history=$('lfTreasuryCloseoutHistory');if(history)history.innerHTML=data.closeouts.map(x=>'<div class="lf-treasury-row"><div><b>'+lfTreasuryEsc(x.businessDate)+'</b><small>متوقع '+lfTreasuryAmount(x.expected)+' · فعلي '+lfTreasuryAmount(x.actual)+'</small>'+(x.recalculatedAt?'<small>أعيد حساب المتوقع بعد تصحيح '+(x.corrections||[]).length+' حركة · القيمة الأصلية '+lfTreasuryAmount(Number(x.originalExpectedCents||0)/100)+'</small>':'')+'</div><strong class="'+(x.difference<0?'lf-treasury-negative':x.difference>0?'lf-treasury-positive':'')+'">'+(x.difference>0?'+':'')+lfTreasuryAmount(x.difference)+'</strong></div>').join('')||'<p class="empty">لا توجد إقفالات مسجلة.</p>';
+  const history=$('lfTreasuryCloseoutHistory');if(history)history.innerHTML=data.closeouts.map(x=>'<div class="lf-treasury-row"><div><b>'+lfTreasuryEsc(x.businessDate)+'</b><small>متوقع '+lfTreasuryAmount(x.expected)+' · فعلي '+lfTreasuryAmount(x.actual)+'</small>'+(x.recalculatedAt?'<small>أعيد حساب المتوقع بعد تصحيح '+(x.corrections||[]).length+' حركة · القيمة الأصلية '+lfTreasuryAmount(Number(x.originalExpectedCents||0)/100)+'</small>':'')+'<button type="button" class="textbtn" onclick="previewTreasuryCloseoutPdf(\''+lfTreasuryEsc(x.businessDate)+'\')">تفاصيل / PDF</button></div><strong class="'+(x.difference<0?'lf-treasury-negative':x.difference>0?'lf-treasury-positive':'')+'">'+(x.difference>0?'+':'')+lfTreasuryAmount(x.difference)+'</strong></div>').join('')||'<p class="empty">لا توجد إقفالات مسجلة.</p>';
   await renderTreasuryMovements(data.movements);
  }catch(error){window.LamsetUI?.toast(error.message||'تعذر تحميل بيانات الخزينة.','error');}
 }
@@ -2563,7 +2566,37 @@ async function renderTreasuryReport(){
   const net=collections-expenses+deposits-withdrawals;
   const closeoutRows=periodCloseouts.map(x=>'<div class="lf-treasury-row"><span>'+lfTreasuryEsc(x.businessDate)+'</span><span>متوقع '+lfTreasuryAmount(x.expected)+' · فعلي '+lfTreasuryAmount(x.actual)+' · الفرق '+lfTreasuryAmount(x.difference)+(x.recalculatedAt?' · تمت مراجعة إقفال سابق':'')+'</span></div>').join('');
   $('lfTreasuryReportResult').innerHTML='<div class="result"><b>الفترة: '+lfTreasuryEsc(from)+' — '+lfTreasuryEsc(to)+'</b><div class="lf-treasury-row"><span>رصيد بداية الفترة</span><b>'+lfTreasuryAmount(openingBalance)+'</b></div><div class="lf-treasury-row"><span>التحصيلات النقدية</span><b>'+lfTreasuryAmount(collections)+'</b></div><div class="lf-treasury-row"><span>المصروفات النقدية</span><b>'+lfTreasuryAmount(expenses)+'</b></div><div class="lf-treasury-row"><span>الإيداعات</span><b>'+lfTreasuryAmount(deposits)+'</b></div><div class="lf-treasury-row"><span>السحوبات</span><b>'+lfTreasuryAmount(withdrawals)+'</b></div><div class="lf-treasury-row"><span>صافي حركة الفترة قبل تسويات الإقفال</span><b>'+lfTreasuryAmount(net)+'</b></div><div class="lf-treasury-row"><span>رصيد نهاية الفترة بعد الإقفالات</span><b>'+lfTreasuryAmount(endingBalance)+'</b></div><h4>الإقفالات والفروق</h4>'+(closeoutRows||'<p class="muted">لا توجد إقفالات خلال الفترة.</p>')+'<p class="muted">الرصيد الحالي بالخزينة: '+lfTreasuryAmount(data.balance)+'</p></div>'+periodEvents.map(x=>lfTreasuryMovementRow(x.item)).join('');
+  $('lfTreasuryReportResult').insertAdjacentHTML('beforeend','<div class="lf-treasury-export-actions"><button type="button" class="ghost" onclick="previewTreasuryReportPdf()">معاينة ومشاركة PDF</button></div>');
  }catch(error){alert(error.message||'تعذر إنشاء التقرير.');}
+}
+function lfOpenTreasuryPdf(html,title,filename){
+ lastTreasuryPdfHtml=html;lastTreasuryPdfName=filename||'lamset-fan-treasury-report.pdf';window.lfCurrentDocumentKind='treasury';
+ if(!showDocumentPreview(html,title,false,true,()=>shareTreasuryPdf()))return;
+ const pdfButton=$('lamsetCatalogPdfButton');if(pdfButton){pdfButton.hidden=false;pdfButton.textContent='📄 مشاركة PDF';pdfButton.onclick=()=>window.lamsetRunButtonAction(pdfButton,shareTreasuryPdf,'جارٍ تجهيز ملف PDF…');}
+ const interactive=$('lamsetInteractiveCatalogButton');if(interactive)interactive.hidden=true;
+}
+async function shareTreasuryPdf(){
+ if(!lastTreasuryPdfHtml)return alert('لا يوجد تقرير جاهز للمشاركة.');
+ if(typeof window.lamsetNativeExport!=='function')return alert('مشاركة PDF متاحة داخل تطبيق Android؛ استخدم الطباعة من المتصفح لحفظ التقرير كـ PDF.');
+ try{await window.lamsetNativeExport(lastTreasuryPdfHtml,lastTreasuryPdfName,'application/pdf');}
+ catch(error){alert('تعذر إنشاء أو مشاركة PDF: '+String(error?.message||error));}
+}
+function previewTreasuryReportPdf(){
+ const host=$('lfTreasuryReportResult');if(!host||!host.children.length)return alert('اعرض التقرير أولاً.');
+ const copy=host.cloneNode(true);copy.querySelector('.lf-treasury-export-actions')?.remove();
+ const html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير الخزينة</title><style>body{font-family:Arial,sans-serif;color:#222;padding:20px;direction:rtl}.lf-doc{width:100%;font-size:13px}.lf-doc h1{font-size:22px;margin:0 0 18px}.result{border:1px solid #ddd;border-radius:10px;padding:14px}.lf-treasury-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #eee}.lf-treasury-positive{color:#16834a}.lf-treasury-negative{color:#bd3434}.muted,small{color:#666}.lf-treasury-row button{display:none!important}</style></head><body><main class="lf-doc"><h1>تقرير الخزينة</h1>'+copy.innerHTML+'</main></body></html>';
+ lfOpenTreasuryPdf(html,'تقرير الخزينة · '+($('lfTreasuryReportFrom').value||lfTreasuryToday())+' إلى '+($('lfTreasuryReportTo').value||lfTreasuryToday()),'lamset-fan-treasury-report-'+lfTreasuryToday()+'.pdf');
+}
+async function previewTreasuryCloseoutPdf(businessDate){
+ try{
+  const data=await lfTreasuryData(),closeout=data.closeouts.find(x=>x.businessDate===businessDate);if(!closeout)return alert('الإقفال المطلوب غير موجود.');
+  const movements=data.movements.filter(x=>x.effectiveDate===businessDate),links=data.links.filter(x=>x.effectiveDate===businessDate);
+  const eventRows=[...movements.map(x=>({kind:x.type==='deposit'?'إيداع':'سحب',name:x.reason,amount:x.amount,status:x.status,ref:x.movementNo||x.id})),...links.map(x=>({kind:x.type==='collection'?'تحصيل نقدي':'مصروف نقدي',name:x.reason,amount:x.amount,status:x.status,ref:x.id}))];
+  const rows=eventRows.map(x=>'<div class="lf-treasury-row"><span>'+lfTreasuryEsc(x.kind)+' · '+lfTreasuryEsc(x.name)+'<small> '+lfTreasuryEsc(x.ref)+' · '+(x.status==='cancelled'?'ملغي':'نشط')+'</small></span><b>'+lfTreasuryAmount(x.amount)+'</b></div>').join('')||'<p>لا توجد حركات مسجلة في هذا اليوم.</p>';
+  const corrections=(closeout.corrections||[]).map(x=>'<div class="lf-treasury-row"><span>'+lfTreasuryEsc(x.action)+' · '+lfTreasuryEsc(x.reason)+'<small>'+lfTreasuryEsc(x.at)+' · '+lfTreasuryEsc(x.movementId||x.referenceId||'')+'</small></span><b>'+lfTreasuryAmount(Number(x.correctedExpectedCents||0)/100)+'</b></div>').join('');
+  const html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>إقفال الخزينة</title><style>body{font-family:Arial,sans-serif;color:#222;padding:20px;direction:rtl}.lf-doc{width:100%;font-size:13px}.lf-doc h1{font-size:22px}.result{border:1px solid #ddd;border-radius:10px;padding:14px}.lf-treasury-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #eee}small{display:block;color:#666;margin-top:4px}.lf-treasury-positive{color:#16834a}.lf-treasury-negative{color:#bd3434}</style></head><body><main class="lf-doc"><h1>تفاصيل إقفال الخزينة · '+lfTreasuryEsc(businessDate)+'</h1><div class="result"><div class="lf-treasury-row"><span>الرصيد المتوقع</span><b>'+lfTreasuryAmount(closeout.expected)+'</b></div><div class="lf-treasury-row"><span>النقدية الفعلية</span><b>'+lfTreasuryAmount(closeout.actual)+'</b></div><div class="lf-treasury-row"><span>العجز / الزيادة</span><b>'+lfTreasuryAmount(closeout.difference)+'</b></div><p>الملاحظات: '+lfTreasuryEsc(closeout.notes||'لا توجد')+'</p><p>تاريخ التسجيل: '+lfTreasuryEsc(closeout.createdAt)+'</p>'+(closeout.recalculatedAt?'<p>تمت مراجعة الرصيد لاحقاً. القيمة الأصلية المتوقعة: '+lfTreasuryAmount(Number(closeout.originalExpectedCents||0)/100)+'</p>':'')+'</div><h2>الحركات والتحصيلات والمصروفات</h2>'+rows+(corrections?'<h2>سجل التصحيحات</h2>'+corrections:'')+'</main></body></html>';
+  lfOpenTreasuryPdf(html,'إقفال الخزينة · '+businessDate,'lamset-fan-treasury-closeout-'+businessDate+'.pdf');
+ }catch(error){alert(error.message||'تعذر تجهيز تفاصيل الإقفال.');}
 }
 function renderTreasuryPage(){if($('lfTreasuryOpeningDate')&&!$('lfTreasuryOpeningDate').value)$('lfTreasuryOpeningDate').value=lfTreasuryToday();if($('lfTreasuryMovementDate')&&!$('lfTreasuryMovementDate').value)$('lfTreasuryMovementDate').value=lfTreasuryToday();if($('lfTreasuryReportFrom')&&!$('lfTreasuryReportFrom').value)$('lfTreasuryReportFrom').value=lfTreasuryToday();if($('lfTreasuryReportTo')&&!$('lfTreasuryReportTo').value)$('lfTreasuryReportTo').value=lfTreasuryToday();renderTreasury();}
 
