@@ -2305,17 +2305,19 @@ function setTreasuryTab(name){
  renderTreasury();
 }
 function lfTreasuryToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function lfTreasuryDate(value){return String(value||'').slice(0,10)}
+function lfTreasuryDate(value){const raw=String(value||'');if(/^\\d{4}-\\d{2}-\\d{2}$/.test(raw))return raw.slice(0,10);const date=new Date(raw);if(!Number.isFinite(date.getTime()))return '';return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
 function lfTreasuryAmount(value){return money(Number(value)||0)}
 function lfTreasuryEsc(value){return typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function lfTreasuryReconcileCashPayments(){
- if(!window.LamsetLocalDB)return;
- const payments=Array.isArray(db.payments)?db.payments:[];
+ if(!window.LamsetLocalDB)return 0;
+ const payments=Array.isArray(db.payments)?db.payments:[];let pending=0;
  for(const payment of payments){
   if(payment?.id&&payment.method==='نقدي'&&Number(payment.amount)>0){
-   await LamsetLocalDB.applyCashLink(payment.id,'collection',payment.amount,lfTreasuryDate(payment.date),'تحصيل نقدي · '+(payment.orderNumber||payment.orderId||'طلب'));
+   try{await LamsetLocalDB.applyCashLink(payment.id,'collection',payment.amount,lfTreasuryDate(payment.date),'تحصيل نقدي · '+(payment.orderNumber||payment.orderId||'طلب'));}
+   catch(error){pending+=1;console.warn('Treasury cash link remains pending for payment '+payment.id,error);}
   }
  }
+ return pending;
 }
 async function lfTreasuryData(){
  if(!window.LamsetLocalDB)throw new Error('قاعدة بيانات الخزينة غير متاحة.');
