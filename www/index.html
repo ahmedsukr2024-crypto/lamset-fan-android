@@ -2413,8 +2413,14 @@ async function lfTreasuryData(){
 }
 function lfTreasuryMovementRow(x){
  const positive=x.type==='deposit',label=positive?'إيداع':'سحب',cancelled=x.status==='cancelled';
- const actions=cancelled?'<small class="muted">ملغاة · '+lfTreasuryEsc(x.cancellationReason||'')+'</small>':'<div class="row"><button type="button" class="textbtn" onclick="editTreasuryMovement(\''+lfTreasuryEsc(x.id)+'\',this)">تعديل</button><button type="button" class="textbtn danger" onclick="cancelTreasuryMovement(\''+lfTreasuryEsc(x.id)+'\',this)">إلغاء</button></div>';
+ const actions='<div class="row"><button type="button" class="textbtn" onclick="showTreasuryMovementDetails(\''+lfTreasuryEsc(x.id)+'\')">التفاصيل</button>'+(cancelled?'<small class="muted">ملغاة · '+lfTreasuryEsc(x.cancellationReason||'')+'</small>':'<button type="button" class="textbtn" onclick="editTreasuryMovement(\''+lfTreasuryEsc(x.id)+'\',this)">تعديل</button><button type="button" class="textbtn danger" onclick="cancelTreasuryMovement(\''+lfTreasuryEsc(x.id)+'\',this)">إلغاء</button>')+'</div>';
  return '<div class="lf-treasury-row"><div><b>'+lfTreasuryEsc(x.movementNo||x.id)+'</b><small>'+label+' · '+lfTreasuryEsc(x.reason)+' · '+lfTreasuryEsc(x.effectiveDate)+(cancelled?' · ملغاة':'')+'</small>'+actions+'</div><strong class="'+(positive?'lf-treasury-positive':'lf-treasury-negative')+'">'+(positive?'+':'−')+lfTreasuryAmount(x.amount)+'</strong></div>';
+}
+async function showTreasuryMovementDetails(movementId){
+ const item=(await LamsetLocalDB.listTreasuryMovements()).find(x=>x.id===movementId);
+ if(!item)return alert('الحركة غير موجودة.');
+ const audit=(item.audit||[]).map((entry,index)=>'\n'+(index+1)+') '+(entry.action==='cancel'?'إلغاء':'تعديل')+' · '+entry.at+'\nالسبب: '+(entry.reason||'غير مسجل')+(entry.previous?'\nالقيمة السابقة: '+lfTreasuryAmount(Number(entry.previous.amountCents||0)/100)+' · '+entry.previous.effectiveDate:'')+(entry.next?'\nالقيمة الجديدة: '+lfTreasuryAmount(Number(entry.next.amountCents||0)/100)+' · '+entry.next.effectiveDate:'')).join('');
+ alert('رقم الحركة: '+item.movementNo+'\nالنوع: '+(item.type==='deposit'?'إيداع':'سحب')+'\nالمبلغ: '+lfTreasuryAmount(item.amount)+'\nالسبب: '+item.reason+'\nالتاريخ: '+item.effectiveDate+'\nالحالة: '+(item.status==='cancelled'?'ملغاة':'نشطة')+'\nتاريخ التسجيل: '+item.createdAt+(item.updatedAt?'\nآخر تعديل: '+item.updatedAt:'')+audit);
 }
 async function editTreasuryMovement(movementId,button){
  if(button?.disabled)return;
@@ -2434,7 +2440,6 @@ async function editTreasuryMovement(movementId,button){
  if(!changeReason.trim())return alert('اكتب سبب التعديل.');
  const closeouts=await LamsetLocalDB.listTreasuryCloseouts();
  const affected=closeouts.filter(x=>x.businessDate>=item.effectiveDate||x.businessDate>=effectiveDate);
- const oldImpact=(item.type==='deposit'?1:-1)*item.amount,newImpact=(type==='deposit'?1:-1)*Number(amount);
  const preview='مراجعة تعديل الحركة '+item.movementNo+'\nالقيمة القديمة: '+lfTreasuryAmount(item.amount)+' · '+(item.type==='deposit'?'إيداع':'سحب')+' · '+item.effectiveDate+'\nالقيمة الجديدة: '+lfTreasuryAmount(amount)+' · '+(type==='deposit'?'إيداع':'سحب')+' · '+effectiveDate+'\nسبب التعديل: '+changeReason+'\nالإقفالات التي ستتم مراجعة أرصدتها: '+affected.length+'\nسيتم الاحتفاظ بالقيم الأصلية للإقفالات وتسجيل إعادة الحساب.\n\nهل تريد المتابعة؟';
  if(!confirm(preview))return;
  if(button){button.disabled=true;button.textContent='جارٍ التعديل...';}
@@ -2488,7 +2493,7 @@ async function renderTreasury(){
   const preview=$('lfTreasuryMovementPreview');if(preview)preview.textContent='الرصيد المتاح حاليًا: '+lfTreasuryAmount(data.balance);
   const closeStatus=$('lfTreasuryCloseoutStatus');if(closeStatus)closeStatus.textContent=closed?'تم إقفال اليوم بالفعل. لا يمكن تكرار الإقفال.':'رصيد الخزينة المتوقع حاليًا: '+lfTreasuryAmount(data.balance);
   const actual=$('lfTreasuryActualCash');if(actual&&!actual.value)actual.value=data.balance.toFixed(2);
-  const history=$('lfTreasuryCloseoutHistory');if(history)history.innerHTML=data.closeouts.map(x=>'<div class="lf-treasury-row"><div><b>'+lfTreasuryEsc(x.businessDate)+'</b><small>متوقع '+lfTreasuryAmount(x.expected)+' · فعلي '+lfTreasuryAmount(x.actual)+'</small></div><strong class="'+(x.difference<0?'lf-treasury-negative':x.difference>0?'lf-treasury-positive':'')+'">'+(x.difference>0?'+':'')+lfTreasuryAmount(x.difference)+'</strong></div>').join('')||'<p class="empty">لا توجد إقفالات مسجلة.</p>';
+  const history=$('lfTreasuryCloseoutHistory');if(history)history.innerHTML=data.closeouts.map(x=>'<div class="lf-treasury-row"><div><b>'+lfTreasuryEsc(x.businessDate)+'</b><small>متوقع '+lfTreasuryAmount(x.expected)+' · فعلي '+lfTreasuryAmount(x.actual)+'</small>'+(x.recalculatedAt?'<small>أعيد حساب المتوقع بعد تصحيح حركة سابقة · القيمة الأصلية '+lfTreasuryAmount(Number(x.originalExpectedCents||0)/100)+'</small>':'')+'</div><strong class="'+(x.difference<0?'lf-treasury-negative':x.difference>0?'lf-treasury-positive':'')+'">'+(x.difference>0?'+':'')+lfTreasuryAmount(x.difference)+'</strong></div>').join('')||'<p class="empty">لا توجد إقفالات مسجلة.</p>';
   await renderTreasuryMovements(data.movements);
  }catch(error){window.LamsetUI?.toast(error.message||'تعذر تحميل بيانات الخزينة.','error');}
 }
