@@ -1,0 +1,13 @@
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const root=path.resolve(__dirname,'..');
+const html=fs.readFileSync(path.join(root,'www/index.html'),'utf8');
+const db=fs.readFileSync(path.join(root,'www/lamset-local-db.js'),'utf8');
+assert(html.includes('<section id="treasury" class="panel">'),'Treasury must be a first-class app section');
+for(const tab of ['overview','movements','closeout','reports'])assert(html.includes('data-treasury-tab="'+tab+'"'),'Missing treasury tab '+tab);
+assert(html.includes("t==='treasury'&&!options.ownerPinVerified"),'Treasury navigation must require owner PIN');
+assert(html.includes("case'treasury':renderTreasuryPage();break;"),'Treasury page renderer must be wired');
+assert(db.includes('applyCashLink')&&db.includes('CASH_LINKS'),'Cash links must be idempotent in IndexedDB');
+assert(db.includes("database.transaction([META, CASH_LINKS], 'readwrite')"),'Cash link and balance must update atomically');
+assert(db.includes('createTreasuryCloseout'),'Daily closeout must be persisted');
+assert(html.includes("await LamsetLocalDB.applyCashLink(payment.id,'collection'"),'Cash collection must update treasury once');
+console.log('Treasury section, owner gate, atomic cash links, and closeout checks passed.');

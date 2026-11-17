@@ -3,6 +3,7 @@ const DB_VERSION = 1;
 const META = 'meta';
 const MOVEMENTS = 'treasuryMovements';
 const CLOSEOUTS = 'treasuryCloseouts';
+const CASH_LINKS = 'treasuryCashLinks';
 
 function requestValue(request) {
   return new Promise((resolve, reject) => {
@@ -69,6 +70,10 @@ class LamsetLocalDatabase {
           store.createIndex('movementNo', 'movementNo', { unique: true });
           store.createIndex('effectiveDate', 'effectiveDate', { unique: false });
           store.createIndex('createdAt', 'createdAt', { unique: false });
+        }
+        if (!database.objectStoreNames.contains(CASH_LINKS)) {
+          const store = database.createObjectStore(CASH_LINKS, { keyPath: 'id' });
+          store.createIndex('effectiveDate', 'effectiveDate', { unique: false });
         }
         if (!database.objectStoreNames.contains(CLOSEOUTS)) {
           const store = database.createObjectStore(CLOSEOUTS, { keyPath: 'id' });
@@ -203,6 +208,88 @@ class LamsetLocalDatabase {
       ...record, amount: fromCents(record.amountCents), balanceBefore: fromCents(record.balanceBeforeCents), balanceAfter: fromCents(record.balanceAfterCents)
     }));
   }
+
+  // Cash collections and cash expenses are linked to the treasury balance exactly once.
+  // The source payment/expense remains in the business database; this store keeps an idempotent
+  // reference and its balance impact in the same transaction as the treasury balance.
+  async applyCashLink(referenceId, type, amount, effectiveDate, reason) {
+    const id = String(referenceId || '').trim();
+    if (!id) throw new Error('مرجع العملية المالية مطلوب.');
+    if (!['collection', 'expense'].includes(type)) throw new Error('نوع الربط النقدي غير صحيح.');
+    const amountCents = toCents(amount);
+    const database = await this.open();
+    const transaction = database.transaction([META, CASH_LINKS], 'readwrite');
+    const meta = transaction.objectStore(META);
+    const links = transaction.objectStore(CASH_LINKS);
+    const [balanceRecord, previous] = await Promise.all([
+      requestValue(meta.get('treasury.balance.cents')),
+      requestValue(links.get(id))
+    ]);
+    const before = Number(balanceRecord?.value || 0);
+    const sign = type === 'collection' ? 1 : -1;
+    const oldImpact = previous?.status === 'active' ? Number(previous.amountCents || 0) * (previous.type === 'collection' ? 1 : -1) : 0;
+    const nextImpact = amountCents * sign;
+    const after = before - oldImpact + nextImpact;
+    if (after < 0) { transaction.abort(); throw new Error('الرصيد النقدي لا يكفي لتسجيل المصروف.'); }
+    const now = new Date().toISOString();
+    const record = {
+      id, type, amountCents, effectiveDate: String(effectiveDate || now.slice(0, 10)),
+      reason: String(reason || (type === 'collection' ? 'تحصيل نقدي' : 'مصروف نقدي')),
+      status: 'active', createdAt: previous?.createdAt || now, updatedAt: now,
+      balanceBeforeCents: before, balanceAfterCents: after,
+      audit: [...(previous?.audit || []), { at: now, previousAmountCents: previous?.amountCents || 0, previousStatus: previous?.status || 'new', amountCents, status: 'active' }]
+    };
+    links.put(record);
+    meta.put({ key: 'treasury.balance.cents', value: after });
+    await transactionDone(transaction);
+    return { ...record, amount: fromCents(amountCents), balanceBefore: fromCents(before), balanceAfter: fromCents(after) };
+  }
+
+  async listCashLinks() {
+    const database = await this.open();
+    const transaction = database.transaction(CASH_LINKS, 'readonly');
+    const records = await requestValue(transaction.objectStore(CASH_LINKS).getAll());
+    await transactionDone(transaction);
+    return records.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).map(record => ({ ...record, amount: fromCents(record.amountCents) }));
+  }
+
+  async createTreasuryCloseout(input) {
+    const date = String(input?.businessDate || new Date().toISOString().slice(0, 10));
+    const actualCents = Number(input?.actualCents);
+    if (!Number.isSafeInteger(actualCents) || actualCents < 0) throw new Error('أدخل النقدية الفعلية بقيمة صحيحة غير سالبة.');
+    const database = await this.open();
+    const transaction = database.transaction([META, CLOSEOUTS], 'readwrite');
+    const meta = transaction.objectStore(META);
+    const closeouts = transaction.objectStore(CLOSEOUTS);
+    const [existing, balanceRecord] = await Promise.all([
+      requestValue(closeouts.index('businessDate').get(date)),
+      requestValue(meta.get('treasury.balance.cents'))
+    ]);
+    if (existing) { transaction.abort(); throw new Error('تم إقفال هذا اليوم من قبل.'); }
+    const expectedCents = Number(balanceRecord?.value || 0);
+    const differenceCents = actualCents - expectedCents;
+    const now = new Date().toISOString();
+    const closeout = {
+      id: 'CLOSE-' + date, businessDate: date, createdAt: now,
+      openingExpectedCents: expectedCents, expectedCents, actualCents, differenceCents,
+      notes: String(input.notes || ''), status: 'closed'
+    };
+    closeouts.add(closeout);
+    meta.put({ key: 'treasury.balance.cents', value: actualCents });
+    await transactionDone(transaction);
+    return { ...closeout, expected: fromCents(expectedCents), actual: fromCents(actualCents), difference: fromCents(differenceCents) };
+  }
+
+  async listTreasuryCloseouts() {
+    const database = await this.open();
+    const transaction = database.transaction(CLOSEOUTS, 'readonly');
+    const records = await requestValue(transaction.objectStore(CLOSEOUTS).getAll());
+    await transactionDone(transaction);
+    return records.sort((a, b) => String(b.businessDate).localeCompare(String(a.businessDate))).map(record => ({
+      ...record, expected: fromCents(record.expectedCents), actual: fromCents(record.actualCents), difference: fromCents(record.differenceCents)
+    }));
+  }
+
 }
 
 export const LamsetLocalDB = new LamsetLocalDatabase();
