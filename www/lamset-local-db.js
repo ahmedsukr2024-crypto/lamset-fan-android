@@ -217,7 +217,7 @@ class LamsetLocalDatabase {
     };
     movements.add(movement);
     meta.put({ key: 'treasury.movement.sequence', value: sequence });
-    await this.recomputeTreasuryLedger(transaction, { action: 'add', movementId: movementNo, reason: 'تسجيل حركة خزينة', effectiveDate, at: new Date().toISOString() });
+    await this.recomputeTreasuryLedger(transaction, { action: 'add', movementId: movementNo, reason, effectiveDate, at: new Date().toISOString() });
     const saved = await requestValue(movements.get(movementNo));
     await transactionDone(transaction);
     return { ...saved, amount: fromCents(amountCents), balanceBefore: fromCents(saved.balanceBeforeCents), balanceAfter: fromCents(saved.balanceAfterCents) };
