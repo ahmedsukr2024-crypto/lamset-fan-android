@@ -71,6 +71,7 @@ class LamsetLocalDatabase {
       this.ownerSessionExpiresAt = 0;
       throw new Error('انتهت صلاحية التحقق؛ أدخل رمز المالك مرة أخرى.');
     }
+    this.ownerSessionExpiresAt = 0;
     return true;
   }
 
@@ -151,7 +152,7 @@ class LamsetLocalDatabase {
     for (let index = 0; index < candidate.length; index += 1) difference |= candidate[index] ^ expected[index];
     const valid = difference === 0;
     if (valid) { this.failedPinAttempts = 0; this.pinBlockedUntil = 0; this.ownerSessionExpiresAt = Date.now() + 120000; }
-    else { this.failedPinAttempts += 1; if (this.failedPinAttempts >= 5) { this.failedPinAttempts = 0; this.pinBlockedUntil = Date.now() + 30000; } }
+    else { this.ownerSessionExpiresAt = 0; this.failedPinAttempts += 1; if (this.failedPinAttempts >= 5) { this.failedPinAttempts = 0; this.pinBlockedUntil = Date.now() + 30000; } }
     return valid;
   }
 
