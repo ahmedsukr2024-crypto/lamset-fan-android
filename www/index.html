@@ -2530,6 +2530,7 @@ async function saveTreasuryMovement(button){
 async function previewTreasuryCloseout(button){
  if(button?.disabled)return;
  const data=await lfTreasuryData(),today=lfTreasuryToday(),actual=Number($('lfTreasuryActualCash').value),notes=$('lfTreasuryCloseoutNotes').value.trim();
+ if(data.pendingCashLinks>0)return alert('لا يمكن إقفال الخزينة الآن؛ يوجد '+data.pendingCashLinks+' تحصيل/مصروف نقدي لم يكتمل ربطه. راجع الاتصال ثم أعد المحاولة.');
  if(data.closeouts.some(x=>x.businessDate===today))return alert('تم إقفال اليوم بالفعل.');
  if(!Number.isFinite(actual)||actual<0)return alert('أدخل النقدية الفعلية بقيمة صحيحة غير سالبة.');
  const difference=actual-data.balance;if(Math.abs(difference)>=0.01&&!notes)return alert('اكتب ملاحظة توضح سبب العجز أو الزيادة.');
