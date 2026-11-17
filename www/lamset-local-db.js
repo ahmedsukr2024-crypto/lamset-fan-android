@@ -264,10 +264,14 @@ class LamsetLocalDatabase {
       }
       const closeout = closeouts.find(item => item.businessDate === date);
       if (closeout) {
-        const originalExpected = closeout.originalExpectedCents ?? closeout.expectedCents;
-        const originalDifference = closeout.originalDifferenceCents ?? closeout.differenceCents;
-        closeout.originalExpectedCents = originalExpected;
-        closeout.originalDifferenceCents = originalDifference;
+        if (closeout.pendingInitialSnapshot) {
+          closeout.originalExpectedCents = balance;
+          closeout.originalDifferenceCents = Number(closeout.actualCents || 0) - balance;
+          delete closeout.pendingInitialSnapshot;
+        } else {
+          closeout.originalExpectedCents ??= closeout.expectedCents;
+          closeout.originalDifferenceCents ??= closeout.differenceCents;
+        }
         closeout.expectedCents = balance;
         closeout.differenceCents = Number(closeout.actualCents || 0) - balance;
         closeout.recalculatedAt = new Date().toISOString();
@@ -433,7 +437,7 @@ class LamsetLocalDatabase {
     const now = new Date().toISOString();
     const closeout = {
       id: 'CLOSE-' + date, businessDate: date, createdAt: now,
-      openingExpectedCents: 0, expectedCents: 0, actualCents, differenceCents: 0,
+      openingExpectedCents: 0, expectedCents: 0, actualCents, differenceCents: 0, pendingInitialSnapshot: true,
       notes: String(input.notes || ''), status: 'closed'
     };
     closeouts.add(closeout);
