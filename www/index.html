@@ -2412,8 +2412,56 @@ async function lfTreasuryData(){
  return {balance,movements,links,closeouts,opening,pendingCashLinks};
 }
 function lfTreasuryMovementRow(x){
- const positive=x.type==='deposit',label=positive?'إيداع':'سحب';
- return '<div class="lf-treasury-row"><div><b>'+lfTreasuryEsc(x.movementNo||x.id)+'</b><small>'+label+' · '+lfTreasuryEsc(x.reason)+' · '+lfTreasuryEsc(x.effectiveDate)+'</small></div><strong class="'+(positive?'lf-treasury-positive':'lf-treasury-negative')+'">'+(positive?'+':'−')+lfTreasuryAmount(x.amount)+'</strong></div>';
+ const positive=x.type==='deposit',label=positive?'إيداع':'سحب',cancelled=x.status==='cancelled';
+ const actions=cancelled?'<small class="muted">ملغاة · '+lfTreasuryEsc(x.cancellationReason||'')+'</small>':'<div class="row"><button type="button" class="textbtn" onclick="editTreasuryMovement(\''+lfTreasuryEsc(x.id)+'\',this)">تعديل</button><button type="button" class="textbtn danger" onclick="cancelTreasuryMovement(\''+lfTreasuryEsc(x.id)+'\',this)">إلغاء</button></div>';
+ return '<div class="lf-treasury-row"><div><b>'+lfTreasuryEsc(x.movementNo||x.id)+'</b><small>'+label+' · '+lfTreasuryEsc(x.reason)+' · '+lfTreasuryEsc(x.effectiveDate)+(cancelled?' · ملغاة':'')+'</small>'+actions+'</div><strong class="'+(positive?'lf-treasury-positive':'lf-treasury-negative')+'">'+(positive?'+':'−')+lfTreasuryAmount(x.amount)+'</strong></div>';
+}
+async function editTreasuryMovement(movementId,button){
+ if(button?.disabled)return;
+ const movements=await LamsetLocalDB.listTreasuryMovements(),item=movements.find(x=>x.id===movementId);
+ if(!item||item.status!=='active')return alert('الحركة غير متاحة للتعديل.');
+ const typeInput=prompt('نوع الحركة: اكتب 1 للإيداع أو 2 للسحب',item.type==='deposit'?'1':'2');
+ if(typeInput===null)return;
+ const type=typeInput.trim()==='1'?'deposit':typeInput.trim()==='2'?'withdrawal':null;
+ if(!type)return alert('اختيار نوع الحركة غير صحيح.');
+ const amount=prompt('المبلغ بالجنيه المصري',String(item.amount));if(amount===null)return;
+ if(!Number.isFinite(Number(amount))||Number(amount)<=0)return alert('أدخل مبلغاً صحيحاً أكبر من صفر.');
+ const reason=prompt('سبب الحركة',item.reason);if(reason===null)return;
+ if(!reason.trim())return alert('سبب الحركة إلزامي.');
+ const effectiveDate=prompt('تاريخ الحركة بصيغة YYYY-MM-DD',item.effectiveDate);if(effectiveDate===null)return;
+ const notes=prompt('ملاحظات (اختياري)',item.notes||'');if(notes===null)return;
+ const changeReason=prompt('سبب تعديل الحركة (إلزامي لحفظ سجل المراجعة)');if(changeReason===null)return;
+ if(!changeReason.trim())return alert('اكتب سبب التعديل.');
+ const closeouts=await LamsetLocalDB.listTreasuryCloseouts();
+ const affected=closeouts.filter(x=>x.businessDate>=item.effectiveDate||x.businessDate>=effectiveDate);
+ const oldImpact=(item.type==='deposit'?1:-1)*item.amount,newImpact=(type==='deposit'?1:-1)*Number(amount);
+ const preview='مراجعة تعديل الحركة '+item.movementNo+'\nالقيمة القديمة: '+lfTreasuryAmount(item.amount)+' · '+(item.type==='deposit'?'إيداع':'سحب')+' · '+item.effectiveDate+'\nالقيمة الجديدة: '+lfTreasuryAmount(amount)+' · '+(type==='deposit'?'إيداع':'سحب')+' · '+effectiveDate+'\nسبب التعديل: '+changeReason+'\nالإقفالات التي ستتم مراجعة أرصدتها: '+affected.length+'\nسيتم الاحتفاظ بالقيم الأصلية للإقفالات وتسجيل إعادة الحساب.\n\nهل تريد المتابعة؟';
+ if(!confirm(preview))return;
+ if(button){button.disabled=true;button.textContent='جارٍ التعديل...';}
+ try{
+  if(!(await window.lamsetRequireOwnerPin('تعديل حركة خزينة '+item.movementNo)))return;
+  await LamsetLocalDB.updateTreasuryMovement(movementId,{type,amount,reason,effectiveDate,notes},changeReason);
+  alert('تم تعديل الحركة وإعادة حساب الأرصدة المتأثرة مع الاحتفاظ بسجل التعديل.');
+  await renderTreasury();
+ }catch(error){alert(error.message||'تعذر تعديل حركة الخزينة.');}
+ finally{if(button){button.disabled=false;button.textContent='تعديل';}}
+}
+async function cancelTreasuryMovement(movementId,button){
+ if(button?.disabled)return;
+ const movements=await LamsetLocalDB.listTreasuryMovements(),item=movements.find(x=>x.id===movementId);
+ if(!item||item.status!=='active')return alert('الحركة غير متاحة للإلغاء.');
+ const reason=prompt('سبب إلغاء الحركة '+item.movementNo+' (إلزامي)');if(reason===null)return;
+ if(!reason.trim())return alert('سبب الإلغاء إلزامي.');
+ const closeouts=await LamsetLocalDB.listTreasuryCloseouts(),affected=closeouts.filter(x=>x.businessDate>=item.effectiveDate);
+ if(!confirm('تأكيد إلغاء الحركة '+item.movementNo+'؟\nالمبلغ: '+lfTreasuryAmount(item.amount)+'\nالتاريخ: '+item.effectiveDate+'\nالإقفالات التي ستتم مراجعتها: '+affected.length+'\nسيظل سجل الحركة ورقمها محفوظين، مع تسجيل سبب الإلغاء.'))return;
+ if(button){button.disabled=true;button.textContent='جارٍ الإلغاء...';}
+ try{
+  if(!(await window.lamsetRequireOwnerPin('إلغاء حركة خزينة '+item.movementNo)))return;
+  await LamsetLocalDB.cancelTreasuryMovement(movementId,reason);
+  alert('تم إلغاء الحركة وإعادة حساب الأرصدة المتأثرة.');
+  await renderTreasury();
+ }catch(error){alert(error.message||'تعذر إلغاء حركة الخزينة.');}
+ finally{if(button){button.disabled=false;button.textContent='إلغاء';}}
 }
 async function renderTreasury(){
  try{
