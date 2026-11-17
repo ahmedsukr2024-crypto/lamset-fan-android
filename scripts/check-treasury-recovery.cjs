@@ -11,6 +11,17 @@ assert(db.includes('سجّل الرصيد الافتتاحي أولاً قبل �
 assert(db.includes('date < openingRecord.value.businessDate'),'Cash links before the treasury start date must be rejected');
 assert(db.includes('candidate.split(\'-\')'),'Treasury date validation must parse date parts explicitly');
 assert(db.includes('async removeCashLink(referenceId'),'Linked cash transactions must support audited reversal');
+assert(db.includes('async updateTreasuryMovement(movementId, input, changeReason)'),'Treasury movements must support audited edits');
+assert(db.includes('async cancelTreasuryMovement(movementId, cancellationReason)'),'Treasury movements must support audited cancellation');
+assert(db.includes('async recomputeTreasuryLedger(transaction)'),'Dated treasury changes must recalculate the full ledger');
+assert(db.includes('originalExpectedCents')&&db.includes('originalDifferenceCents'),'Historical closeout original snapshots must be preserved');
+assert(db.includes('pendingInitialSnapshot'),'New closeouts must capture the actual original expected balance');
+assert(db.includes('database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], \'readwrite\')'),'Ledger recalculation must run atomically across treasury stores');
+assert(html.includes('async function editTreasuryMovement(movementId,button)')&&html.includes('async function cancelTreasuryMovement(movementId,button)'),'Treasury movement edit and cancel controls must be available');
+assert(html.includes('async function showTreasuryMovementDetails(movementId)'),'Movement audit history must be viewable');
+assert(html.includes('window.lamsetRequireOwnerPin(\'تعديل حركة خزينة'),'Movement edits must require owner PIN');
+assert(html.includes('window.lamsetRequireOwnerPin(\'إلغاء حركة خزينة'),'Movement cancellation must require owner PIN');
+
 assert(html.includes('async function lfTreasuryReconcileCashPayments()'),'Cash collection reconciliation must be available');
 assert(html.includes('const pendingCashLinks=await lfTreasuryReconcileCashPayments();'),'Treasury must retain the count of cash links that still need recovery');
 assert(html.includes('id="lfTreasurySyncWarning"')&&html.includes("يوجد '+data.pendingCashLinks"),'Pending cash links must be visible to the owner');
