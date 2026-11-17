@@ -267,14 +267,15 @@ class LamsetLocalDatabase {
         if (closeout.pendingInitialSnapshot) {
           closeout.originalExpectedCents = balance;
           closeout.originalDifferenceCents = Number(closeout.actualCents || 0) - balance;
+          closeout.snapshotCapturedAt = new Date().toISOString();
           delete closeout.pendingInitialSnapshot;
         } else {
           closeout.originalExpectedCents ??= closeout.expectedCents;
           closeout.originalDifferenceCents ??= closeout.differenceCents;
+          closeout.recalculatedAt = new Date().toISOString();
         }
         closeout.expectedCents = balance;
         closeout.differenceCents = Number(closeout.actualCents || 0) - balance;
-        closeout.recalculatedAt = new Date().toISOString();
         closeoutsStore.put(closeout);
         balance = Number(closeout.actualCents || 0);
       }
