@@ -12,6 +12,8 @@ assert(db.includes('date < openingRecord.value.businessDate'),'Cash links before
 assert(db.includes('candidate.split(\'-\')'),'Treasury date validation must parse date parts explicitly');
 assert(db.includes('async removeCashLink(referenceId'),'Linked cash transactions must support audited reversal');
 assert(html.includes('async function lfTreasuryReconcileCashPayments()'),'Cash collection reconciliation must be available');
+assert(html.includes('const pendingCashLinks=await lfTreasuryReconcileCashPayments();'),'Treasury must retain the count of cash links that still need recovery');
+assert(html.includes('id="lfTreasurySyncWarning"')&&html.includes('يوجد '+data.pendingCashLinks'),'Pending cash links must be visible to the owner');
 assert(html.includes('await lfTreasuryReconcileCashPayments();'),'Treasury load must retry previously saved but unlinked cash collections');
 assert(html.includes('سيعيد التطبيق محاولة ربطه بالخزينة تلقائيًا'),'A failed link must not encourage duplicate collection entry');
 assert(html.includes('<section id="expenses" class="panel">'),'Approved operating-expense register must be available');
