@@ -15,4 +15,5 @@ assert(html.includes('async function saveExpense(button)'),'Expense creation mus
 assert(html.includes('async function editExpense(expenseId)')&&html.includes('async function cancelExpense(expenseId)'),'Expense edits and cancellations must be auditable');
 assert(html.includes("applyCashLink(expense.id,'expense'"),'Cash expenses must be linked to treasury once');
 assert(html.includes('removeCashLink(item.id'),'Cancelling a cash expense must reverse its treasury link');
+assert(html.includes("lfRecordActivity('تسجيل مصروف'")&&html.includes("lfRecordActivity('تعديل مصروف'")&&html.includes("lfRecordActivity('إلغاء مصروف'"),'Expense actions must be included in the activity log');
 console.log('Owner PIN session, treasury date validation, and cash-link recovery checks passed.');
