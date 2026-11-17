@@ -27,6 +27,15 @@ function toCents(value) {
   return Math.round(amount * 100);
 }
 
+function normalizeBusinessDate(value, fallback = new Date()) {
+  const raw = String(value || '');
+  const candidate = raw || [fallback.getFullYear(), String(fallback.getMonth() + 1).padStart(2, '0'), String(fallback.getDate()).padStart(2, '0')].join('-');
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(candidate)) throw new Error('تاريخ الحركة غير صحيح.');
+  const parsed = new Date(candidate + 'T00:00:00.000Z');
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== candidate) throw new Error('تاريخ الحركة غير صحيح.');
+  return candidate;
+}
+
 function fromCents(value) {
   return Number((Number(value || 0) / 100).toFixed(2));
 }
@@ -55,7 +64,15 @@ function validatePin(pin) {
 }
 
 class LamsetLocalDatabase {
-  constructor() { this.databasePromise = null; this.failedPinAttempts = 0; this.pinBlockedUntil = 0; }
+  constructor() { this.databasePromise = null; this.failedPinAttempts = 0; this.pinBlockedUntil = 0; this.ownerSessionExpiresAt = 0; }
+
+  requireOwnerSession() {
+    if (!this.ownerSessionExpiresAt || Date.now() >= this.ownerSessionExpiresAt) {
+      this.ownerSessionExpiresAt = 0;
+      throw new Error('انتهت صلاحية التحقق؛ أدخل رمز المالك مرة أخرى.');
+    }
+    return true;
+  }
 
   open() {
     if (this.databasePromise) return this.databasePromise;
@@ -133,7 +150,7 @@ class LamsetLocalDatabase {
     let difference = 0;
     for (let index = 0; index < candidate.length; index += 1) difference |= candidate[index] ^ expected[index];
     const valid = difference === 0;
-    if (valid) { this.failedPinAttempts = 0; this.pinBlockedUntil = 0; }
+    if (valid) { this.failedPinAttempts = 0; this.pinBlockedUntil = 0; this.ownerSessionExpiresAt = Date.now() + 120000; }
     else { this.failedPinAttempts += 1; if (this.failedPinAttempts >= 5) { this.failedPinAttempts = 0; this.pinBlockedUntil = Date.now() + 30000; } }
     return valid;
   }
@@ -147,15 +164,16 @@ class LamsetLocalDatabase {
     return true;
   }
 
-  async setOpeningBalance(amount, businessDate, ownerPinVerified) {
-    if (ownerPinVerified !== true) throw new Error('يلزم التحقق برمز المالك قبل تسجيل الرصيد الافتتاحي.');
+  async setOpeningBalance(amount, businessDate) {
+    this.requireOwnerSession();
     const cents = toCents(amount);
+    const date = normalizeBusinessDate(businessDate);
     const database = await this.open();
     const transaction = database.transaction(META, 'readwrite');
     const store = transaction.objectStore(META);
     const existing = await requestValue(store.get('treasury.opening'));
     if (existing) { transaction.abort(); throw new Error('تم تسجيل الرصيد الافتتاحي من قبل ولا يمكن تكراره.'); }
-    store.put({ key: 'treasury.opening', value: { cents, businessDate: String(businessDate), createdAt: new Date().toISOString() } });
+    store.put({ key: 'treasury.opening', value: { cents, businessDate: date, createdAt: new Date().toISOString() } });
     store.put({ key: 'treasury.balance.cents', value: cents });
     await transactionDone(transaction);
     return { balance: fromCents(cents) };
@@ -167,6 +185,7 @@ class LamsetLocalDatabase {
   }
 
   async recordTreasuryMovement(input) {
+    this.requireOwnerSession();
     const type = String(input?.type || '');
     if (!['deposit', 'withdrawal'].includes(type)) throw new Error('نوع حركة الخزينة غير صحيح.');
     const amountCents = toCents(input?.amount);
@@ -188,7 +207,7 @@ class LamsetLocalDatabase {
     const movement = {
       id: movementNo, movementNo, type, amountCents, reason,
       notes: String(input.notes || ''),
-      effectiveDate: String(input.effectiveDate || new Date().toISOString().slice(0, 10)),
+      effectiveDate: normalizeBusinessDate(input.effectiveDate),
       createdAt: new Date().toISOString(), balanceBeforeCents: before, balanceAfterCents: after,
       status: 'active'
     };
@@ -254,7 +273,8 @@ class LamsetLocalDatabase {
   }
 
   async createTreasuryCloseout(input) {
-    const date = String(input?.businessDate || new Date().toISOString().slice(0, 10));
+    this.requireOwnerSession();
+    const date = normalizeBusinessDate(input?.businessDate);
     const actualCents = Number(input?.actualCents);
     if (!Number.isSafeInteger(actualCents) || actualCents < 0) throw new Error('أدخل النقدية الفعلية بقيمة صحيحة غير سالبة.');
     const database = await this.open();
