@@ -420,29 +420,27 @@ class LamsetLocalDatabase {
     const actualCents = Number(input?.actualCents);
     if (!Number.isSafeInteger(actualCents) || actualCents < 0) throw new Error('أدخل النقدية الفعلية بقيمة صحيحة غير سالبة.');
     const database = await this.open();
-    const transaction = database.transaction([META, CLOSEOUTS], 'readwrite');
+    const transaction = database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], 'readwrite');
     const meta = transaction.objectStore(META);
     const closeouts = transaction.objectStore(CLOSEOUTS);
-    const [existing, balanceRecord, openingRecord] = await Promise.all([
+    const [existing, openingRecord] = await Promise.all([
       requestValue(closeouts.index('businessDate').get(date)),
-      requestValue(meta.get('treasury.balance.cents')),
       requestValue(meta.get('treasury.opening'))
     ]);
     if (!openingRecord?.value) { transaction.abort(); throw new Error('سجّل الرصيد الافتتاحي أولاً قبل إقفال الخزينة.'); }
     if (date < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ الإقفال يسبق تاريخ بدء سجل الخزينة.'); }
     if (existing) { transaction.abort(); throw new Error('تم إقفال هذا اليوم من قبل.'); }
-    const expectedCents = Number(balanceRecord?.value || 0);
-    const differenceCents = actualCents - expectedCents;
     const now = new Date().toISOString();
     const closeout = {
       id: 'CLOSE-' + date, businessDate: date, createdAt: now,
-      openingExpectedCents: expectedCents, expectedCents, actualCents, differenceCents,
+      openingExpectedCents: 0, expectedCents: 0, actualCents, differenceCents: 0,
       notes: String(input.notes || ''), status: 'closed'
     };
     closeouts.add(closeout);
-    meta.put({ key: 'treasury.balance.cents', value: actualCents });
+    await this.recomputeTreasuryLedger(transaction);
+    const saved = await requestValue(closeouts.get(closeout.id));
     await transactionDone(transaction);
-    return { ...closeout, expected: fromCents(expectedCents), actual: fromCents(actualCents), difference: fromCents(differenceCents) };
+    return { ...saved, expected: fromCents(saved.expectedCents), actual: fromCents(saved.actualCents), difference: fromCents(saved.differenceCents) };
   }
 
   async listTreasuryCloseouts() {
