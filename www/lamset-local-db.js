@@ -196,34 +196,31 @@ class LamsetLocalDatabase {
     const reason = String(input?.reason || '').trim();
     if (!reason) throw new Error('سبب حركة الخزينة مطلوب.');
     const database = await this.open();
-    const transaction = database.transaction([META, MOVEMENTS], 'readwrite');
+    const transaction = database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], 'readwrite');
     const meta = transaction.objectStore(META);
     const movements = transaction.objectStore(MOVEMENTS);
-    const [currentRecord, sequenceRecord, openingRecord] = await Promise.all([
-      requestValue(meta.get('treasury.balance.cents')),
+    const [sequenceRecord, openingRecord] = await Promise.all([
       requestValue(meta.get('treasury.movement.sequence')),
       requestValue(meta.get('treasury.opening'))
     ]);
     if (!openingRecord?.value) { transaction.abort(); throw new Error('سجّل الرصيد الافتتاحي أولاً قبل إضافة حركات الخزينة.'); }
     const effectiveDate = normalizeBusinessDate(input.effectiveDate);
     if (effectiveDate < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ الحركة يسبق تاريخ بدء سجل الخزينة.'); }
-    const before = Number(currentRecord?.value || 0);
     const sequence = Number(sequenceRecord?.value || 0) + 1;
     const movementNo = 'TR-' + String(sequence).padStart(6, '0');
-    const after = type === 'deposit' ? before + amountCents : before - amountCents;
-    if (after < 0) { transaction.abort(); throw new Error('الرصيد المتاح لا يكفي لإتمام عملية السحب.'); }
     const movement = {
       id: movementNo, movementNo, type, amountCents, reason,
       notes: String(input.notes || ''),
       effectiveDate,
-      createdAt: new Date().toISOString(), balanceBeforeCents: before, balanceAfterCents: after,
+      createdAt: new Date().toISOString(), balanceBeforeCents: 0, balanceAfterCents: 0,
       status: 'active'
     };
     movements.add(movement);
     meta.put({ key: 'treasury.movement.sequence', value: sequence });
-    meta.put({ key: 'treasury.balance.cents', value: after });
+    await this.recomputeTreasuryLedger(transaction);
+    const saved = await requestValue(movements.get(movementNo));
     await transactionDone(transaction);
-    return { ...movement, amount: fromCents(amountCents), balanceBefore: fromCents(before), balanceAfter: fromCents(after) };
+    return { ...saved, amount: fromCents(amountCents), balanceBefore: fromCents(saved.balanceBeforeCents), balanceAfter: fromCents(saved.balanceAfterCents) };
   }
 
   async recomputeTreasuryLedger(transaction) {
@@ -361,16 +358,14 @@ class LamsetLocalDatabase {
     if (!['collection', 'expense'].includes(type)) throw new Error('نوع الربط النقدي غير صحيح.');
     const amountCents = toCents(amount);
     const database = await this.open();
-    const transaction = database.transaction([META, CASH_LINKS], 'readwrite');
+    const transaction = database.transaction([META, CASH_LINKS, MOVEMENTS, CLOSEOUTS], 'readwrite');
     const meta = transaction.objectStore(META);
     const links = transaction.objectStore(CASH_LINKS);
-    const [balanceRecord, previous, openingRecord] = await Promise.all([
-      requestValue(meta.get('treasury.balance.cents')),
+    const [previous, openingRecord] = await Promise.all([
       requestValue(links.get(id)),
       requestValue(meta.get('treasury.opening'))
     ]);
     if (!openingRecord?.value) { transaction.abort(); throw new Error('سجّل الرصيد الافتتاحي أولاً قبل ربط التحصيلات أو المصروفات بالخزينة.'); }
-    const before = Number(balanceRecord?.value || 0);
     const date = normalizeBusinessDate(effectiveDate);
     if (date < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ العملية يسبق تاريخ بدء سجل الخزينة. راجع تاريخ الرصيد الافتتاحي.'); }
     const label = String(reason || (type === 'collection' ? 'تحصيل نقدي' : 'مصروف نقدي'));
@@ -378,23 +373,19 @@ class LamsetLocalDatabase {
       transaction.abort();
       return { ...previous, amount: fromCents(amountCents), balanceBefore: fromCents(previous.balanceBeforeCents), balanceAfter: fromCents(previous.balanceAfterCents) };
     }
-    const sign = type === 'collection' ? 1 : -1;
-    const oldImpact = previous?.status === 'active' ? Number(previous.amountCents || 0) * (previous.type === 'collection' ? 1 : -1) : 0;
-    const nextImpact = amountCents * sign;
-    const after = before - oldImpact + nextImpact;
-    if (after < 0) { transaction.abort(); throw new Error('الرصيد النقدي لا يكفي لتسجيل المصروف.'); }
     const now = new Date().toISOString();
     const record = {
       id, type, amountCents, effectiveDate: date,
       reason: label,
       status: 'active', createdAt: previous?.createdAt || now, updatedAt: now,
-      balanceBeforeCents: before, balanceAfterCents: after,
+      balanceBeforeCents: 0, balanceAfterCents: 0,
       audit: [...(previous?.audit || []), { at: now, previousAmountCents: previous?.amountCents || 0, previousStatus: previous?.status || 'new', amountCents, status: 'active' }]
     };
     links.put(record);
-    meta.put({ key: 'treasury.balance.cents', value: after });
+    await this.recomputeTreasuryLedger(transaction);
+    const saved = await requestValue(links.get(id));
     await transactionDone(transaction);
-    return { ...record, amount: fromCents(amountCents), balanceBefore: fromCents(before), balanceAfter: fromCents(after) };
+    return { ...saved, amount: fromCents(amountCents), balanceBefore: fromCents(saved.balanceBeforeCents), balanceAfter: fromCents(saved.balanceAfterCents) };
   }
 
   async removeCashLink(referenceId, reason = 'إلغاء العملية المالية') {
@@ -402,25 +393,17 @@ class LamsetLocalDatabase {
     const id = String(referenceId || '').trim();
     if (!id) throw new Error('مرجع العملية المالية مطلوب.');
     const database = await this.open();
-    const transaction = database.transaction([META, CASH_LINKS], 'readwrite');
-    const meta = transaction.objectStore(META);
+    const transaction = database.transaction([META, CASH_LINKS, MOVEMENTS, CLOSEOUTS], 'readwrite');
     const links = transaction.objectStore(CASH_LINKS);
-    const [balanceRecord, previous] = await Promise.all([
-      requestValue(meta.get('treasury.balance.cents')),
-      requestValue(links.get(id))
-    ]);
+    const previous = await requestValue(links.get(id));
     if (!previous || previous.status !== 'active') { transaction.abort(); return false; }
-    const before = Number(balanceRecord?.value || 0);
-    const impact = Number(previous.amountCents || 0) * (previous.type === 'collection' ? 1 : -1);
-    const after = before - impact;
-    if (after < 0) { transaction.abort(); throw new Error('لا يمكن إلغاء الربط؛ سيؤدي ذلك إلى رصيد خزينة سالب.'); }
     const now = new Date().toISOString();
     const record = { ...previous, status: 'cancelled', updatedAt: now,
       audit: [...(previous.audit || []), { at: now, previousAmountCents: previous.amountCents, previousStatus: previous.status, status: 'cancelled', reason: String(reason || '') }] };
     links.put(record);
-    meta.put({ key: 'treasury.balance.cents', value: after });
+    const balance = await this.recomputeTreasuryLedger(transaction);
     await transactionDone(transaction);
-    return { ...record, balanceBefore: fromCents(before), balanceAfter: fromCents(after) };
+    return { ...record, balance };
   }
 
   async listCashLinks() {
