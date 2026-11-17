@@ -2333,6 +2333,7 @@ function setTreasuryTab(name){
 
 function lfExpenseToday(){return localDay(new Date())}
 function renderExpenses(){
+ if($('lfExpenseDate')&&!$('lfExpenseDate').value)$('lfExpenseDate').value=lfExpenseToday();
  const rows=(Array.isArray(db.expenses)?db.expenses:[]),query=String($('lfExpenseSearch')?.value||'').trim().toLocaleLowerCase('ar'),method=$('lfExpenseFilterMethod')?.value||'',from=$('lfExpenseFrom')?.value||'',to=$('lfExpenseTo')?.value||'';
  const active=rows.filter(x=>x.status!=='cancelled'),visible=rows.filter(x=>(!method||x.method===method)&&(!from||String(x.date||'')>=from)&&(!to||String(x.date||'')<=to)&&(!query||[x.category,x.notes,x.amount,x.method].some(v=>String(v??'').toLocaleLowerCase('ar').includes(query))));
  const total=active.filter(x=>(!from||String(x.date||'')>=from)&&(!to||String(x.date||'')<=to)&&(!method||x.method===method)).reduce((v,x)=>v+(Number(x.amount)||0),0);
@@ -2349,7 +2350,7 @@ async function saveExpense(button){
  try{
   const expense={id:id(),amount,category,method,date,notes,status:'active',createdAt:new Date().toISOString()};
   if(file){if(!file.type.startsWith('image/'))throw new Error('المرفق يجب أن يكون صورة.');if(file.size>5*1024*1024)throw new Error('حجم صورة الإيصال يجب ألا يتجاوز 5 ميجابايت.');const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('تعذرت قراءة صورة الإيصال.'));reader.readAsDataURL(file)});expense.receiptImageId='expense-'+expense.id;if(!(await lamsetPutImage(expense.receiptImageId,data)))throw new Error('تعذر حفظ صورة الإيصال.');}
-  if(!Array.isArray(db.expenses))db.expenses=[];db.expenses.push(expense);if(!save()){db=before;throw new Error('تعذر حفظ المصروف في قاعدة البيانات.');}
+  if(!Array.isArray(db.expenses))db.expenses=[];db.expenses.push(expense);lfRecordActivity('تسجيل مصروف',category,money(amount)+' · '+method);if(!save()){db=before;throw new Error('تعذر حفظ المصروف في قاعدة البيانات.');}
   if(method==='نقدي'&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(expense.id,'expense',amount,date,'مصروف نقدي · '+category);}catch(error){console.warn('Cash expense link pending:',error);alert('تم حفظ المصروف، وسيعيد التطبيق محاولة ربطه بالخزينة عند فتح قسم الخزينة.');}}
   $('lfExpenseAmount').value='';$('lfExpenseNotes').value='';$('lfExpenseReceipt').value='';renderExpenses();alert('تم تسجيل المصروف بنجاح.');
  }catch(error){db=before;save();alert(error.message||'تعذر حفظ المصروف.');}
@@ -2360,7 +2361,7 @@ async function editExpense(expenseId){
  const amountText=prompt('المبلغ الجديد للمصروف (ج.م):',String(item.amount));if(amountText===null)return;const amount=Number(amountText);if(!Number.isFinite(amount)||amount<=0)return alert('المبلغ الجديد غير صحيح.');
  const reason=prompt('سبب التعديل (مطلوب):','تصحيح قيمة المصروف');if(reason===null)return;if(!reason.trim())return alert('سبب التعديل مطلوب.');
  if(!(await window.lamsetRequireOwnerPin('تعديل مصروف مسجل')))return;
- const before=JSON.parse(JSON.stringify(db)),oldAmount=item.amount;item.amount=amount;item.audit=[...(item.audit||[]),{at:new Date().toISOString(),reason:reason.trim(),oldAmount,newAmount:amount}];item.updatedAt=new Date().toISOString();
+ const before=JSON.parse(JSON.stringify(db)),oldAmount=item.amount;item.amount=amount;item.audit=[...(item.audit||[]),{at:new Date().toISOString(),reason:reason.trim(),oldAmount,newAmount:amount}];item.updatedAt=new Date().toISOString();lfRecordActivity('تعديل مصروف',item.category,money(oldAmount)+' ← '+money(amount)+' · '+reason.trim());
  if(!save()){db=before;return alert('تعذر حفظ تعديل المصروف.');}
  if(item.method==='نقدي'&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(item.id,'expense',amount,item.date,'مصروف نقدي · '+item.category);}catch(error){console.warn('Updated cash expense link pending:',error);alert('تم تعديل المصروف، وسيعاد ربطه بالخزينة عند فتح قسم الخزينة.');}}
  renderExpenses();
@@ -2373,7 +2374,7 @@ async function cancelExpense(expenseId){
  const before=JSON.parse(JSON.stringify(db));
  try{
   if(item.method==='نقدي'&&window.LamsetLocalDB)await LamsetLocalDB.removeCashLink(item.id,reason.trim());
-  item.status='cancelled';item.cancelledAt=new Date().toISOString();item.cancelReason=reason.trim();item.audit=[...(item.audit||[]),{at:item.cancelledAt,reason:reason.trim(),status:'cancelled'}];
+  item.status='cancelled';item.cancelledAt=new Date().toISOString();item.cancelReason=reason.trim();item.audit=[...(item.audit||[]),{at:item.cancelledAt,reason:reason.trim(),status:'cancelled'}];lfRecordActivity('إلغاء مصروف',item.category,money(item.amount)+' · '+reason.trim());
   if(!save()){db=before;if(item.method==='نقدي'&&window.LamsetLocalDB)await LamsetLocalDB.applyCashLink(item.id,'expense',item.amount,item.date,'مصروف نقدي · '+item.category);throw new Error('تعذر حفظ إلغاء المصروف؛ تمت محاولة إعادة ربطه بالخزينة.');}
   renderExpenses();alert('تم إلغاء المصروف مع الاحتفاظ بسجله.');
  }catch(error){db=before;alert(error.message||'تعذر إلغاء المصروف.');}
