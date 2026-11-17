@@ -5,7 +5,7 @@ const html=fs.readFileSync(path.join(root,'www/index.html'),'utf8');
 assert(db.includes('ownerSessionExpiresAt = Date.now() + 120000'),'Successful PIN verification must grant a short-lived session');
 assert(db.includes('requireOwnerSession();'),'Sensitive treasury writes must validate the PIN session in the database layer');
 assert(db.includes('normalizeBusinessDate(input.effectiveDate)'),'Treasury dates must be calendar-validated');
-assert(db.includes(String.raw`/^\\d{4}-\\d{2}-\\d{2}$/`),'Treasury date validator must use a real digit pattern');
+assert(db.includes(String.raw`/^\d{4}-\d{2}-\d{2}$/`),'Treasury date validator must use a real digit pattern');
 assert(db.includes('async removeCashLink(referenceId'),'Linked cash transactions must support audited reversal');
 assert(html.includes('async function lfTreasuryReconcileCashPayments()'),'Cash collection reconciliation must be available');
 assert(html.includes('await lfTreasuryReconcileCashPayments();'),'Treasury load must retry previously saved but unlinked cash collections');
