@@ -14,6 +14,7 @@ const helpers = start >= 0 && end > start ? html.slice(start, end) : '';
 assert(!!helpers, 'order stock and reservation migration helpers exist');
 if (helpers) {
   const context = vm.createContext({
+    window: {},
     lfIsArchivedOrder: o => ['تم التسليم', 'تم التسليم للعميل', 'ملغي', 'مكتمل', 'مغلقة'].includes(String(o?.status || ''))
   });
   vm.runInContext(helpers + '\nthis.api={orderStockLines,lfOrderHasShipped,lfOrderReservedUnits,lfMigrateStockReservations};', context);
