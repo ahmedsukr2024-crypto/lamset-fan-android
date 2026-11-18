@@ -1323,7 +1323,7 @@ function lfCanEditOrder(o){
 }
 function editOrder(id){
  const o=(db.orders||[]).find(x=>x.id===id);if(!o)return alert('الطلب غير موجود.');
- if(!lfCanEditOrder(o))return alert('لا يمكن تعديل هذا الطلب بعد تسجيل تحصيل أو إصدار فاتورة أو بدء الشحن/التسليم أو إنتاج كميات مخصصة له. يمكنك مراجعة الحالة أو إنشاء طلب جديد.');
+ if(!lfCanEditOrder(o))return alert('لا يمكن تعديل هذا الطلب بعد تسجيل تحصيل أو إصدار فاتورة أو بدء الشحن/التسليم. يمكنك مراجعة الحالة أو إنشاء طلب جديد.');
  if(pendingOrderItems.length&&!confirm('سيتم استبدال مسودة الطلب الحالية ببيانات الطلب الذي اخترته. هل تريد المتابعة؟'))return;
  if(!lfStartNewOrder(true))return;editingOrderId=o.id;
  const customer=(db.customers||[]).find(x=>x.id===o.customerId);
