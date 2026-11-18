@@ -51,7 +51,7 @@ assert(!context.lfCanEditOrder(order), 'orders with payment history remain prote
 const guarded = vm.createContext({
   db: {
     products: [{ id: 'p1', stock: 0, reservedStock: 10 }],
-    productions: [{ id: 'b2', status: 'active', allocationLines: [{ orderId: 'o2', itemIndex: 0, qty: 10 }] }],
+    productions: [{ id: 'b2', status: 'active', allocationLines: [{ orderId: 'o2', itemIndex: 0, qty: 7 }] }],
     payments: []
   },
   orderStockLines: value => (value.items || []).map(item => ({ item, productId: item.productId, units: item.stockUnits })),
