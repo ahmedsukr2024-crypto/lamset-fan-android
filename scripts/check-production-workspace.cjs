@@ -51,4 +51,18 @@ assert(html.includes('surplusDelta=Number(x.surplusDelta)||0'),'product movement
 assert(html.includes('المجموعة دون طلبات مرتبطة'),'production surplus alert identifies batches whose group has no open matching orders');
 assert(html.includes('دفعة '+"'+esc(b.batchNo||'قديمة')"),'production surplus alert includes the source batch number');
 
+
+const reversalStart=html.indexOf('window.cancelProductionBatch=async function(batchId)');
+const reversalEnd=html.indexOf('window.lfUseProductionSurplus=async function(batchId)',reversalStart);
+const reversalSource=reversalStart>=0&&reversalEnd>reversalStart?html.slice(reversalStart,reversalEnd):'';
+assert(!!reversalSource,'production batch reversal action exists');
+assert(reversalSource.includes('سبب عكس دفعة الإنتاج (إلزامي)'),'production batch reversal requires a correction reason');
+assert(reversalSource.includes("window.lamsetRequireOwnerPin('تصحيح سجل دفعة الإنتاج')"),'production batch reversal requires owner PIN');
+assert(reversalSource.includes("movementType:'production_batch_reversal'"),'production batch correction creates an explicit reverse stock movement');
+assert(reversalSource.includes('reversedProductionBatchId:batch.id'),'reverse movement references the original production batch');
+assert(reversalSource.includes('batch.reversal={movementId:'),'original batch retains reversal audit metadata');
+assert(reversalSource.includes("lfRecordActivity('عكس دفعة تصنيع'"),'production reversal is written to the activity log');
+assert(reversalSource.includes('ownerApproved:true'),'reversal records owner approval');
+assert(!reversalSource.includes('db.productions=db.productions.filter'),'production correction does not delete the original batch');
+
 console.log('Production workspace four-tab structure and existing production regions verified.');
