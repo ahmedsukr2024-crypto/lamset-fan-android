@@ -102,3 +102,6 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 @media(prefers-reduced-motion:reduce){
   button,button:active{transition:none!important;transform:none!important}
 }
+
+/* Manual product ordering */
+#productList .product-tile[draggable="true"]{cursor:grab;touch-action:pan-y}#productList .product-tile[draggable="true"]:active{cursor:grabbing}#productList .product-tile.lf-product-dragging{opacity:.45;transform:scale(.985)}#productList .product-tile.lf-product-drop-target{outline:2px dashed var(--accent,#0866FF);outline-offset:3px}
