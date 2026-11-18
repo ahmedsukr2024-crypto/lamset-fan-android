@@ -25,4 +25,16 @@ for (const line of [
 }
 assert(html.includes('reserved=lfOrderCancellationReleaseUnits(line)'), 'cancellation prevalidates the exact quantity before changing stock');
 assert(html.includes('returned=lfOrderCancellationReleaseUnits(line)'), 'cancellation uses the same validated quantity when returning stock');
+
+const cancelStart=html.indexOf('if(cancelling){if(!Array.isArray(db.stockMovements))');
+const cancelEnd=html.indexOf('if(reactivating&&o.stockReturnedOnCancel===true)',cancelStart);
+const cancelSource=cancelStart>=0&&cancelEnd>cancelStart?html.slice(cancelStart,cancelEnd):'';
+assert(!!cancelSource,'order cancellation release transaction exists');
+assert(cancelSource.includes('p.stock=beforeStock+deducted'),'only unproduced reserved units return to regular stock');
+assert(cancelSource.includes('p.surplusStock=Math.max(0,Number(p.surplusStock)||0)+fulfilled'),'produced units return to the separate surplus balance');
+assert(cancelSource.includes('surplusDelta:fulfilled'),'movement history records surplus separately from ordinary stock');
+assert(cancelSource.includes('releasedToSurplusOnOrderCancel')&&cancelSource.includes('batch.surplusUnits'),'cancelled-order surplus remains linked to its original production batch');
+assert(cancelSource.includes('o.items.indexOf(item)'),'surplus release is matched to the exact order line');
+assert(html.includes('Number(line.releasedToSurplusOnOrderCancel)>0'),'a batch with released surplus cannot be cancelled a second time');
+
 console.log('Order cancellation ledger checks passed.');
