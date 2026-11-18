@@ -962,6 +962,7 @@ async function renderProducts(){const list=$('productList');if(!list)return;
   const merchantProfit=suggestedPrice-price;
   const stockCartons=Math.floor(stock/units),looseUnits=stock%units;
   return '<article class="card product-tile" data-product-id="'+esc(p.id)+'">'+
+   '<span class="lf-product-drag-handle" aria-hidden="true">⠿ اسحب لترتيب المنتج</span>'+
    '<button class="product-image-button" type="button" onclick="openProductDetail('+esc(JSON.stringify(p.id))+')">'+(image?'<img src="'+image+'" alt="'+esc(p.name)+'">':'<span class="product-image-empty">🎨</span>')+'</button>'+
    '<button class="product-name" type="button" onclick="openProductDetail('+esc(JSON.stringify(p.id))+')">'+esc(p.name)+'</button>'+
    '<span class="pill product-code">'+esc(p.code||'بدون كود')+'</span>'+
@@ -979,6 +980,7 @@ async function renderProducts(){const list=$('productList');if(!list)return;
  }));
  list.innerHTML=rows.join('');
  const manual=sort==='manual'&&!q&&!design&&stockFilter==='all';
+ list.classList.toggle('lf-manual-product-order',manual);
  list.querySelectorAll('.product-tile').forEach(tile=>{tile.draggable=manual;});
  if(manual){let dragged=null;list.querySelectorAll('.product-tile').forEach(tile=>{tile.addEventListener('dragstart',event=>{dragged=tile;event.dataTransfer?.setData('text/plain',tile.dataset.productId);if(event.dataTransfer)event.dataTransfer.effectAllowed='move';tile.classList.add('lf-product-dragging')});tile.addEventListener('dragend',()=>{tile.classList.remove('lf-product-dragging');list.querySelectorAll('.product-tile').forEach(x=>x.classList.remove('lf-product-drop-target'))});tile.addEventListener('dragover',event=>{event.preventDefault();if(dragged&&dragged!==tile)tile.classList.add('lf-product-drop-target')});tile.addEventListener('dragleave',()=>tile.classList.remove('lf-product-drop-target'));tile.addEventListener('drop',event=>{event.preventDefault();tile.classList.remove('lf-product-drop-target');if(!dragged||dragged===tile)return;const from=String(dragged.dataset.productId),to=String(tile.dataset.productId),before=JSON.parse(JSON.stringify(db));const ordered=(db.products||[]).filter(p=>p.active!==false).slice().sort((a,b)=>Number(a.sortOrder??db.products.indexOf(a))-Number(b.sortOrder??db.products.indexOf(b)));const a=ordered.findIndex(p=>String(p.id)===from),b=ordered.findIndex(p=>String(p.id)===to);if(a<0||b<0)return;const [moved]=ordered.splice(a,1);ordered.splice(b,0,moved);ordered.forEach((p,index)=>p.sortOrder=index);if(!save()){db=before;window.LamsetUI?.toast('تعذر حفظ ترتيب المنتجات.','error');return}window.LamsetUI?.toast('تم حفظ ترتيب المنتجات.','success');renderProducts()})})}
 }
