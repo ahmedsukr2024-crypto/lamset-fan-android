@@ -31,7 +31,7 @@ jobs:
         run: npx cap add android
 
       - name: Validate inline JavaScript
-        run: node scripts/check-inline-js.cjs && node --check www/mobile-bridge.js
+        run: node scripts/check-inline-js.cjs && node --check www/mobile-bridge.js && node --check www/lamset-business-upgrades.js
 
       - name: Package project source
         run: zip -r lamset-fan-source.zip . -x ".git/*" "node_modules/*" "android/*" "www/mobile-bridge.bundle.js" "*.apk"
