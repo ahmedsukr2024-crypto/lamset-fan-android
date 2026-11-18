@@ -13,7 +13,7 @@ const workflowStart = html.indexOf('function orderWorkflowSnapshot(o)', statusSt
 const stockStart = html.indexOf('function orderStockLines(o)');
 const pendingStart = html.indexOf('function orderPendingProductionUnits(o)', stockStart);
 const needsStart = html.indexOf('function renderProductionNeeds()', pendingStart);
-const planStart = html.indexOf('function lfProductionAllocationPlan(productId,quantity)');
+const planStart = html.indexOf('function lfProductionAllocationPlan(productId,quantity,groupKey)');
 const allocateStart = html.indexOf('function lfAllocateProduction(productId,quantity)');
 const recordStart = html.indexOf('window.recordProduction=function()', allocateStart);
 assert(statusStart >= 0 && workflowStart > statusStart, 'canonical order status helpers exist');
