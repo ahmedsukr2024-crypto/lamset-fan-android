@@ -1855,7 +1855,7 @@ function renderExecutiveManager(){
  const tasks=[];
  overdue.slice().sort((a,b)=>String(a.due).localeCompare(String(b.due))).slice(0,3).forEach(o=>tasks.push({level:'danger',title:'طلب متأخر يحتاج متابعة',detail:(o.customer||'عميل')+' · موعد التسليم '+o.due,action:'orders',label:'فتح الطلبات'}));
  production.slice().sort((a,b)=>String(a.order.due||'9999').localeCompare(String(b.order.due||'9999'))).slice(0,3).forEach(x=>tasks.push({level:'warning',title:'كمية تنتظر التصنيع',detail:(x.order.customer||'عميل')+' · '+x.flow.pending+' قطعة · طلب '+String(x.order.id).slice(-8),action:'production',label:'فتح التصنيع'}));
- lowStock.slice().sort((a,b)=>(Number(a.stock)||0)-(Number(b.stock)||0)).slice(0,2).forEach(p=>tasks.push({level:'warning',title:'مخزون منخفض: '+(p.name||'منتج'),detail:'المتاح '+(Number(p.stock)||0)+' · حد التنبيه '+(Number(p.min)||0),action:'stock',label:'مراجعة المخزون'}));
+ lowStock.slice().sort((a,b)=>(Number(a.stock)||0)-(Number(b.stock)||0)).slice(0,2).forEach(p=>tasks.push({level:'warning',title:'مخزون منخفض: '+(p.name||'منتج'),detail:'المتاح '+(Number(p.stock)||0)+' · حد التنبيه '+(Number(p.min)||0),action:'products',label:'فتح المنتجات'}));
  const list=$('lfExecPriorityList');
  if(list){
   const unique=tasks.filter((x,i)=>tasks.findIndex(y=>y.title===x.title&&y.detail===x.detail)===i).slice(0,5);
