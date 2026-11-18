@@ -56,7 +56,7 @@ assert(/function lfOrderDepositPayment\(o\)/.test(html), 'deposit payment lookup
 assert(/function paidOnOrder\(o\)\{return \(lfOrderDepositPayment\(o\)\?0:/.test(html), 'legacy deposit is excluded after a matching ledger entry exists');
 assert(/function lfMigrateLegacyOrderDeposits\(\)/.test(html) && /legacyMigration:true/.test(html), 'legacy deposits migrate to the unified ledger with an audit marker');
 assert(html.includes("?order.depositMethod:'غير محدد'"), 'legacy deposits without a recorded method are not falsely labeled as cash');
-assert(/if\(lamsetDataReady\)lfMigrateLegacyOrderDeposits\(\)/.test(html), 'legacy deposit migration runs after successful data load');
+assert(/if\(lamsetDataReady\)(?:\{lfMigrateLegacyOrderDeposits\(\);lfMigrateStockReservations\(db\)\}|lfMigrateLegacyOrderDeposits\(\))/.test(html), 'legacy deposit and stock reservation migrations run after successful data load');
 assert(/kind:'deposit'/.test(html) && /savedOrder\.depositPaymentId=depositPayment\.id/.test(html), 'new order deposits create a linked ledger payment');
 assert(/lfOrderDepositPayment\(o\)\?0:Math\.max\(0,Number\(o\.deposit\)\|\|0\)/.test(html), 'payment receipt balances avoid counting migrated deposits twice');
 assert(/paymentEntries=\[\.\.\.\(lfOrderDepositPayment\(o\)\?\[\]:/.test(html), 'invoice payment ledger does not duplicate a deposit already stored in payments');
