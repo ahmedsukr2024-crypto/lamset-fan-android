@@ -1,6 +1,6 @@
 /* Lamset Fan appearance controls: palette and global information density */
 :root{--lf-button-text:#fff}
-button:not(.ghost):not(.textbtn):not(.iconbtn):not(.danger):not(.success):not(.warning):not(.nav button):not(.lf-drawer-link):not(.lf-header-menu):not(.lf-header-alerts):not(.lf-header-settings):not(.lf-drawer-close):not(.lf-modal-close){color:var(--lf-button-text,#fff)!important}
+button:not(.ghost):not(.textbtn):not(.iconbtn):not(.danger):not(.success):not(.warning):not(.lf-palette-option):not(.nav button):not(.lf-drawer-link):not(.lf-header-menu):not(.lf-header-alerts):not(.lf-header-settings):not(.lf-drawer-close):not(.lf-modal-close){color:var(--lf-button-text,#fff)!important}
 .lf-appearance-palette{display:flex;flex-direction:column;gap:10px;margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .lf-appearance-palette-head{display:flex;flex-direction:column;gap:3px}
 .lf-appearance-palette-head b{font-size:14px;color:var(--ink)}
@@ -18,14 +18,14 @@ html[data-density="comfortable"] .card,html[data-density="comfortable"] .metric{
 html[data-density="comfortable"] .grid,html[data-density="comfortable"] .row,html[data-density="comfortable"] .actions{gap:13px!important}
 html[data-density="comfortable"] button:not(.nav button):not(.lf-drawer-link):not(.lf-palette-option){min-height:48px!important}
 html[data-density="comfortable"] input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),html[data-density="comfortable"] select{min-height:48px!important}
-html[data-density="compact"] body{font-size:14px!important}
+html[data-density="compact"][data-font-scale="normal"] body{font-size:14px!important}
 html[data-density="compact"] .card,html[data-density="compact"] .metric,html[data-density="compact"] .customer-card,html[data-density="compact"] .customer-card-v2,html[data-density="compact"] .product-tile,html[data-density="compact"] .analytics-panel,html[data-density="compact"] .lf-alert-card,html[data-density="compact"] .lf-order-card{padding:9px!important;margin-bottom:8px!important;border-radius:12px!important}
 html[data-density="compact"] .grid,html[data-density="compact"] .row,html[data-density="compact"] .actions,html[data-density="compact"] .dash-metrics{gap:6px!important}
 html[data-density="compact"] .sectionhead{margin:8px 0 6px!important;gap:5px!important}
 html[data-density="compact"] .sectionhead h2{font-size:16px!important}
 html[data-density="compact"] .sectionhead h3{font-size:14px!important}
 html[data-density="compact"] .field{gap:3px!important;margin:6px 0!important}
-html[data-density="compact"] .field label,html[data-density="compact"] .muted{font-size:11px!important}
+html[data-density="compact"][data-font-scale="normal"] .field label,html[data-density="compact"][data-font-scale="normal"] .muted{font-size:11px!important}
 html[data-density="compact"] button:not(.nav button):not(.lf-drawer-link):not(.lf-palette-option):not(.lf-header-menu):not(.lf-header-alerts):not(.lf-header-settings):not(.lf-drawer-close):not(.lf-modal-close){min-height:36px!important;padding:6px 10px!important;font-size:12px!important;border-radius:10px!important}
 html[data-density="compact"] button.smallbtn,html[data-density="compact"] .smallbtn{min-height:32px!important;padding:5px 8px!important;font-size:11px!important}
 html[data-density="compact"] button.iconbtn,html[data-density="compact"] button.lf-header-menu,html[data-density="compact"] button.lf-header-alerts,html[data-density="compact"] button.lf-header-settings,html[data-density="compact"] button.lf-drawer-close,html[data-density="compact"] button.lf-modal-close{width:40px!important;min-width:40px!important;height:40px!important;min-height:40px!important;padding:0!important}
