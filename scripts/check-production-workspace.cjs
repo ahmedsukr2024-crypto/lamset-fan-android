@@ -46,4 +46,5 @@ assert(surplusUseSource.includes('if(!save())throw new Error'),'surplus allocati
 assert(html.includes('surplusDelta:Number(m.surplusDelta)||0'),'central stock movement history retains the separate surplus balance change');
 assert(html.includes('تغير فائض الإنتاج'),'central stock movement history displays surplus balance changes');
 assert(html.includes('surplusDelta=Number(x.surplusDelta)||0'),'product movement detail displays surplus movement quantities');
-\nconsole.log('Production workspace four-tab structure and existing production regions verified.');
+
+console.log('Production workspace four-tab structure and existing production regions verified.');
