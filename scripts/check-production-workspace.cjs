@@ -42,4 +42,8 @@ assert(surplusUseSource.includes('product.reservedStock=Math.max(0,Number(produc
 assert(surplusUseSource.includes('batch.surplusUses.push')&&surplusUseSource.includes('production_surplus_allocation'),'surplus use is audited without creating a new production batch');
 assert(surplusUseSource.includes('if(!save())throw new Error'),'surplus allocation must persist before reporting success');
 
-console.log('Production workspace four-tab structure and existing production regions verified.');
+
+assert(html.includes('surplusDelta:Number(m.surplusDelta)||0'),'central stock movement history retains the separate surplus balance change');
+assert(html.includes('تغير فائض الإنتاج'),'central stock movement history displays surplus balance changes');
+assert(html.includes('surplusDelta=Number(x.surplusDelta)||0'),'product movement detail displays surplus movement quantities');
+\nconsole.log('Production workspace four-tab structure and existing production regions verified.');
