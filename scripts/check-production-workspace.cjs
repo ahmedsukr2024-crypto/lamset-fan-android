@@ -1,7 +1,7 @@
 const fs=require('node:fs');const assert=require('node:assert/strict');const html=fs.readFileSync('www/index.html','utf8');
 assert(html.includes('id="LAMSET_PRODUCTION_WORKSPACE_V2"'),'production workspace controller missing');
 assert(html.includes("definitions=[['overview','نظرة عامة'],['now','المطلوب'],['groups','مجموعات التصنيع'],['history','سجل الدفعات']]"),'production workspace must expose the four approved tabs');
-for(const id of ['productionNeedsSummary','productionNeedsList','stockDashboard','lfProductionBatchAudit'])assert(html.includes('byId(''+id+'')')||html.includes('id="'+id+'"'),'production region missing: '+id);
+for(const id of ['productionNeedsSummary','productionNeedsList','stockDashboard','lfProductionBatchAudit'])assert(html.includes('id="'+id+'"'),'production region missing: '+id);
 for(const fn of ['renderProductionOverview','renderProductionGroups','renderProductionNeeds','renderProductionBatchHistory'])assert(html.includes(fn),'production renderer missing: '+fn);
 assert(html.includes('lfProductionOverviewStats'),'production overview counters missing');
 assert(html.includes('lfProductionOverviewAlerts'),'production overview alerts missing');
