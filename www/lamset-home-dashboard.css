@@ -22,3 +22,5 @@ html[data-theme="dark"] .lf-home-workflow-stat{background:var(--lavender-2)!impo
 html[data-theme="dark"] .lf-home-workflow-stat small{color:var(--ink)!important}
 html[data-theme="dark"] .lf-dash-order-status.is-late{background:#44272D;color:#FFB3BE}
 @media(max-width:360px){.lf-home-workflow-stats{gap:5px}.lf-home-workflow-stat{min-height:82px!important}.lf-home-workflow-stat b{font-size:20px}.lf-home-workflow-stat small{font-size:10px}}
+
+.lf-dash-alert[role="button"]{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease}.lf-dash-alert[role="button"]:focus-visible{outline:2px solid var(--accent,#0866FF);outline-offset:2px}.lf-dash-alert[role="button"]:active{transform:scale(.99)}
