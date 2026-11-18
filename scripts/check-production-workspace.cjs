@@ -9,4 +9,24 @@ assert(html.includes('lfProductionGroupAlerts'),'production group alert region m
 assert(html.includes('oldRenderAll.apply(this,arguments)'),'production overview must refresh after app renders');
 assert(html.includes('window.setProductionTab(\'overview\')'),'production workspace must open on overview');
 assert(html.includes('lfProductionBatchAudit'),'existing production batch history must be preserved');
+
+const releaseStart=html.indexOf('function lfReleaseProductionAllocationForOrderEdit(');
+const preserveStart=html.indexOf('function lfPreserveOrderProductionOnEdit(',releaseStart);
+const preserveEnd=html.indexOf('function lfCanEditOrder(',preserveStart);
+assert(releaseStart>=0&&preserveStart>releaseStart&&preserveEnd>preserveStart,'production release-on-order-edit helpers exist');
+const releaseSource=html.slice(releaseStart,preserveEnd);
+assert(releaseSource.includes('row.batch.surplusUnits=(Number(row.batch.surplusUnits)||0)+take'),'reduced-order production is recorded against its original batch');
+assert(releaseSource.includes('product.surplusStock=Math.max(0,Number(product.surplusStock)||0)+count'),'production released by order edit is held in separate surplus stock');
+assert(!releaseSource.includes('product.stock=Math.max(0,Number(product.stock)||0)+count'),'released production must not become sellable stock automatically');
+const cancellationStart=html.indexOf('if(cancelling){if(!Array.isArray(db.stockMovements))');
+const cancellationEnd=html.indexOf('if(reactivating&&o.stockReturnedOnCancel===true)',cancellationStart);
+const cancellationSource=cancellationStart>=0&&cancellationEnd>cancellationStart?html.slice(cancellationStart,cancellationEnd):'';
+assert(!!cancellationSource,'order cancellation stock release block exists');
+assert(cancellationSource.includes('p.surplusStock=Math.max(0,Number(p.surplusStock)||0)+fulfilled'),'produced units from cancelled orders are separated as surplus');
+assert(cancellationSource.includes('delta:deducted,surplusDelta:fulfilled'),'stock movement distinguishes returned stock from production surplus');
+assert(cancellationSource.includes('releasedToSurplusOnOrderCancel'),'surplus quantity remains linked to its original production allocation');
+assert(html.includes('releasedToSurplusOnOrderCancel)>0'),'a batch with released surplus cannot be reversed again');
+assert(html.includes('فائض إنتاج للمراجعة')&&html.includes('غير متاح للبيع'),'surplus is visible separately and not presented as sellable stock');
+assert(html.includes('Number(x.surplusUnits)||0'),'production batch history shows its surplus quantity');
+
 console.log('Production workspace four-tab structure and existing production regions verified.');
