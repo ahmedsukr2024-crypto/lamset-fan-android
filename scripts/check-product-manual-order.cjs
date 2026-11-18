@@ -7,6 +7,10 @@ assert.match(html,/sort==='manual'[\s\S]{0,180}\?\(Number\(a\.sortOrder\?\?db\.p
 assert.match(html,/class="card product-tile" data-product-id="'\+esc\(p\.id\)/,'each product tile must expose its stable product id');
 assert.match(html,/const manual=sort==='manual'&&!q&&!design&&stockFilter==='all'/,'drag reorder must be restricted to an unfiltered manual list');
 assert.match(html,/lf-product-drag-handle/,'manual reorder affordance missing');
+assert.match(html,/lf-product-manual-controls/,'touch-friendly manual ordering controls missing');
+assert.match(html,/window\.moveProductManual=function\(productId,direction\)/,'manual move action missing');
+assert.match(html,/aria-label="تحريك المنتج لأعلى"/,'accessible move-up control missing');
+assert.match(html,/aria-label="تحريك المنتج لأسفل"/,'accessible move-down control missing');
 assert.match(html,/list\.classList\.toggle\('lf-manual-product-order',manual\)/,'manual list state class missing');
 assert.match(html,/tile\.addEventListener\('dragstart'/,'drag start handler missing');
 assert.match(html,/tile\.addEventListener\('drop'/,'drop handler missing');
