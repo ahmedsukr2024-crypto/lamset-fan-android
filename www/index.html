@@ -947,6 +947,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--lf-accent)!important;
 #dashboard #dashAlerts>p{margin:7px 0;padding:9px 10px;border-radius:10px;background:var(--bg);font-size:12px;line-height:1.6}
 @media(max-width:370px){.lf-dashboard-heading{align-items:flex-start}.lf-dashboard-greeting h2{font-size:22px}.lf-dashboard-date{font-size:10px;padding:7px}.lf-executive-actions button{font-size:10px}#dashboard .dash-shortcuts{gap:5px}#dashboard .dash-shortcuts button{font-size:9px}}
 @media(min-width:700px){.lf-dashboard-heading{margin-top:14px}.lf-executive-stats-main{max-width:680px}.lf-dashboard-date{font-size:12px}}
+.product-heading-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.product-active-status{font-size:10px}.product-active-status.is-active{background:#eaf7f0!important;color:#176b46!important;border-color:#cfe9d9!important}.product-active-status.is-paused{background:#f2f2f4!important;color:#686873!important;border-color:#e2e2e7!important}.lf-product-drag-handle{width:30px;height:30px;padding:0;background:transparent!important;color:var(--muted)!important;border:1px dashed var(--line)!important;cursor:grab;font-size:18px}.product-tile.is-dragging{opacity:.45;border-style:dashed!important}.lf-product-quick-add button:disabled{background:#f0f0f2!important;color:#85858d!important;border-color:#e1e1e5!important;cursor:not-allowed;opacity:1}
 
 </style>
 </head>
@@ -1020,7 +1021,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--lf-accent)!important;
 <div class="field"><label for="productCustomerType">قائمة أسعار العميل</label><select id="productCustomerType" onchange="renderProducts()"><option value="distributor">موزع</option><option value="wholesale">تاجر جملة</option><option value="shop">مكتبة / محل</option><option value="retail">مستهلك</option></select></div>
 <div class="field"><label for="productDesignFilter">التصنيف / التصميم</label><select id="productDesignFilter" onchange="renderProducts()"><option value="">كل التصنيفات</option></select></div>
 <div class="field"><label for="productStockFilter">حالة المخزون</label><select id="productStockFilter" onchange="renderProducts()"><option value="all">كل الحالات</option><option value="available">متاح</option><option value="low">منخفض</option><option value="out">نفد</option></select></div>
-<div class="field"><label for="productSort">ترتيب المنتجات</label><select id="productSort" onchange="renderProducts()"><option value="name">الاسم</option><option value="stock-desc">الأعلى مخزونًا</option><option value="stock-asc">الأقل مخزونًا</option><option value="price-asc">السعر الأقل</option><option value="price-desc">السعر الأعلى</option></select></div>
+<div class="field"><label for="productSort">ترتيب المنتجات</label><select id="productSort" onchange="renderProducts()"><option value="name">الاسم</option><option value="stock-desc">الأعلى مخزونًا</option><option value="stock-asc">الأقل مخزونًا</option><option value="price-asc">السعر الأقل</option><option value="price-desc">السعر الأعلى</option><option value="manual">الترتيب اليدوي</option></select></div>
 </div>
 <div class="product-category-row"><span class="pill">كتالوج المنتجات</span><span class="muted" id="productCount"></span></div>
 <div id="productCartDock" class="lf-product-cart-dock"></div>
@@ -1248,7 +1249,25 @@ if(i>=0){p.lines=db.products[i].lines||[];p.image=db.products[i].image||'';p.cos
 try{let file=$('pImage').files[0];if(file)p.image=await resizeImage(file);const previousStock=Math.max(0,Number(old?.stock)||0),stockDelta=values.pStock-previousStock;if(stockDelta!==0){if(!Array.isArray(db.stockMovements))db.stockMovements=[];db.stockMovements.push({id:id(),productId:p.id,date:new Date().toISOString(),before:previousStock,after:values.pStock,delta:stockDelta,reason:old?'تعديل رصيد من صفحة المنتجات':'رصيد افتتاحي عند إنشاء المنتج'})}if(i>=0)db.products[i]=p;else db.products.push(p);if(!save()){db=previous;alert('تعذر حفظ المنتج بسبب مساحة التخزين أو خطأ في الحفظ. لم يتم اعتماد التعديل؛ حرّر مساحة أو أنشئ نسخة احتياطية ثم حاول مجددًا.');return}hideProductForm();renderAll()}catch(e){db=previous;alert('تعذر تجهيز صورة المنتج أو حفظه. لم يتم اعتماد التعديل؛ بيانات المنتج السابقة محفوظة.')}
 }
 function deleteProduct(pid){let before=JSON.parse(JSON.stringify(db)),p=db.products.find(x=>x.id===pid);if(!p)return;let linked=(db.orders||[]).some(x=>x.productId===pid||(Array.isArray(x.items)&&x.items.some(item=>item.productId===pid)))||(db.productions||[]).some(x=>x.productId===pid)||(db.consignments||[]).some(x=>x.productId===pid)||(db.returns||[]).some(x=>x.productId===pid);if(linked)return alert('لا يمكن حذف هذا المنتج لارتباطه بطلب أو بند داخل طلب متعدد المنتجات أو سجل إنتاج أو أمانة أو مرتجع. احتفظ به في السجل، ويمكن إيقاف استخدامه بدلًا من حذفه.');if(confirm('هل تريد حذف المنتج؟ لا يمكن التراجع عن ذلك.')){db.products=db.products.filter(p=>p.id!==pid);if(!save()){db=before;return alert('تعذر حفظ حذف المنتج؛ تم الاحتفاظ بالبيانات كما كانت.')}renderAll()}}
-function productOptions(id){return '<option value="">اختر المنتج</option>'+db.products.map(p=>`<option value="${p.id}" ${p.id===id?'selected':''}>${esc(p.name)} (${esc(p.code||'بدون كود')})</option>`).join('')}
+function toggleProductActive(pid){
+ const p=(db.products||[]).find(x=>x.id===pid);if(!p)return;
+ const next=p.active===false,verb=next?'إعادة تفعيل':'إيقاف';
+ if(!confirm('هل تريد '+verb+' المنتج "'+(p.name||'')+'"؟ '+(next?'سيظهر مجددًا في الطلبات الجديدة.':'سيختفي من الاختيارات الجديدة مع الاحتفاظ بكل سجلاته السابقة.')))return;
+ const previous=p.active;p.active=next;
+ if(!save()){p.active=previous;return alert('تعذر حفظ حالة المنتج؛ لم يتم تغيير الحالة.')}
+ renderAll();
+}
+let draggedProductId='';
+function beginProductDrag(event,pid){draggedProductId=pid;event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',pid);event.currentTarget.closest('.product-tile')?.classList.add('is-dragging')}
+function endProductDrag(){document.querySelectorAll('.product-tile.is-dragging').forEach(el=>el.classList.remove('is-dragging'));draggedProductId=''}
+function dropProduct(event,targetId){
+ event.preventDefault();const fromId=event.dataTransfer?.getData('text/plain')||draggedProductId;if(!fromId||fromId===targetId)return;
+ const previous=(db.products||[]).slice(),from=db.products.findIndex(p=>p.id===fromId),to=db.products.findIndex(p=>p.id===targetId);if(from<0||to<0)return;
+ const [item]=db.products.splice(from,1);db.products.splice(to,0,item);
+ if(!save()){db.products=previous;alert('تعذر حفظ ترتيب المنتجات؛ تم الاحتفاظ بالترتيب السابق.');}
+ renderProducts();endProductDrag();
+}
+function productOptions(id){return '<option value="">اختر المنتج</option>'+db.products.filter(p=>p.active!==false).map(p=>`<option value="${p.id}" ${p.id===id?'selected':''}>${esc(p.name)} (${esc(p.code||'بدون كود')})</option>`).join('')}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function renderProducts(){
  const list=$('productList');if(!list)return;
@@ -1257,7 +1276,8 @@ async function renderProducts(){
  const design=$('productDesignFilter')?.value||'';
  const stockFilter=$('productStockFilter')?.value||'all';
  const sort=$('productSort')?.value||'name';
- const active=(db.products||[]).filter(p=>p.active!==false);
+ const allProducts=Array.isArray(db.products)?db.products:[];
+ const active=allProducts;
  const designSelect=$('productDesignFilter'),oldDesign=designSelect?.value||'';
  if(designSelect){
   const designs=[...new Set(active.map(p=>String(p.design||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
@@ -1271,7 +1291,7 @@ async function renderProducts(){
    (stockFilter==='all'||(stockFilter==='available'&&stock>min)||(stockFilter==='low'&&stock>0&&stock<=min)||(stockFilter==='out'&&stock<=0));
  });
  const priceOf=p=>Number(p.prices?.[type])||0;
- items.sort((a,b)=>sort==='stock-desc'?(Number(b.stock)||0)-(Number(a.stock)||0):sort==='stock-asc'?(Number(a.stock)||0)-(Number(b.stock)||0):sort==='price-asc'?priceOf(a)-priceOf(b):sort==='price-desc'?priceOf(b)-priceOf(a):String(a.name||'').localeCompare(String(b.name||''),'ar'));
+ if(sort==='manual')items.sort((a,b)=>allProducts.indexOf(a)-allProducts.indexOf(b));else items.sort((a,b)=>sort==='stock-desc'?(Number(b.stock)||0)-(Number(a.stock)||0):sort==='stock-asc'?(Number(a.stock)||0)-(Number(b.stock)||0):sort==='price-asc'?priceOf(a)-priceOf(b):sort==='price-desc'?priceOf(b)-priceOf(a):String(a.name||'').localeCompare(String(b.name||''),'ar'));
  $('productCount').textContent=items.length+' من '+active.length+' منتج';
  renderProductCartDock();
  if(!items.length){list.innerHTML='<div class="card empty">'+(active.length?'لا توجد منتجات مطابقة للفلاتر الحالية.':'لا توجد منتجات بعد. أضف أول منتج للبدء.')+'</div>';return}
@@ -1284,10 +1304,11 @@ async function renderProducts(){
   const suggestedPrice=Math.max(0,Number(p.suggestedPrices?.[type])||0);
   const merchantProfit=suggestedPrice-price;
   const stockCartons=Math.floor(stock/units),looseUnits=stock%units;
-  return '<article class="card product-tile">'+
+  const productId=esc(JSON.stringify(p.id)),isActive=p.active!==false;
+  return '<article class="card product-tile" data-product-id="'+esc(p.id)+'" '+(sort==='manual'?'ondragover="event.preventDefault()" ondrop="dropProduct(event,'+productId+')"':'')+'>'+
    '<button class="product-image-button" type="button" onclick="openProductDetail('+esc(JSON.stringify(p.id))+')">'+(image?'<img src="'+image+'" alt="'+esc(p.name)+'">':'<span class="product-image-empty">🎨</span>')+'</button>'+
    '<button class="product-name" type="button" onclick="openProductDetail('+esc(JSON.stringify(p.id))+')">'+esc(p.name)+'</button>'+
-   '<span class="pill product-code">'+esc(p.code||'بدون كود')+'</span>'+
+   '<div class="product-heading-meta"><span class="pill product-code">'+esc(p.code||'بدون كود')+'</span><span class="pill product-active-status '+(isActive?'is-active':'is-paused')+'">'+(isActive?'نشط':'موقوف')+'</span>'+(sort==='manual'?'<button class="lf-product-drag-handle" type="button" draggable="true" aria-label="اسحب لترتيب المنتج" ondragstart="beginProductDrag(event,'+productId+')" ondragend="endProductDrag()">⠿</button>':'')+'</div>'+
    '<div class="product-stock-line"><span class="product-stock-dot '+stockState+'"></span><b>'+stockLabel+'</b><span>'+money(stock)+' قطعة</span></div>'+
    '<div class="product-carton-hint">'+esc(p.design||'بدون تصنيف')+' · '+esc(p.cartonType||'كرتونة')+' · '+units+' قطعة / كرتونة</div>'+
    '<div class="product-price">'+money(price)+' <small>جنيه / قطعة</small></div>'+
@@ -1296,8 +1317,8 @@ async function renderProducts(){
     (suggestedPrice>0?'<div><small>البيع المقترح للقطعة</small><b>'+money(suggestedPrice)+' ج.م</b></div><div class="lf-product-profit '+(merchantProfit<0?'is-loss':'')+'"><small>'+(merchantProfit<0?'فرق سعر سالب للتاجر':'ربح التاجر / قطعة')+'</small><b>'+money(merchantProfit)+' ج.م</b><small>للكرتونة: '+money(merchantProfit*units)+' ج.م</small></div>':'<div class="lf-product-no-suggest"><small>سعر البيع المقترح</small><b>غير محدد</b></div>')+
    '</div>'+
    '<div class="lf-product-stock-pack"><span>المخزون بالكرتونة: <b>'+stockCartons+'</b></span><span>القطع المفردة: <b>'+looseUnits+'</b></span></div>'+
-   '<div class="lf-product-quick-add"><label>الكمية <input type="number" min="1" step="1" inputmode="numeric" value="1" data-cart-qty></label><label>الوحدة <select data-cart-unit><option value="piece">قطعة</option><option value="carton">كرتونة</option></select></label><button type="button" onclick="addProductToDraftCart('+esc(JSON.stringify(p.id))+','+index+')">＋ أضف للسلة</button></div>'+
-   '<div class="product-tile-actions"><button class="ghost" type="button" onclick="openProductDetail('+esc(JSON.stringify(p.id))+')">التفاصيل</button><button class="ghost" type="button" onclick="showProductForm(db.products.find(x=>x.id==='+esc(JSON.stringify(p.id))+'))">تعديل</button></div>'+
+   '<div class="lf-product-quick-add"><label>الكمية <input type="number" min="1" step="1" inputmode="numeric" value="1" data-cart-qty '+(isActive?'':'disabled')+'></label><label>الوحدة <select data-cart-unit '+(isActive?'':'disabled')+'><option value="piece">قطعة</option><option value="carton">كرتونة</option></select></label><button type="button" '+(isActive?'':'disabled title="المنتج موقوف عن الطلبات الجديدة"')+' onclick="addProductToDraftCart('+esc(JSON.stringify(p.id))+','+index+')">'+(isActive?'＋ أضف للسلة':'المنتج موقوف')+'</button></div>'+
+   '<div class="product-tile-actions"><button class="ghost" type="button" onclick="openProductDetail('+productId+')">التفاصيل</button><button class="ghost" type="button" onclick="showProductForm(db.products.find(x=>x.id==='+productId+'))">تعديل</button><button class="ghost" type="button" onclick="toggleProductActive('+productId+')">'+(isActive?'إيقاف المنتج':'إعادة تفعيل')+'</button></div>'+
   '</article>';
  }));
  list.innerHTML=rows.join('');
