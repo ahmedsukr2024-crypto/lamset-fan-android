@@ -1287,15 +1287,18 @@ window.importWhatsAppOrder=importWhatsAppOrder;
 function lfReleaseProductionAllocationForOrderEdit(orderId,itemIndex,quantity){
  let remaining=Math.max(0,Number(quantity)||0),released=0;
  const batches=(db.productions||[]).filter(batch=>batch.status!=='cancelled'&&Array.isArray(batch.allocationLines)).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
- for(const batch of batches){for(const line of batch.allocationLines){if(String(line.orderId)!==String(orderId)||line.itemIndex!==itemIndex)continue;
+ const candidates=[];
+ for(const batch of batches)for(const line of batch.allocationLines){if(String(line.orderId)!==String(orderId)||line.itemIndex!==itemIndex)continue;
   const active=Math.max(0,Number(line.qty)||0)-Math.max(0,Number(line.releasedToStockOnOrderEdit)||0);
-  const take=Math.min(active,remaining);if(!take)continue;
-  line.releasedToStockOnOrderEdit=(Number(line.releasedToStockOnOrderEdit)||0)+take;
-  if(!Array.isArray(line.orderEditReleases))line.orderEditReleases=[];
-  line.orderEditReleases.push({qty:take,at:new Date().toISOString(),reason:'خفض كمية الطلب بعد تسجيل الإنتاج'});
+  if(active)candidates.push({line,active});
+ }
+ if(candidates.reduce((sum,row)=>sum+row.active,0)<remaining)throw new Error('تعذر مطابقة فائض الإنتاج مع سجلات دفعات التصنيع؛ أوقفنا التعديل لحماية السجلات.');
+ for(const row of candidates){const take=Math.min(row.active,remaining);if(!take)continue;
+  row.line.releasedToStockOnOrderEdit=(Number(row.line.releasedToStockOnOrderEdit)||0)+take;
+  if(!Array.isArray(row.line.orderEditReleases))row.line.orderEditReleases=[];
+  row.line.orderEditReleases.push({qty:take,at:new Date().toISOString(),reason:'خفض كمية الطلب بعد تسجيل الإنتاج'});
   remaining-=take;released+=take;if(!remaining)return released;
- }}
- if(remaining)throw new Error('تعذر مطابقة فائض الإنتاج مع سجلات دفعات التصنيع؛ أوقفنا التعديل لحماية السجلات.');
+ }
  return released;
 }
 function lfPreserveOrderProductionOnEdit(existingOrder,items){
@@ -1303,15 +1306,15 @@ function lfPreserveOrderProductionOnEdit(existingOrder,items){
  if(!hasProduction){items.forEach(item=>{item.productionFulfilledUnits=0});return{hasProduction:false,released:[]}}
  if(!Array.isArray(existingOrder.items)||existingOrder.items.length!==items.length||oldLines.some((line,index)=>line.productId!==items[index]?.productId))
   throw new Error('لا يمكن تغيير أو حذف أصناف طلب بدأ تصنيعه؛ عدّل الكميات مع إبقاء الأصناف وترتيبها كما هي حتى لا تنفصل دفعات الإنتاج عن بنودها.');
+ const releasePlans=oldLines.map((line,index)=>({line,index,oldFulfilled:Math.max(0,Number(line.item?.productionFulfilledUnits)||0),newUnits:Math.max(0,Number(items[index]?.stockUnits)||0)})).map(row=>({...row,keep:Math.min(row.oldFulfilled,row.newUnits),excess:Math.max(0,row.oldFulfilled-row.newUnits)}));
+ releasePlans.forEach(row=>{if(row.excess){if(!(db.products||[]).some(p=>p.id===row.line.productId))throw new Error('المنتج المرتبط بالإنتاج غير موجود.');const available=(db.productions||[]).filter(batch=>batch.status!=='cancelled'&&Array.isArray(batch.allocationLines)).reduce((sum,batch)=>sum+batch.allocationLines.filter(line=>String(line.orderId)===String(existingOrder.id)&&line.itemIndex===row.index).reduce((n,line)=>n+Math.max(0,Number(line.qty)||0)-Math.max(0,Number(line.releasedToStockOnOrderEdit)||0),0),0);if(available<row.excess)throw new Error('كمية فائض الإنتاج غير متطابقة مع سجل الدفعات؛ لم يتم تغيير أي بيانات.')}});
  const released=[];
- oldLines.forEach((line,index)=>{
-  const oldFulfilled=Math.max(0,Number(line.item?.productionFulfilledUnits)||0),newUnits=Math.max(0,Number(items[index]?.stockUnits)||0),keep=Math.min(oldFulfilled,newUnits),excess=oldFulfilled-keep;
-  if(excess){const count=lfReleaseProductionAllocationForOrderEdit(existingOrder.id,index,excess);if(count!==excess)throw new Error('كمية فائض الإنتاج غير متطابقة مع سجل الدفعات.');
-   const product=(db.products||[]).find(p=>p.id===line.productId);if(!product)throw new Error('المنتج المرتبط بالإنتاج غير موجود.');
+ releasePlans.forEach(row=>{
+  if(row.excess){const count=lfReleaseProductionAllocationForOrderEdit(existingOrder.id,row.index,row.excess),product=(db.products||[]).find(p=>p.id===row.line.productId);
    product.stock=Math.max(0,Number(product.stock)||0)+count;product.reservedStock=Math.max(0,(Number(product.reservedStock)||0)-count);
-   released.push({productId:line.productId,qty:count});
+   released.push({productId:row.line.productId,qty:count});
   }
-  items[index].productionFulfilledUnits=keep;
+  items[row.index].productionFulfilledUnits=row.keep;
  });
  return{hasProduction:true,released};
 }
