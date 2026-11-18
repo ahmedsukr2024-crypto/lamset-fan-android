@@ -29,4 +29,17 @@ assert(html.includes('releasedToSurplusOnOrderCancel)>0'),'a batch with released
 assert(html.includes('فائض إنتاج للمراجعة')&&html.includes('غير متاح للبيع'),'surplus is visible separately and not presented as sellable stock');
 assert(html.includes('Number(x.surplusUnits)||0'),'production batch history shows its surplus quantity');
 
+
+const surplusUseStart=html.indexOf('window.lfUseProductionSurplus=async function(batchId)');
+const surplusUseEnd=html.indexOf('window.renderProductionBatchHistory=function()',surplusUseStart);
+const surplusUseSource=surplusUseStart>=0&&surplusUseEnd>surplusUseStart?html.slice(surplusUseStart,surplusUseEnd):'';
+assert(!!surplusUseSource,'owner-approved production surplus use action exists');
+assert(surplusUseSource.includes('await window.lamsetRequireOwnerPin'),'using surplus requires owner PIN approval');
+assert(surplusUseSource.includes('lfProductionGroupKey(line)!==batch.productionGroupKey'),'surplus can only be assigned to an exact matching product/specification group');
+assert(surplusUseSource.includes('liveLine.item.productionPendingUnits=livePending-qty'),'surplus use reduces the selected order production shortage');
+assert(surplusUseSource.includes('product.surplusStock=Math.max(0,(Number(product.surplusStock)||0)-qty)'),'surplus use reduces the separate surplus balance');
+assert(surplusUseSource.includes('product.reservedStock=Math.max(0,Number(product.reservedStock)||0)+qty'),'approved surplus is reserved to the target order');
+assert(surplusUseSource.includes('batch.surplusUses.push')&&surplusUseSource.includes('production_surplus_allocation'),'surplus use is audited without creating a new production batch');
+assert(surplusUseSource.includes('if(!save())throw new Error'),'surplus allocation must persist before reporting success');
+
 console.log('Production workspace four-tab structure and existing production regions verified.');
