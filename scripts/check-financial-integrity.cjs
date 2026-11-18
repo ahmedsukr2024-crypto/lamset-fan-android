@@ -13,7 +13,7 @@ function extract(startMarker, endMarker) {
   const end = html.indexOf(endMarker, start);
   return start >= 0 && end > start ? html.slice(start, end) : '';
 }
-const helpers = extract('function lfOrderDepositPayment(o)', 'function lamsetAlertSnoozes');
+const helpers = extract('function lfOrderHasDepositLedgerEntry(o)', 'function lamsetAlertSnoozes');
 assert(!!helpers, 'order payment and balance helpers exist');
 const receiptBalances = extract('function paymentReceiptBalances(payment)', 'function paymentReceiptHtml(payment)');
 assert(!!receiptBalances, 'historical payment receipt balance helper exists');
@@ -40,6 +40,13 @@ if (helpers && receiptBalances) {
   assert(secondReceipt.previous === 100 && secondReceipt.current === 50 && secondReceipt.collectedAfter === 150 && secondReceipt.remainingAfter === 150, 'partial collection receipt uses chronological balance');
   const finalReceipt = sandbox.paymentReceiptBalances(second);
   assert(finalReceipt.previous === 150 && finalReceipt.current === 150 && finalReceipt.collectedAfter === 300 && finalReceipt.remainingAfter === 0, 'final collection receipt closes the balance');
+  second.status = 'cancelled';
+  assert(sandbox.paidOnOrder(order) === 150 && sandbox.orderDue(order) === 150, 'cancelled collection is retained but excluded from the customer balance');
+  const legacy = { id: 'legacy-deposit-order', total: 300, qty: 1, price: 300, deposit: 100, status: 'جديد' };
+  sandbox.db.orders.push(legacy);
+  const cancelledDeposit = { id: 'legacy-deposit-ledger', orderId: legacy.id, amount: 100, kind: 'deposit', status: 'cancelled' };
+  legacy.depositPaymentId = cancelledDeposit.id; sandbox.db.payments.push(cancelledDeposit);
+  assert(sandbox.paidOnOrder(legacy) === 0 && sandbox.orderDue(legacy) === 300, 'cancelled migrated deposit does not fall back to and re-count its legacy field');
 }
 const invoice = extract('function invoiceHtml(o)', 'function ');
 assert(html.includes('<span>إجمالي المدفوع</span><strong>\'+money(paid)+\'</strong>'), 'invoice summary displays total paid');
@@ -53,5 +60,13 @@ assert(collection.indexOf('paymentCommitted=true;') > collection.indexOf('if(!sa
 const catchBlock = collection.slice(collection.indexOf('}catch(error){'), collection.indexOf(' }finally{'));
 assert(catchBlock.includes('if(!paymentCommitted)'), 'rollback is restricted to failures before successful persistence');
 assert(catchBlock.includes('لا تعاود تسجيل نفس المبلغ'), 'post-save UI failure warns against entering the same collection twice');
+assert(collection.includes('receiptNumber:lfNextPaymentReceiptNumber()') && collection.includes("status:'active'"), 'new collection receives a unique immutable receipt serial');
+const receiptNumbering = extract('function lfNextPaymentReceiptNumber()', 'function renderCollections()');
+assert(receiptNumbering.includes("'RCPT'") && receiptNumbering.includes('seen.has(number)') && receiptNumbering.includes('!save()'), 'legacy receipt numbering is unique and persisted safely');
+const cancellation = extract('async function cancelPayment(paymentId)', 'function paymentReceiptBalances(payment)');
+assert(cancellation.includes('lamsetRequireOwnerPin') && cancellation.includes('cancelReason') && cancellation.includes("status='cancelled'"), 'receipt cancellation requires owner PIN and retains its reason and record');
+assert(cancellation.includes('removeCashLink') && cancellation.includes('cancelledBalanceSnapshot'), 'cash receipt cancellation reverses its cash link and preserves the printed historical balance');
+assert(html.includes('id="lfPaymentHistorySearch"') && html.includes('p.receiptNumber'), 'payment history can be searched by immutable receipt number');
+assert(html.includes("payment.status!=='cancelled'&&payment.method==='نقدي'") && html.includes("p.status!=='cancelled'&&lfTreasuryDate(p.date)"), 'cancelled collections are excluded from treasury cash and payment summaries');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Financial integrity checks passed.');
