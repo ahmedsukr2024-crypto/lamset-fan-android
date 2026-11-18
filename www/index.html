@@ -1317,7 +1317,7 @@ function lfReleaseProductionAllocationForOrderEdit(orderId,itemIndex,quantity){
  for(const row of candidates){const take=Math.min(row.active,remaining);if(!take)continue;
   row.line.releasedToStockOnOrderEdit=(Number(row.line.releasedToStockOnOrderEdit)||0)+take;
   row.line.surplusUnitsFromOrderEdit=(Number(row.line.surplusUnitsFromOrderEdit)||0)+take;
-  row.batch.surplusUnits=(Number(row.batch.surplusUnits)||0)+take;
+  row.batch.surplusUnits=(Number(row.batch.surplusUnits)||0)+take;row.batch.surplusGeneratedUnits=(Number(row.batch.surplusGeneratedUnits)||0)+take;
   if(!Array.isArray(row.line.orderEditReleases))row.line.orderEditReleases=[];
   row.line.orderEditReleases.push({qty:take,at:new Date().toISOString(),reason:'خفض كمية الطلب بعد تسجيل الإنتاج'});
   remaining-=take;released+=take;if(!remaining)return released;
@@ -1622,7 +1622,7 @@ const releaseByProduct=new Map();for(const line of stockLines){const product=db.
 if(cancelling){const entered=prompt('سبب إلغاء / إغلاق الطلب (مطلوب):','');if(entered===null)return;if(!entered.trim())return alert('سبب إلغاء الطلب إلزامي.');statusReason=entered.trim().slice(0,300)}
 const before=JSON.parse(JSON.stringify(db));
 try{
-if(cancelling){if(!Array.isArray(db.stockMovements))db.stockMovements=[];for(const batch of db.productions||[]){for(const allocation of batch.allocationLines||[]){if(String(allocation.orderId)===String(o.id)){allocation.releasedToStockOnOrderCancel=true;allocation.releasedAt=new Date().toISOString();}}}for(const line of stockLines){const p=db.products.find(x=>x.id===line.productId),beforeStock=Math.max(0,Number(p.stock)||0),returned=lfOrderCancellationReleaseUnits(line),item=line.item||{},fulfilled=Math.max(0,Number(item.productionFulfilledUnits)||0),deducted=Math.max(0,returned-fulfilled);p.stock=beforeStock+deducted;p.surplusStock=Math.max(0,Number(p.surplusStock)||0)+fulfilled;p.reservedStock=Math.max(0,(Number(p.reservedStock)||0)-returned);if(fulfilled){let surplusLeft=fulfilled;for(const batch of db.productions||[])for(const allocation of batch.allocationLines||[]){const itemIndex=Array.isArray(o.items)&&o.items.length?o.items.indexOf(item):null;if(String(allocation.orderId)!==String(o.id)||(allocation.itemIndex??null)!==(itemIndex??null))continue;const active=Math.max(0,Number(allocation.qty)||0)-Math.max(0,Number(allocation.releasedToStockOnOrderEdit)||0)-Math.max(0,Number(allocation.releasedToSurplusOnOrderCancel)||0),take=Math.min(active,surplusLeft);if(take){allocation.releasedToSurplusOnOrderCancel=(Number(allocation.releasedToSurplusOnOrderCancel)||0)+take;batch.surplusUnits=(Number(batch.surplusUnits)||0)+take;surplusLeft-=take}if(!surplusLeft)break}if(surplusLeft)throw new Error('تعذر مطابقة فائض الإنتاج الناتج عن إلغاء الطلب مع دفعاته المسجلة.');}if(returned)db.stockMovements.push({id:id(),productId:p.id,date:new Date().toISOString(),before:beforeStock,after:p.stock,delta:deducted,surplusDelta:fulfilled,reservedDelta:-returned,reason:'فك حجز وفصل فائض الإنتاج عند إلغاء الطلب '+lfOrderNumber(o),orderId:o.id,orderNumber:lfOrderNumber(o),movementType:'order_cancel_return'});if(line.item){line.item.stockDeductedUnits=0;line.item.productionPendingUnits=0;line.item.productionFulfilledUnits=0;}}o.stockReturnedOnCancel=true;}
+if(cancelling){if(!Array.isArray(db.stockMovements))db.stockMovements=[];for(const batch of db.productions||[]){for(const allocation of batch.allocationLines||[]){if(String(allocation.orderId)===String(o.id)){allocation.releasedToStockOnOrderCancel=true;allocation.releasedAt=new Date().toISOString();}}}for(const line of stockLines){const p=db.products.find(x=>x.id===line.productId),beforeStock=Math.max(0,Number(p.stock)||0),returned=lfOrderCancellationReleaseUnits(line),item=line.item||{},fulfilled=Math.max(0,Number(item.productionFulfilledUnits)||0),deducted=Math.max(0,returned-fulfilled);p.stock=beforeStock+deducted;p.surplusStock=Math.max(0,Number(p.surplusStock)||0)+fulfilled;p.reservedStock=Math.max(0,(Number(p.reservedStock)||0)-returned);if(fulfilled){let surplusLeft=fulfilled;for(const batch of db.productions||[])for(const allocation of batch.allocationLines||[]){const itemIndex=Array.isArray(o.items)&&o.items.length?o.items.indexOf(item):null;if(String(allocation.orderId)!==String(o.id)||(allocation.itemIndex??null)!==(itemIndex??null))continue;const active=Math.max(0,Number(allocation.qty)||0)-Math.max(0,Number(allocation.releasedToStockOnOrderEdit)||0)-Math.max(0,Number(allocation.releasedToSurplusOnOrderCancel)||0),take=Math.min(active,surplusLeft);if(take){allocation.releasedToSurplusOnOrderCancel=(Number(allocation.releasedToSurplusOnOrderCancel)||0)+take;batch.surplusUnits=(Number(batch.surplusUnits)||0)+take;batch.surplusGeneratedUnits=(Number(batch.surplusGeneratedUnits)||0)+take;surplusLeft-=take}if(!surplusLeft)break}if(surplusLeft)throw new Error('تعذر مطابقة فائض الإنتاج الناتج عن إلغاء الطلب مع دفعاته المسجلة.');}if(returned)db.stockMovements.push({id:id(),productId:p.id,date:new Date().toISOString(),before:beforeStock,after:p.stock,delta:deducted,surplusDelta:fulfilled,reservedDelta:-returned,reason:'فك حجز وفصل فائض الإنتاج عند إلغاء الطلب '+lfOrderNumber(o),orderId:o.id,orderNumber:lfOrderNumber(o),movementType:'order_cancel_return'});if(line.item){line.item.stockDeductedUnits=0;line.item.productionPendingUnits=0;line.item.productionFulfilledUnits=0;}}o.stockReturnedOnCancel=true;}
 if(reactivating&&o.stockReturnedOnCancel===true){if(!Array.isArray(db.stockMovements))db.stockMovements=[];const byProduct=new Map();for(const line of stockLines)byProduct.set(line.productId,(byProduct.get(line.productId)||0)+line.units);for(const [productId,required] of byProduct){const p=db.products.find(x=>x.id===productId);let available=Math.max(0,Number(p.stock)||0),deduction=Math.min(available,required),beforeStock=available;p.stock=available-deduction;p.reservedStock=Math.max(0,Number(p.reservedStock)||0)+deduction;if(deduction)db.stockMovements.push({id:id(),productId:p.id,date:new Date().toISOString(),before:beforeStock,after:p.stock,delta:-deduction,reservedDelta:deduction,reason:'إعادة حجز مخزون عند فتح الطلب '+lfOrderNumber(o),orderId:o.id,orderNumber:lfOrderNumber(o),movementType:'order_reopen_deduction'});let remaining=deduction;for(const line of stockLines.filter(x=>x.productId===productId)){const take=Math.min(line.units,remaining);line.item.stockDeductedUnits=take;line.item.productionPendingUnits=line.units-take;line.item.productionFulfilledUnits=0;remaining-=take;}}o.stockReturnedOnCancel=false;}
 const statusChangedAt=new Date().toISOString();
 const issuingStock=['تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(s)&&!o.stockIssuedAt&&!o.stockIssueMigrated;
@@ -3070,7 +3070,7 @@ window.cancelProductionBatch=function(batchId){const batch=(db.productions||[]).
  if((Number(p.reservedStock)||0)<allocated)return alert('لا يمكن إلغاء الدفعة بأمان: رصيد الحجز أقل من الكمية المخصصة للطلبات.');
  if(currentStock<added)return alert('لا يمكن إلغاء الدفعة بأمان: المخزون الحالي '+currentStock+' قطعة، بينما يلزم خصم '+added+' قطعة. راجع المبيعات وحركات المخزون أولاً.');
  for(const line of batch.allocationLines){
-  if(line.releasedToStockOnOrderCancel===true||Number(line.releasedToSurplusOnOrderCancel)>0)return alert('لا يمكن إلغاء هذه الدفعة: تم تحرير جزء من إنتاجها إلى فائض مستقل بعد إلغاء الطلب. احتفظ بسجل الدفعة وسجل الفائض لتجنب عكس كمية قد تكون خضعت للمراجعة أو الاستخدام.');
+  if(line.releasedToStockOnOrderCancel===true||Number(line.releasedToSurplusOnOrderCancel)>0||Number(batch.surplusUsedUnits)>0||(batch.surplusUses||[]).length)return alert('لا يمكن إلغاء هذه الدفعة: تم تحرير أو استخدام جزء من إنتاجها كفائض مستقل. احتفظ بسجل الدفعة وسجل الفائض لتجنب عكس كمية قد تكون خضعت للاستخدام.');
   const order=(db.orders||[]).find(x=>x.id===line.orderId);
   if(!order)return alert('لا يمكن الإلغاء: أحد الطلبات المرتبطة بالدفعة غير موجود.');
   if(order.status==='ملغي'||order.stockReturnedOnCancel===true)return alert('لا يمكن إلغاء الدفعة بأمان: الطلب المرتبط '+String(order.id).slice(-8)+' أُلغي وأُعيدت القطع المنتجة إلى المخزون العام. لا يمكن تحديد ما إذا كانت هذه القطع ما زالت موجودة أم صُرفت لاحقًا؛ احتفظ بالدفعة وسجلها للمراجعة.');
@@ -3093,6 +3093,46 @@ window.cancelProductionBatch=function(batchId){const batch=(db.productions||[]).
   renderAll();alert('تم إلغاء الدفعة '+batch.batchNo+' وعكس أثرها على مخزون المنتج والطلبات. السجل الأصلي محفوظ للمراجعة.');
  }catch(error){db=before;console.error('Production batch cancellation failed',error);alert('تعذر إلغاء الدفعة؛ تم التراجع عن العملية بالكامل: '+(error.message||'خطأ غير معروف'))}
 };
+window.lfUseProductionSurplus=async function(batchId){
+ const batch=(db.productions||[]).find(x=>String(x.id)===String(batchId));
+ if(!batch||batch.status==='cancelled')return alert('دفعة الفائض غير متاحة.');
+ const available=Math.max(0,Number(batch.surplusUnits)||0),product=(db.products||[]).find(x=>String(x.id)===String(batch.productId));
+ if(!available||!product||!batch.productionGroupKey)return alert('لا يوجد فائض متاح مرتبط بمجموعة مواصفات محددة يمكن مطابقتها بأمان.');
+ const candidates=[];
+ (db.orders||[]).filter(order=>!lfIsArchivedOrder(order)).forEach(order=>orderStockLines(order).forEach((line,index)=>{
+  if(String(line.productId)!==String(batch.productId)||lfProductionGroupKey(line)!==batch.productionGroupKey)return;
+  const pending=Math.max(0,Number(line.item?.productionPendingUnits)||0);
+  if(pending)candidates.push({order,line,itemIndex:Array.isArray(order.items)&&order.items.length?index:null,pending});
+ }));
+ if(!candidates.length)return alert('لا توجد طلبات مفتوحة بنفس المنتج والمواصفات وبها كمية تصنيع ناقصة.');
+ const choices=candidates.map((x,i)=>(i+1)+') '+lfOrderNumber(x.order)+' · '+(x.order.customer||'عميل')+' · ناقص '+x.pending+' قطعة').join('\n');
+ const picked=Number(prompt('اختر الطلب المطابق الذي تريد تخصيص الفائض له:\n'+choices,'1'));
+ if(!Number.isInteger(picked)||picked<1||picked>candidates.length)return;
+ const target=candidates[picked-1],limit=Math.min(available,target.pending),qty=Number(prompt('الكمية المطلوب استخدامها من الفائض (المتاح '+limit+' قطعة):',String(limit)));
+ if(!Number.isSafeInteger(qty)||qty<1||qty>limit)return alert('الكمية غير صحيحة أو أكبر من الفائض/احتياج الطلب.');
+ if(!confirm('سيتم نقل '+qty+' قطعة من فائض الإنتاج إلى الطلب '+lfOrderNumber(target.order)+' دون تسجيل إنتاج جديد. هل تريد المتابعة؟'))return;
+ let ownerApproved=false;
+ try{ownerApproved=!!(window.lamsetRequireOwnerPin&&await window.lamsetRequireOwnerPin('استخدام فائض الإنتاج'))}catch(error){}
+ if(!ownerApproved)return alert('لم يتم اعتماد استخدام فائض الإنتاج؛ لم تتغير أي بيانات.');
+ const before=lfClone(db);
+ try{
+  if((Number(product.surplusStock)||0)<qty)throw new Error('رصيد فائض المنتج أقل من الكمية المطلوب استخدامها.');
+  const liveOrder=(db.orders||[]).find(x=>String(x.id)===String(target.order.id));
+  const liveLines=orderStockLines(liveOrder),liveLine=liveLines[target.itemIndex===null?0:target.itemIndex];
+  if(!liveLine||String(liveLine.productId)!==String(batch.productId)||lfProductionGroupKey(liveLine)!==batch.productionGroupKey)throw new Error('تغيرت مواصفات الطلب؛ أوقفنا الاستخدام لحماية التخصيص.');
+  const livePending=Math.max(0,Number(liveLine.item?.productionPendingUnits)||0);
+  if(livePending<qty||Number(batch.surplusUnits)<qty)throw new Error('تغيرت الكميات المتاحة؛ أعد مراجعة الفائض والطلب.');
+  batch.surplusUnits-=qty;batch.surplusUsedUnits=(Number(batch.surplusUsedUnits)||0)+qty;batch.surplusUses=Array.isArray(batch.surplusUses)?batch.surplusUses:[];
+  const usedAt=new Date().toISOString();
+  batch.surplusUses.push({orderId:liveOrder.id,itemIndex:target.itemIndex,qty,date:usedAt,approvedBy:'owner'});
+  liveLine.item.productionPendingUnits=livePending-qty;liveLine.item.productionFulfilledUnits=(Number(liveLine.item.productionFulfilledUnits)||0)+qty;
+  product.surplusStock=Math.max(0,(Number(product.surplusStock)||0)-qty);product.reservedStock=Math.max(0,Number(product.reservedStock)||0)+qty;
+  (db.stockMovements||(db.stockMovements=[])).push({id:id(),productId:product.id,date:usedAt,before:Math.max(0,Number(product.stock)||0),after:Math.max(0,Number(product.stock)||0),delta:0,reservedDelta:qty,surplusDelta:-qty,reason:'استخدام فائض دفعة '+batch.batchNo+' للطلب '+lfOrderNumber(liveOrder),productionBatchId:batch.id,batchNo:batch.batchNo,orderId:liveOrder.id,orderNumber:lfOrderNumber(liveOrder),movementType:'production_surplus_allocation',source:'production_surplus'});
+  lfRecordActivity('استخدام فائض إنتاج',batch.batchNo,'تخصيص '+qty+' قطعة للطلب '+lfOrderNumber(liveOrder)+' بعد موافقة المالك');
+  if(!save())throw new Error('تعذر حفظ تخصيص الفائض.');
+  renderAll();alert('تم تخصيص '+qty+' قطعة من الفائض للطلب '+lfOrderNumber(liveOrder)+' دون تسجيل إنتاج جديد.');
+ }catch(error){db=before;save();console.error('Production surplus allocation failed',error);alert('لم يتم استخدام الفائض: '+(error.message||'خطأ غير معروف'))}
+};
 window.renderProductionBatchHistory=function(){const el=$('productionBatchHistory');if(!el)return;
  const q=String($('lfProductionBatchSearch')?.value||'').trim().toLocaleLowerCase('ar');
  const all=(db.productions||[]).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
@@ -3100,7 +3140,7 @@ window.renderProductionBatchHistory=function(){const el=$('productionBatchHistor
  if($('lfProductionBatchCount'))$('lfProductionBatchCount').textContent=all.length+' دفعة';
  if(!rows.length){el.innerHTML='<div class="empty">لا توجد دفعات تصنيع مسجلة حتى الآن.</div>';return}
  el.innerHTML=rows.map(x=>{const p=db.products.find(v=>v.id===x.productId),cancelled=x.status==='cancelled';
-  return '<article class="card" style="margin:10px 0;border-right:4px solid '+(cancelled?'var(--red)':'var(--purple)')+'"><div class="sectionhead"><b>'+esc(x.batchNo||'دفعة قديمة')+'</b><span class="pill">'+(cancelled?'ملغاة':'معتمدة')+'</span></div><b>'+esc(p?.name||x.productName||'منتج غير موجود')+'</b><div class="muted">'+new Date(x.date||Date.now()).toLocaleString('ar-EG')+' · كمية الإنتاج '+(Number(x.net??x.qty)||0)+' قطعة</div><div class="muted">تخصيص الطلبات: '+(Number(x.allocatedToOrders)||0)+' · أضيف للمخزون: '+(Number(x.addedToStock)||0)+' قطعة · فائض إنتاج للمراجعة: '+(Number(x.surplusUnits)||0)+' قطعة</div>'+(cancelled?'<small class="muted">تاريخ الإلغاء: '+new Date(x.cancelledAt||0).toLocaleString('ar-EG')+'</small>':'<div class="actions"><button type="button" class="danger smallbtn" onclick="lamsetRunButtonAction(this,()=>cancelProductionBatch('+JSON.stringify(x.id)+'))">مراجعة وإلغاء الدفعة</button></div>')+'</article>';
+  return '<article class="card" style="margin:10px 0;border-right:4px solid '+(cancelled?'var(--red)':'var(--purple)')+'"><div class="sectionhead"><b>'+esc(x.batchNo||'دفعة قديمة')+'</b><span class="pill">'+(cancelled?'ملغاة':'معتمدة')+'</span></div><b>'+esc(p?.name||x.productName||'منتج غير موجود')+'</b><div class="muted">'+new Date(x.date||Date.now()).toLocaleString('ar-EG')+' · كمية الإنتاج '+(Number(x.net??x.qty)||0)+' قطعة</div><div class="muted">تخصيص الطلبات: '+(Number(x.allocatedToOrders)||0)+' · أضيف للمخزون: '+(Number(x.addedToStock)||0)+' قطعة · فائض إنتاج للمراجعة: '+(Number(x.surplusUnits)||0)+' قطعة · المستخدم من الفائض: '+(Number(x.surplusUsedUnits)||0)+' قطعة</div>'+(cancelled?'<small class="muted">تاريخ الإلغاء: '+new Date(x.cancelledAt||0).toLocaleString('ar-EG')+'</small>':'<div class="actions">'+(Number(x.surplusUnits)>0&&x.productionGroupKey?'<button type="button" class="smallbtn" onclick="lamsetRunButtonAction(this,()=>lfUseProductionSurplus('+JSON.stringify(x.id)+'))">مراجعة استخدام الفائض</button>':'')+'<button type="button" class="danger smallbtn" onclick="lamsetRunButtonAction(this,()=>cancelProductionBatch('+JSON.stringify(x.id)+'))">مراجعة وإلغاء الدفعة</button></div>')+'</article>';
  }).join('');
 };
 if(typeof originalRenderAll==='function'){window.renderAll=function(){originalRenderAll.apply(this,arguments);window.renderProductionBatchHistory()};
