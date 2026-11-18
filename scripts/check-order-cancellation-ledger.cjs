@@ -11,7 +11,7 @@ const check = context.lfOrderCancellationReleaseUnits;
 function assert(value, message) { if (!value) throw new Error(message); }
 assert(check({units: 100, item: {stockDeductedUnits: 60, productionFulfilledUnits: 40}}) === 100, 'valid stock and produced units are released together');
 assert(check({units: 100, item: {stockDeductedUnits: 60}}) === 60, 'legacy line without production fulfills only recorded stock reservation');
-assert(check({units: 100, item: {productionFulfilledUnits: 40}}) === 100, 'legacy line without explicit stock deduction uses its full original reservation');
+assert(check({units: 100, item: {productionFulfilledUnits: 40}}) === 100, 'legacy line without explicit stock deduction excludes already produced units from stock reservation');
 for (const line of [
  {units: 100, item: {stockDeductedUnits: 80, productionFulfilledUnits: 30}},
  {units: 100, item: {stockDeductedUnits: -1, productionFulfilledUnits: 0}},
