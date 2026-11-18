@@ -1700,8 +1700,8 @@ const today=localDay(),items=[],now=Date.now(),snoozes=lamsetAlertSnoozes();
 const add=(x)=>{x.key=String(x.key);x.category=x.category||'متابعة';x.actionLabel=lamsetAlertActionLabel(x.action);items.push(x)};
 (db.orders||[]).forEach(o=>{
 const balance=orderDue(o),status=String(o.status||''),oid=String(o.id),label='طلب '+oid.slice(-8);
-if(status!=='تم التسليم'&&status!=='تم التسليم للعميل'&&status!=='ملغي'&&o.due&&o.due<today)add({key:'late:'+oid,level:'danger',category:'الطلبات',title:'طلب متأخر',body:(o.customer||'عميل')+' — موعد التسليم '+o.due,action:'order',targetId:oid});
-if(status!=='ملغي'&&balance>0)add({key:'balance:'+oid,level:'info',category:'التحصيل',title:'مبلغ مستحق',body:(o.customer||'عميل')+' — '+money(balance),action:'collections',targetId:oid,actionLabel:'فتح التحصيل'});
+if(status!=='تم التسليم'&&status!=='تم التسليم للعميل'&&status!=='ملغي'&&balance>0&&o.due&&o.due<today)add({key:'late:'+oid,level:'danger',category:'التحصيل',title:'متأخر',body:(o.customer||'عميل')+' · '+label+' · متبقي '+money(balance)+' · موعد التسليم '+o.due,action:'order',targetId:oid});
+if(status!=='ملغي'&&balance>0){add({key:'balance:'+oid,level:'info',category:'التحصيل',title:'مستحق',body:(o.customer||'عميل')+' · '+label+' · متبقي '+money(balance),action:'collections',targetId:oid,actionLabel:'فتح التحصيل'});if(o.due&&o.due>=today){const days=Math.ceil((new Date(o.due+'T00:00:00').getTime()-new Date(today+'T00:00:00').getTime())/86400000);if(days<=2)add({key:'due-soon:'+oid,level:'warning',category:'التحصيل',title:'موعد قريب',body:(o.customer||'عميل')+' · '+label+' · متبقي '+money(balance)+' · موعد التسليم '+o.due,action:'order',targetId:oid})}}
 if(status==='جديد')add({key:'new:'+oid,level:'info',category:'الطلبات',title:'طلب جديد يحتاج متابعة',body:(o.customer||'عميل')+' — '+(db.products.find(p=>p.id===o.productId)?.name||'منتج'),action:'order',targetId:oid});
 if(status!=='ملغي'&&status!=='تم التسليم'&&status!=='تم التسليم للعميل'){
  const flow=orderWorkflowSnapshot(o);
