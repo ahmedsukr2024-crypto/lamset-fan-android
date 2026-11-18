@@ -4,9 +4,9 @@ const vm = require('node:vm');
 const html = fs.readFileSync('www/index.html', 'utf8');
 function assert(value, message) { if (!value) throw new Error(message); }
 const shippedStart = html.indexOf('function lfOrderHasShipped(o)');
-const shippedEnd = html.indexOf('\nfunction lfOrderReservedUnits', shippedStart);
+const shippedEnd = html.indexOf('function lfOrderReservedUnits', shippedStart);
 const editStart = html.indexOf('function lfCanEditOrder(o)');
-const editEnd = html.indexOf('\nfunction editOrder(', editStart);
+const editEnd = html.indexOf('function editOrder(', editStart);
 assert(shippedStart >= 0 && shippedEnd > shippedStart, 'shared shipped-state helper exists');
 assert(editStart >= 0 && editEnd > editStart, 'order edit guard exists');
 const context = vm.createContext({ paidOnOrder: () => 0, db: { payments: [] } });
@@ -21,7 +21,7 @@ for (const order of [
   { id: 'delivered-date', status: 'قيد التجهيز', deliveredAt: '2026-11-18T11:00:00Z' }
 ]) { assert(!context.lfCanEditOrder(order), 'shipped or delivered order cannot be edited: ' + order.id); }
 const statusStart = html.indexOf('function applyOrderStatusChange(id,s)');
-const statusEnd = html.indexOf('\nfunction deleteOrder(', statusStart);
+const statusEnd = html.indexOf('function deleteOrder(', statusStart);
 assert(statusStart >= 0 && statusEnd > statusStart, 'order status transition handler exists');
 const statusSource = html.slice(statusStart, statusEnd);
 assert(statusSource.includes('const wasShipped=lfOrderHasShipped(o)'), 'status transitions consult issued/shipped ledger flags');
