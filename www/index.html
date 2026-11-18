@@ -906,36 +906,84 @@ input:focus,select:focus,textarea:focus{border-color:var(--lf-accent)!important;
 @media(min-width:700px){.lf-app-header{min-height:72px;padding:10px 16px}.lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:46px;height:46px;flex-basis:46px}.lf-app-brand-copy b{font-size:18px}}
 @media(max-width:360px){.lf-app-header{padding:8px 9px}.lf-app-brand{gap:7px}.lf-app-brand-copy b{font-size:14px}.lf-app-brand-copy small{font-size:8px}}
 
+/* LAMSET dashboard and native safe-area/header refresh */
+@media(max-width:699px){
+ .wrap{padding-top:0!important}
+ .lf-app-header{top:0;padding-top:calc(9px + max(env(safe-area-inset-top,0px),24px));min-height:calc(66px + max(env(safe-area-inset-top,0px),24px));}
+}
+.lf-app-header{z-index:120;gap:12px;border:0;border-bottom:1px solid var(--line);border-radius:0 0 16px 16px;box-shadow:0 2px 10px rgba(0,0,0,.035);}
+.lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:38px;height:38px;flex:0 0 38px;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:0;object-fit:contain}
+.lf-header-actions{display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.lf-header-menu,.lf-header-alerts{display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px;padding:0;border:0!important;border-radius:0!important;background:transparent!important;color:var(--ink)!important;box-shadow:none!important}
+.lf-header-menu [data-lucide],.lf-header-alerts [data-lucide]{width:22px;height:22px;stroke-width:1.8}
+.lf-header-menu:focus-visible,.lf-header-alerts:focus-visible{outline:2px solid var(--purple);outline-offset:3px;border-radius:6px!important}
+.lf-header-alert-count{top:-2px;left:-3px;border:2px solid var(--surface,#fff)}
+.lf-dashboard-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:8px 0 15px;padding:4px 2px}
+.lf-dashboard-greeting small{display:block;color:var(--muted);font-size:12px;font-weight:700}
+.lf-dashboard-greeting h2{margin:3px 0;font-size:25px;line-height:1.35;color:var(--ink);font-weight:850}
+.lf-dashboard-greeting p{margin:0;color:var(--muted);font-size:12px}
+.lf-dashboard-date{display:flex;align-items:center;gap:6px;max-width:46%;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff);color:var(--muted);font-size:11px;white-space:nowrap}
+.lf-dashboard-date [data-lucide]{width:15px;height:15px;color:var(--purple);flex:none}
+.lf-executive{margin:0 0 16px;padding:15px;border-radius:17px!important}
+.lf-executive-head h3{font-size:18px;margin:3px 0}
+.lf-executive-head p{font-size:11px}
+.lf-executive-mark{width:36px;height:36px;border-radius:10px;background:var(--lavender-2);color:var(--purple)}
+.lf-executive-mark [data-lucide]{width:20px;height:20px}
+.lf-executive-stats-main{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:13px 0}
+.lf-executive-stats-main>div{padding:10px 7px;border-radius:12px;text-align:center}
+.lf-executive-stats-main small{font-size:10px;line-height:1.5}
+.lf-executive-stats-main strong{font-size:21px;color:var(--ink)}
+.lf-executive-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.lf-executive-actions button{padding:9px 5px;font-size:11px;min-height:40px}
+.lf-executive-note{margin:10px 0 0;font-size:10px;color:var(--muted)}
+#dashboard>.sectionhead{margin-top:15px}
+#dashboard .dash-shortcuts{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0 15px}
+#dashboard .dash-shortcuts button{min-height:76px;padding:10px 3px;gap:6px;border-radius:13px!important;font-size:10px}
+#dashboard .dash-shortcuts button [data-lucide]{width:21px;height:21px;stroke-width:1.8}
+#dashboard .lf-dashboard-followup,#dashboard .lf-dashboard-alerts{margin-bottom:12px}
+#dashboard .lf-dashboard-followup .sectionhead,#dashboard .lf-dashboard-alerts .sectionhead{margin:0 0 8px;padding:0;border:0;background:transparent}
+#dashboard #dashSummary p{margin:7px 0;padding:8px 10px;border-radius:10px;background:var(--bg);font-size:12px}
+#dashboard #dashAlerts>p{margin:7px 0;padding:9px 10px;border-radius:10px;background:var(--bg);font-size:12px;line-height:1.6}
+@media(max-width:370px){.lf-dashboard-heading{align-items:flex-start}.lf-dashboard-greeting h2{font-size:22px}.lf-dashboard-date{font-size:10px;padding:7px}.lf-executive-actions button{font-size:10px}#dashboard .dash-shortcuts{gap:5px}#dashboard .dash-shortcuts button{font-size:9px}}
+@media(min-width:700px){.lf-dashboard-heading{margin-top:14px}.lf-executive-stats-main{max-width:680px}.lf-dashboard-date{font-size:12px}}
+
 </style>
 </head>
 <body><main class="wrap">
-<header class="lf-app-header" aria-label="الشريط العلوي"><div class="lf-app-brand"><img id="appBrandLogoPreview" class="brand-mark-img hidden" alt="شعار لمسة فن"><span id="appBrandMark" class="brand-mark">🎨</span><span class="lf-app-brand-copy"><b>لمسة فن</b><small>LAMSET FAN · إدارة نشاطك</small></span></div><div class="lf-header-actions"><button type="button" class="lf-header-menu" id="lfMenuToggle" aria-label="فتح القائمة الرئيسية" aria-controls="lfSideDrawer" aria-expanded="false"><span class="lf-menu-glyph" aria-hidden="true"><i></i><i></i><i></i></span></button><button type="button" class="lf-header-alerts" id="lfHeaderAlerts" data-nav-target="alerts" aria-label="مركز التنبيهات"><span data-lucide="bell" aria-hidden="true"></span><span class="lf-header-alert-count hidden" id="lfHeaderAlertCount" aria-live="polite">0</span></button></div><div id="lamsetConnectionStatus" class="lamset-connection-status lf-header-connection" role="status" aria-live="polite"><span class="lamset-connection-dot"></span><span id="lamsetConnectionText">جارٍ فحص الاتصال والتخزين المحلي...</span></div></header>
+<header class="lf-app-header" aria-label="الشريط العلوي"><div class="lf-app-brand"><img id="appBrandLogoPreview" class="brand-mark-img hidden" alt="شعار لمسة فن"><span id="appBrandMark" class="brand-mark">🎨</span><span class="lf-app-brand-copy"><b>لمسة فن</b><small>LAMSET FAN · إدارة نشاطك</small></span></div><div class="lf-header-actions"><button type="button" class="lf-header-menu" id="lfMenuToggle" aria-label="فتح القائمة الرئيسية" aria-controls="lfSideDrawer" aria-expanded="false"><span data-lucide="menu" aria-hidden="true"></span></button><button type="button" class="lf-header-alerts" id="lfHeaderAlerts" data-nav-target="alerts" aria-label="مركز التنبيهات"><span data-lucide="bell" aria-hidden="true"></span><span class="lf-header-alert-count hidden" id="lfHeaderAlertCount" aria-live="polite">0</span></button></div><div id="lamsetConnectionStatus" class="lamset-connection-status lf-header-connection" role="status" aria-live="polite"><span class="lamset-connection-dot"></span><span id="lamsetConnectionText">جارٍ فحص الاتصال والتخزين المحلي...</span></div></header>
 <nav class="nav" id="nav" aria-label="التنقل السريع"><button type="button" class="active" data-tab="dashboard" aria-current="page" aria-label="الرئيسية"><span data-lucide="house" aria-hidden="true"></span><b>الرئيسية</b></button><button type="button" data-tab="orders" aria-label="الطلبات"><span data-lucide="shopping-cart" aria-hidden="true"></span><b>الطلبات</b></button><button type="button" data-tab="customers" aria-label="العملاء"><span data-lucide="users" aria-hidden="true"></span><b>العملاء</b></button><button type="button" data-tab="products" aria-label="المنتجات"><span data-lucide="package" aria-hidden="true"></span><b>المنتجات</b></button></nav><div class="lf-drawer-backdrop" id="lfDrawerBackdrop" hidden></div><aside class="lf-side-drawer" id="lfSideDrawer" role="dialog" aria-modal="true" aria-label="القائمة الرئيسية" aria-hidden="true" inert><div class="lf-drawer-head"><div class="lf-drawer-brand"><span class="lf-drawer-brand-mark">🎨</span><span><b>لمسة فن</b><small>مساحة إدارة نشاطك</small></span></div><button type="button" class="lf-drawer-close" id="lfDrawerClose" aria-label="إغلاق القائمة">×</button></div><div class="lf-drawer-current" id="lfDrawerCurrent"><small>آخر صفحة مفتوحة</small><b id="lfDrawerCurrentLabel">الرئيسية</b></div><label class="lf-drawer-search"><span data-lucide="search" aria-hidden="true"></span><input id="lfDrawerSearch" type="search" placeholder="ابحث عن صفحة..." autocomplete="off" aria-label="ابحث عن صفحة"></label><div class="lf-drawer-links" id="lfDrawerLinks"><details class="lf-drawer-group" open><summary>الرئيسية والعمل اليومي</summary><div class="lf-drawer-group-links"><button type="button" class="lf-drawer-link" data-nav-target="dashboard" data-label="الرئيسية"><span data-lucide="house"></span><b>الرئيسية</b></button><button type="button" class="lf-drawer-link" data-nav-target="orders" data-label="طلبات العملاء والمكتبات"><span data-lucide="shopping-cart"></span><b>الطلبات</b></button><button type="button" class="lf-drawer-link" data-nav-target="customers" data-label="العملاء"><span data-lucide="users"></span><b>العملاء</b></button><button type="button" class="lf-drawer-link" data-nav-target="products" data-label="إدارة المنتجات"><span data-lucide="package"></span><b>المنتجات</b></button><button type="button" class="lf-drawer-link" data-nav-target="production" data-label="المطلوب تصنيعه"><span data-lucide="factory"></span><b>التصنيع والمطلوب تصنيعه</b></button></div></details><details class="lf-drawer-group" open><summary>المبيعات والتشغيل</summary><div class="lf-drawer-group-links"><button type="button" class="lf-drawer-link" data-nav-target="consignment" data-label="الأمانة والتصريف"><span data-lucide="truck"></span><b>الأمانة والتصريف</b></button><button type="button" class="lf-drawer-link" data-nav-target="collections" data-label="التحصيلات"><span data-lucide="wallet-cards"></span><b>التحصيلات</b></button><button type="button" class="lf-drawer-link" data-nav-target="costs" data-label="دراسة التكلفة والتسعير"><span data-lucide="calculator"></span><b>التكاليف والتسعير</b></button><button type="button" class="lf-drawer-link" data-nav-target="offers" data-label="حاسبة العروض وربح البونص"><span data-lucide="gift"></span><b>العروض والبونص</b></button><button type="button" class="lf-drawer-link" data-nav-target="catalogs" data-label="كتالوجات المنتجات"><span data-lucide="book-open"></span><b>كتالوجات المنتجات</b></button></div></details><details class="lf-drawer-group"><summary>التقارير والبيانات</summary><div class="lf-drawer-group-links"><button type="button" class="lf-drawer-link" data-nav-target="reports" data-label="مركز التحليلات"><span data-lucide="chart-line"></span><b>التقارير والتحليلات</b></button><button type="button" class="lf-drawer-link" data-nav-target="database" data-label="قاعدة البيانات"><span data-lucide="hard-drive"></span><b>قاعدة البيانات</b></button><button type="button" class="lf-drawer-link" data-nav-target="backup" data-label="النسخ الاحتياطي"><span data-lucide="receipt"></span><b>النسخ الاحتياطي</b></button></div></details><details class="lf-drawer-group"><summary>أدوات وإعدادات</summary><div class="lf-drawer-group-links"><button type="button" class="lf-drawer-link" data-nav-target="settings" data-label="الإعدادات"><span data-lucide="settings"></span><b>الإعدادات</b></button><button type="button" class="lf-drawer-link" data-nav-target="more" data-label="المزيد"><span data-lucide="grid-2x2"></span><b>المزيد</b></button></div></details><p class="lf-drawer-empty" id="lfDrawerEmpty" hidden>لا توجد صفحة مطابقة للبحث.</p></div></aside>
 <section id="dashboard" class="panel active">
-<div class="dash-welcome"><div><small>أهلاً بيك في</small><h2>لمسة فن</h2><p>إدارة نشاطك في مكان واحد</p></div></div>
-<div class="sectionhead"><h3>ملخص اليوم</h3><span class="pill" id="today"></span></div>
-<div class="grid dash-metrics">
-<div class="card metric"><small>مبيعات اليوم</small><strong id="mSales">0 ج.م</strong></div>
-<div class="card metric"><small>طلبات جديدة</small><strong id="mPending">0</strong></div>
-<div class="card metric"><small>مستحقات العملاء</small><strong id="mReceivables">0 ج.م</strong></div>
-<div class="card metric"><small>قيد التجهيز</small><strong id="mPreparing">0</strong></div>
+<div class="lf-dashboard-heading">
+ <div class="lf-dashboard-greeting"><small>لوحة متابعة لمسة فن</small><h2>أهلاً بيك</h2><p>كل اللي محتاج تتابعه في شغلك اليومي</p></div>
+ <div class="lf-dashboard-date"><span data-lucide="calendar-days" aria-hidden="true"></span><b id="today"></b></div>
 </div>
 <section class="lf-executive card" aria-labelledby="lfExecutiveTitle">
-<div class="lf-executive-head"><div><span class="lf-executive-kicker">مساعدك اليومي</span><h3 id="lfExecutiveTitle">المدير الذكي</h3><p>صورة واضحة لما يحتاج انتباهك في الطلبات والتصنيع والمخزون</p></div><span class="lf-executive-mark" aria-hidden="true">✦</span></div>
-<div class="lf-executive-stats">
-<div><small>طلبات مفتوحة</small><strong id="lfExecOpenOrders">0</strong></div>
-<div><small>تحتاج تصنيع</small><strong id="lfExecProduction">0</strong></div>
-<div><small>خامات ناقصة</small><strong id="lfExecMaterials">0</strong></div>
-<div><small>طلبات متأخرة</small><strong id="lfExecOverdue">0</strong></div>
-</div>
-<div class="lf-executive-focus"><div class="lf-executive-focus-title"><b>ماذا أفعل الآن؟</b><span id="lfExecPriorityCount">متابعة مباشرة</span></div><div id="lfExecPriorityList"><p class="muted">جارٍ تجهيز ملخص العمل…</p></div></div>
-<div class="lf-executive-actions"><button type="button" data-nav-target="orders">متابعة الطلبات</button><button type="button" class="ghost" data-nav-target="production">خطة التصنيع والخامات</button><button type="button" class="ghost" data-nav-target="alerts">كل التنبيهات</button></div>
-<p class="lf-executive-note">اقتراحات ومتابعة فقط؛ لا يتم اعتماد تصنيع أو تغيير أرصدة المخزون تلقائيًا.</p>
+ <div class="lf-executive-head"><div><span class="lf-executive-kicker">مساعدك اليومي</span><h3 id="lfExecutiveTitle">موقف الشغل</h3><p>الأولويات التي تحتاج متابعة منك الآن</p></div><span class="lf-executive-mark" aria-hidden="true"><span data-lucide="clipboard-check"></span></span></div>
+ <div class="lf-executive-stats lf-executive-stats-main">
+  <div><small>طلبات مفتوحة</small><strong id="lfExecOpenOrders">0</strong></div>
+  <div><small>قطع تنتظر التصنيع</small><strong id="lfExecProduction">0</strong></div>
+  <div><small>طلبات متأخرة</small><strong id="lfExecOverdue">0</strong></div>
+ </div>
+ <div class="lf-executive-focus"><div class="lf-executive-focus-title"><b>ماذا أفعل الآن؟</b><span id="lfExecPriorityCount">متابعة مباشرة</span></div><div id="lfExecPriorityList"><p class="muted">جارٍ تجهيز ملخص العمل…</p></div></div>
+ <div class="lf-executive-actions"><button type="button" data-nav-target="orders">متابعة الطلبات</button><button type="button" class="ghost" data-nav-target="production">فتح التصنيع</button><button type="button" class="ghost" data-nav-target="alerts">كل التنبيهات</button></div>
+ <p class="lf-executive-note">المؤشرات للمتابعة فقط؛ لا يتم اعتماد تصنيع أو تغيير أرصدة تلقائيًا.</p>
 </section>
+<div class="sectionhead"><h3>ملخص اليوم</h3></div>
+<div class="grid dash-metrics">
+ <div class="card metric"><small>مبيعات اليوم</small><strong id="mSales">0 ج.م</strong></div>
+ <div class="card metric"><small>طلبات جديدة</small><strong id="mPending">0</strong></div>
+ <div class="card metric"><small>مستحقات العملاء</small><strong id="mReceivables">0 ج.م</strong></div>
+ <div class="card metric"><small>قيد التجهيز</small><strong id="mPreparing">0</strong></div>
+</div>
 <div class="sectionhead"><h3>اختصارات سريعة</h3></div>
-<div class="dash-shortcuts"><button data-nav-target="orders"><span data-lucide="plus-circle" aria-hidden="true"></span>طلب جديد</button><button data-nav-target="customers"><span data-lucide="users" aria-hidden="true"></span>العملاء</button><button data-nav-target="collections"><span data-lucide="wallet" aria-hidden="true"></span>التحصيلات</button></div>
-<div class="card"><div class="sectionhead"><h3>متابعة الطلبات</h3><button class="textbtn" data-nav-target="orders">عرض الكل</button></div><div id="dashSummary"></div></div>
-<div class="card"><div class="sectionhead"><h3>تنبيهات ومتابعة</h3><button class="textbtn" data-nav-target="alerts">مركز التنبيهات</button></div><div id="dashAlerts"></div></div>
+<div class="dash-shortcuts">
+ <button type="button" data-nav-target="orders"><span data-lucide="plus" aria-hidden="true"></span>طلب جديد</button>
+ <button type="button" data-nav-target="production"><span data-lucide="factory" aria-hidden="true"></span>التصنيع</button>
+ <button type="button" data-nav-target="customers"><span data-lucide="users" aria-hidden="true"></span>العملاء</button>
+ <button type="button" data-nav-target="collections"><span data-lucide="wallet" aria-hidden="true"></span>التحصيلات</button>
+</div>
+<div class="card lf-dashboard-followup"><div class="sectionhead"><h3>متابعة الطلبات</h3><button class="textbtn" data-nav-target="orders">عرض الكل</button></div><div id="dashSummary"></div></div>
+<div class="card lf-dashboard-alerts"><div class="sectionhead"><h3>تنبيهات ومتابعة</h3><button class="textbtn" data-nav-target="alerts">مركز التنبيهات</button></div><div id="dashAlerts"></div></div>
 </section>
 <section id="more" class="panel"><div class="sectionhead"><h2>المزيد</h2></div><div class="more-list"><button data-nav-target="consignment"><span class="more-icon" data-lucide="truck"></span><b>الأمانة والتصريف</b><span class="more-arrow">‹</span></button><button data-nav-target="catalogs"><span class="more-icon" data-lucide="book-open"></span><b>كتالوجات المنتجات</b><span class="more-arrow">‹</span></button><button data-nav-target="products"><span class="more-icon" data-lucide="package"></span><b>إدارة المنتجات</b><span class="more-arrow">‹</span></button><button data-nav-target="production"><span class="more-icon" data-lucide="factory"></span><b>المطلوب تصنيعه والتصنيع</b><span class="more-arrow">‹</span></button><button data-nav-target="costs"><span class="more-icon" data-lucide="calculator"></span><b>التكاليف والتسعير</b><span class="more-arrow">‹</span></button><button data-nav-target="offers"><span class="more-icon" data-lucide="gift"></span><b>العروض والبونص</b><span class="more-arrow">‹</span></button><button data-nav-target="reports"><span class="more-icon" data-lucide="chart-line"></span><b>التقارير والتحليلات</b><span class="more-arrow">‹</span></button><button data-nav-target="database"><span class="more-icon" data-lucide="hard-drive"></span><b>قاعدة البيانات</b><span class="more-arrow">‹</span></button><button data-nav-target="backup"><span class="more-icon" data-lucide="receipt"></span><b>النسخ الاحتياطي</b><span class="more-arrow">‹</span></button></div><button class="settings-entry" data-nav-target="settings"><span class="more-icon" data-lucide="settings"></span><b>الإعدادات</b><span class="more-arrow">‹</span></button></section>
 <section id="consignment" class="panel">
@@ -1795,24 +1843,24 @@ let history=(db.payments||[]).slice().sort((a,b)=>new Date(b.date||0)-new Date(a
 }
 function exchangeDueAllocated(transactionId){return (db.exchangeDueAllocations||[]).filter(x=>x.transactionId===transactionId).reduce((v,x)=>v+(Number(x.amount)||0),0)}function exchangeDueRemaining(t){return Math.max(0,(Number(t.amount)||0)-exchangeDueAllocated(t.id))}function allocateExchangeDuePayment(o,payment){let left=Number(payment.amount)||0,dues=(db.returnTransactions||[]).filter(t=>t.orderId===o.id&&t.type==='exchange_due'&&t.direction==='in_due'&&exchangeDueRemaining(t)>0).sort((a,b)=>new Date(a.date)-new Date(b.date));if(!Array.isArray(db.exchangeDueAllocations))db.exchangeDueAllocations=[];dues.forEach(t=>{if(left<=0)return;let part=Math.min(left,exchangeDueRemaining(t));if(part>0){db.exchangeDueAllocations.push({id:id(),paymentId:payment.id,transactionId:t.id,returnId:t.returnId,orderId:o.id,customerId:o.customerId||'',customerName:o.customer||'عميل',amount:part,date:payment.date});left-=part}})}function recordPayment(){let before=JSON.parse(JSON.stringify(db));let o=db.orders.find(x=>x.id===$('paymentOrder').value),amount=Number($('paymentAmount').value)||0;if(!o||amount<=0)return alert('اختر طلبًا وأدخل مبلغًا صحيحًا');let due=orderDue(o);if(amount>due)return alert('المبلغ أكبر من المتبقي على الطلب: '+money(due));if(!Array.isArray(db.payments))db.payments=[];let payment={id:id(),orderId:o.id,amount,method:$('paymentMethod').value,note:$('paymentNote').value.trim(),date:new Date().toISOString()};db.payments.push(payment);allocateExchangeDuePayment(o,payment);if(!save()){db=before;return alert('تعذر حفظ التحصيل؛ تم التراجع عن التحصيل والتسويات المرتبطة به.')} $('paymentAmount').value='';$('paymentNote').value='';renderAll();if(window.lamsetBusinessAlert)window.lamsetBusinessAlert('تم تسجيل تحصيل','تم استلام '+money(amount)+' من '+o.customer);alert('تم تسجيل التحصيل بنجاح')}
 function renderExecutiveManager(){
- const orders=Array.isArray(db.orders)?db.orders:[],today=localDay(),open=orders.filter(o=>!['ملغي','تم التسليم','تم التسليم للعميل'].includes(String(o.status||'')));
- const overdue=open.filter(o=>o.due&&o.due<today),production=open.map(o=>({order:o,flow:orderWorkflowSnapshot(o)})).filter(x=>x.flow.pending>0);
- let materialNeeds=[],recipeIssues=[];
- try{materialNeeds=productionMaterialNeeds();}catch(error){console.warn('Executive material summary unavailable',error)}
- try{recipeIssues=productionRecipeIssues();}catch(error){console.warn('Executive recipe review unavailable',error)}
- const shortages=materialNeeds.filter(x=>Number(x.required)>Number(x.material?.stock||0));
+ const orders=Array.isArray(db.orders)?db.orders:[],today=localDay();
+ const open=orders.filter(o=>!['ملغي','تم التسليم','تم التسليم للعميل'].includes(String(o.status||'')));
+ const overdue=open.filter(o=>o.due&&o.due<today);
+ const production=open.map(o=>({order:o,flow:orderWorkflowSnapshot(o)})).filter(x=>Number(x.flow.pending)>0);
+ const lowStock=(Array.isArray(db.products)?db.products:[]).filter(p=>p.active!==false&&Number(p.stock||0)<=Number(p.min||0));
  const set=(id,value)=>{const el=$(id);if(el)el.textContent=String(value)};
- set('lfExecOpenOrders',open.length);set('lfExecProduction',production.reduce((n,x)=>n+x.flow.pending,0));set('lfExecMaterials',shortages.length);set('lfExecOverdue',overdue.length);
+ set('lfExecOpenOrders',open.length);
+ set('lfExecProduction',production.reduce((n,x)=>n+Math.max(0,Number(x.flow.pending)||0),0));
+ set('lfExecOverdue',overdue.length);
  const tasks=[];
  overdue.slice().sort((a,b)=>String(a.due).localeCompare(String(b.due))).slice(0,3).forEach(o=>tasks.push({level:'danger',title:'طلب متأخر يحتاج متابعة',detail:(o.customer||'عميل')+' · موعد التسليم '+o.due,action:'orders',label:'فتح الطلبات'}));
- production.slice().sort((a,b)=>String(a.order.due||'9999').localeCompare(String(b.order.due||'9999'))).slice(0,3).forEach(x=>tasks.push({level:'warning',title:'كمية تنتظر التصنيع',detail:(x.order.customer||'عميل')+' · '+x.flow.pending+' قطعة · طلب '+String(x.order.id).slice(-8),action:'production',label:'مراجعة التصنيع'}));
- shortages.slice(0,3).forEach(x=>tasks.push({level:'warning',title:'نقص في خامة '+(x.material.name||''),detail:'المطلوب '+Number(x.required).toLocaleString('en-US')+' '+(x.material.unit||'')+' · المتاح '+Number(x.material.stock||0).toLocaleString('en-US'),action:'production',label:'مراجعة الخامات'}));
- recipeIssues.slice(0,2).forEach(x=>tasks.push({level:'danger',title:'مراجعة بيانات وصفة تصنيع',detail:x.label+' · '+x.reason,action:'production',label:'مراجعة الوصفة'}));
+ production.slice().sort((a,b)=>String(a.order.due||'9999').localeCompare(String(b.order.due||'9999'))).slice(0,3).forEach(x=>tasks.push({level:'warning',title:'كمية تنتظر التصنيع',detail:(x.order.customer||'عميل')+' · '+x.flow.pending+' قطعة · طلب '+String(x.order.id).slice(-8),action:'production',label:'فتح التصنيع'}));
+ lowStock.slice().sort((a,b)=>(Number(a.stock)||0)-(Number(b.stock)||0)).slice(0,2).forEach(p=>tasks.push({level:'warning',title:'مخزون منخفض: '+(p.name||'منتج'),detail:'المتاح '+(Number(p.stock)||0)+' · حد التنبيه '+(Number(p.min)||0),action:'stock',label:'مراجعة المخزون'}));
  const list=$('lfExecPriorityList');
  if(list){
   const unique=tasks.filter((x,i)=>tasks.findIndex(y=>y.title===x.title&&y.detail===x.detail)===i).slice(0,5);
-  list.innerHTML=unique.length?unique.map(x=>'<article class="lf-exec-task '+x.level+'"><span class="lf-exec-task-dot"></span><div><b>'+esc(x.title)+'</b><small>'+esc(x.detail)+'</small></div><button type="button" class="textbtn" data-nav-target="'+x.action+'">'+x.label+'</button></article>').join(''):'<div class="lf-exec-clear"><b>أمورك تحت المتابعة</b><span>لا توجد حاليًا طلبات متأخرة أو نواقص تصنيع وخامات مسجلة.</span></div>';
-  set('lfExecPriorityCount',unique.length?unique.length+' إجراءات مقترحة':'لا توجد إجراءات عاجلة');
+  list.innerHTML=unique.length?unique.map(x=>'<article class="lf-exec-task '+x.level+'"><span class="lf-exec-task-dot"></span><div><b>'+esc(x.title)+'</b><small>'+esc(x.detail)+'</small></div><button type="button" class="textbtn" data-nav-target="'+x.action+'">'+x.label+'</button></article>').join(''):'<div class="lf-exec-clear"><b>أمورك تحت المتابعة</b><span>لا توجد حاليًا طلبات متأخرة أو كميات تنتظر التصنيع أو تنبيهات مخزون منخفضة.</span></div>';
+  set('lfExecPriorityCount',unique.length?unique.length+' نقاط للمتابعة':'لا توجد إجراءات عاجلة');
  }
 }
 function renderDash(){let today=localDay(),todayOrders=db.orders.filter(o=>localDay(o.date||o.createdAt||new Date(0))===today&&o.status!=='ملغي'),salesToday=todayOrders.reduce((v,o)=>v+orderNetTotal(o),0),receivables=db.orders.reduce((v,o)=>v+orderDue(o),0),pending=db.orders.filter(o=>o.status==='جديد').length,preparing=db.orders.filter(o=>o.status==='قيد التجهيز').length;$('mSales').textContent=money(salesToday);$('mPending').textContent=pending;$('mReceivables').textContent=money(receivables);$('mPreparing').textContent=preparing;$('dashSummary').innerHTML='<p>طلبات جديدة: <b>'+pending+'</b></p><p>طلبات قيد التجهيز: <b>'+preparing+'</b></p><p>طلبات تم تسليمها: <b>'+db.orders.filter(o=>o.status==='تم التسليم'||o.status==='تم التسليم للعميل').length+'</b></p>';$('dashAlerts').innerHTML=renderAlerts().slice(0,4).map(x=>'<p class="'+x.level+'">⚠ '+x.title+': '+esc(x.body)+'</p>').join('')||'<p class="muted">لا توجد تنبيهات متابعة حالياً.</p>';renderExecutiveManager();renderCollections()}
