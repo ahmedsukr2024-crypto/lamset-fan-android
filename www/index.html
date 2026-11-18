@@ -3061,7 +3061,7 @@ window.recordProduction=function(){
 let lfProductionSaving=false;
 const lfRecordProductionCore=window.recordProduction;
 window.recordProduction=async function(){if(lfProductionSaving)return false;lfProductionSaving=true;try{return lfRecordProductionCore.apply(this,arguments)}finally{await new Promise(resolve=>setTimeout(resolve,450));lfProductionSaving=false}};
-window.cancelProductionBatch=function(batchId){const batch=(db.productions||[]).find(x=>x.id===batchId);
+window.cancelProductionBatch=async function(batchId){const batch=(db.productions||[]).find(x=>x.id===batchId);
  if(!batch)return alert('دفعة التصنيع غير موجودة.');
  if(batch.status==='cancelled')return alert('هذه الدفعة ملغاة بالفعل.');
  if(!Array.isArray(batch.allocationLines))return alert('لا يمكن إلغاء هذه الدفعة القديمة بأمان؛ لم يكن النظام يسجل توزيعها على الطلبات بالتفصيل.');
@@ -3080,16 +3080,20 @@ window.cancelProductionBatch=function(batchId){const batch=(db.productions||[]).
   if(!item)return alert('لا يمكن الإلغاء: بند الطلب المرتبط بالدفعة غير موجود.');
   const activeQty=Math.max(0,Number(line.qty||0)-Number(line.releasedToStockOnOrderEdit||0));if(Number(item.productionFulfilledUnits||0)<activeQty)return alert('بيانات تخصيص الطلب غير متطابقة؛ أوقفنا الإلغاء لحماية رصيد الطلب.');
  }
- const before=lfClone(db);
+ const correctionReason=prompt('سبب عكس دفعة الإنتاج (إلزامي):','');
+ if(correctionReason===null)return;
+ if(!String(correctionReason).trim())return alert('سبب عكس دفعة الإنتاج مطلوب.');
+ if(!(await window.lamsetRequireOwnerPin('تصحيح سجل دفعة الإنتاج')))return;
+ const before=lfClone(db),reversalAt=new Date().toISOString();
  try{p.stock=currentStock-added;p.reservedStock=Math.max(0,(Number(p.reservedStock)||0)-allocated);
-  (db.stockMovements||(db.stockMovements=[])).push({id:id(),productId:p.id,delta:-added,reservedDelta:-allocated,reason:'عكس إنتاج وإلغاء دفعة '+batch.batchNo,productionBatchId:batch.id,batchNo:batch.batchNo,date:new Date().toISOString()});
+  (db.stockMovements||(db.stockMovements=[])).push({id:id(),productId:p.id,delta:-added,reservedDelta:-allocated,reason:'حركة عكسية موثقة لدفعة '+batch.batchNo+' · '+String(correctionReason).trim(),productionBatchId:batch.id,batchNo:batch.batchNo,reversedProductionBatchId:batch.id,movementType:'production_batch_reversal',source:'production_correction',correctionReason:String(correctionReason).trim(),date:reversalAt});
   for(const line of batch.allocationLines){
    const order=db.orders.find(x=>x.id===line.orderId);
    const item=line.itemIndex===null?order:order.items[line.itemIndex],qty=Math.max(0,Number(line.qty)||0)-Math.max(0,Number(line.releasedToStockOnOrderEdit)||0);
    item.productionPendingUnits=(Number(item.productionPendingUnits)||0)+qty;
    item.productionFulfilledUnits=Math.max(0,(Number(item.productionFulfilledUnits)||0)-qty);
   }
-  batch.status='cancelled';batch.cancelledAt=new Date().toISOString();batch.cancelReason='إلغاء يدوي مع عكس الحركات المرتبطة';lfRecordActivity('إلغاء دفعة تصنيع',batch.batchNo,'تم عكس '+(added+allocated)+' قطعة من أثر الدفعة مع حفظ السجل الأصلي');
+  batch.status='cancelled';batch.cancelledAt=reversalAt;batch.cancelReason=String(correctionReason).trim();batch.reversal={movementId:db.stockMovements[db.stockMovements.length-1].id,at:reversalAt,reason:String(correctionReason).trim(),ownerApproved:true};lfRecordActivity('عكس دفعة تصنيع',batch.batchNo,'سبب التصحيح: '+String(correctionReason).trim()+' · تم تسجيل حركة عكسية موثقة للكمية '+(added+allocated)+' مع الاحتفاظ بسجل الدفعة الأصلي');
   if(!save()){db=before;return alert('تعذر حفظ الإلغاء؛ تمت استعادة البيانات كما كانت دون تغيير.')}
   renderAll();alert('تم إلغاء الدفعة '+batch.batchNo+' وعكس أثرها على مخزون المنتج والطلبات. السجل الأصلي محفوظ للمراجعة.');
  }catch(error){db=before;console.error('Production batch cancellation failed',error);alert('تعذر إلغاء الدفعة؛ تم التراجع عن العملية بالكامل: '+(error.message||'خطأ غير معروف'))}
