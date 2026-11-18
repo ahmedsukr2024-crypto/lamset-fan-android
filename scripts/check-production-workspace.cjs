@@ -50,4 +50,5 @@ assert(html.includes('surplusDelta=Number(x.surplusDelta)||0'),'product movement
 
 assert(html.includes('المجموعة دون طلبات مرتبطة'),'production surplus alert identifies batches whose group has no open matching orders');
 assert(html.includes('دفعة '+"'+esc(b.batchNo||'قديمة')"),'production surplus alert includes the source batch number');
-\nconsole.log('Production workspace four-tab structure and existing production regions verified.');
+
+console.log('Production workspace four-tab structure and existing production regions verified.');
