@@ -71,7 +71,7 @@ function closeDocumentPreview(){
  const overviewStats=document.createElement('div');overviewStats.id='lfProductionOverviewStats';overviewStats.className='lf-production-overview-stats';
  const overviewAlerts=document.createElement('div');overviewAlerts.id='lfProductionOverviewAlerts';
  panes.overview.append(overviewStats,overviewAlerts);
- if(stock){const stockTitle=stock.previousElementSibling;if(stockTitle?.classList.contains('sectionhead'))panes.overview.appendChild(stockTitle);panes.overview.appendChild(stock)}
+ if(stock){const stockTitle=stock.previousElementSibling,stockIntro=stockTitle?.previousElementSibling;if(stockIntro?.classList.contains('sectionhead'))panes.overview.appendChild(stockIntro);if(stockTitle?.classList.contains('sectionhead'))panes.overview.appendChild(stockTitle);panes.overview.appendChild(stock)}
  if(entryHead)panes.overview.appendChild(entryHead);
  if(entryCard)panes.overview.appendChild(entryCard);
  if(firstHead)panes.now.appendChild(firstHead);
@@ -88,9 +88,9 @@ function closeDocumentPreview(){
   overviewStats.innerHTML=[['مجموعات مفتوحة',open.length],['مجموعات مكتملة',complete.length],['إجمالي المطلوب',required.toLocaleString('en-US')+' قطعة'],['تم تصنيعه',made.toLocaleString('en-US')+' قطعة'],['المتبقي',remaining.toLocaleString('en-US')+' قطعة']].map(([label,value])=>'<div class="lf-production-overview-stat"><span>'+label+'</span><b>'+value+'</b></div>').join('');
   const today=new Date();today.setHours(0,0,0,0);const soon=new Date(today);soon.setDate(soon.getDate()+3);
   const alerts=[];
-  open.forEach(g=>{if(!g.nearestDue)return;const d=new Date(g.nearestDue+'T00:00:00');if(!Number.isFinite(d.getTime()))return;if(d<today)alerts.push({kind:'danger',text:'مجموعة '+g.name+' متأخرة؛ المتبقي '+g.remaining+' قطعة وموعد التسليم '+g.nearestDue});else if(d<=soon)alerts.push({kind:'',text:'موعد مجموعة '+g.name+' قريب؛ المتبقي '+g.remaining+' قطعة وموعد التسليم '+g.nearestDue})});
+  open.forEach(g=>{if(!g.nearestDue)return;const d=new Date(g.nearestDue+'T00:00:00');if(!Number.isFinite(d.getTime()))return;if(d<today)alerts.push({kind:'danger',text:'مجموعة '+(typeof esc==='function'?esc(g.name):String(g.name))+' متأخرة؛ المتبقي '+g.remaining+' قطعة وموعد التسليم '+g.nearestDue});else if(d<=soon)alerts.push({kind:'',text:'موعد مجموعة '+(typeof esc==='function'?esc(g.name):String(g.name))+' قريب؛ المتبقي '+g.remaining+' قطعة وموعد التسليم '+g.nearestDue})});
   const specsByProduct=new Map();groups.forEach(g=>{const k=String(g.productId);specsByProduct.set(k,(specsByProduct.get(k)||0)+1)});
-  groups.filter(g=>specsByProduct.get(String(g.productId))>1).forEach(g=>alerts.push({kind:'info',text:'يوجد أكثر من مجموعة بمواصفات مختلفة للمنتج '+g.name+'؛ راجع المواصفات قبل تسجيل الإنتاج'}));
+  groups.filter(g=>specsByProduct.get(String(g.productId))>1).forEach(g=>alerts.push({kind:'info',text:'يوجد أكثر من مجموعة بمواصفات مختلفة للمنتج '+(typeof esc==='function'?esc(g.name):String(g.name))+'؛ راجع المواصفات قبل تسجيل الإنتاج'}));
   const surplus=(db.productions||[]).filter(b=>b.status!=='cancelled'&&Number(b.addedToStock)>0);
   if(surplus.length)alerts.push({kind:'info',text:'توجد '+surplus.length+' دفعة بها إنتاج غير موزع أضيف للمخزون؛ راجعها قبل تخصيصه لطلبات أخرى.'});
   overviewAlerts.innerHTML=alerts.length?alerts.map(a=>'<div class="lf-production-alert '+a.kind+'">'+a.text+'</div>').join(''):'<div class="lf-production-alert info">لا توجد تنبيهات تصنيع نشطة حاليًا.</div>';
