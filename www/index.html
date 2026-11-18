@@ -1284,11 +1284,42 @@ function importWhatsAppOrder(){
  document.getElementById('oCustomerSelect')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
 window.importWhatsAppOrder=importWhatsAppOrder;
+function lfReleaseProductionAllocationForOrderEdit(orderId,itemIndex,quantity){
+ let remaining=Math.max(0,Number(quantity)||0),released=0;
+ const batches=(db.productions||[]).filter(batch=>batch.status!=='cancelled'&&Array.isArray(batch.allocationLines)).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+ for(const batch of batches){for(const line of batch.allocationLines){if(String(line.orderId)!==String(orderId)||line.itemIndex!==itemIndex)continue;
+  const active=Math.max(0,Number(line.qty)||0)-Math.max(0,Number(line.releasedToStockOnOrderEdit)||0);
+  const take=Math.min(active,remaining);if(!take)continue;
+  line.releasedToStockOnOrderEdit=(Number(line.releasedToStockOnOrderEdit)||0)+take;
+  if(!Array.isArray(line.orderEditReleases))line.orderEditReleases=[];
+  line.orderEditReleases.push({qty:take,at:new Date().toISOString(),reason:'خفض كمية الطلب بعد تسجيل الإنتاج'});
+  remaining-=take;released+=take;if(!remaining)return released;
+ }}
+ if(remaining)throw new Error('تعذر مطابقة فائض الإنتاج مع سجلات دفعات التصنيع؛ أوقفنا التعديل لحماية السجلات.');
+ return released;
+}
+function lfPreserveOrderProductionOnEdit(existingOrder,items){
+ const oldLines=orderStockLines(existingOrder),hasProduction=oldLines.some(line=>Number(line.item?.productionFulfilledUnits)||0);
+ if(!hasProduction){items.forEach(item=>{item.productionFulfilledUnits=0});return{hasProduction:false,released:[]}}
+ if(!Array.isArray(existingOrder.items)||existingOrder.items.length!==items.length||oldLines.some((line,index)=>line.productId!==items[index]?.productId))
+  throw new Error('لا يمكن تغيير أو حذف أصناف طلب بدأ تصنيعه؛ عدّل الكميات مع إبقاء الأصناف وترتيبها كما هي حتى لا تنفصل دفعات الإنتاج عن بنودها.');
+ const released=[];
+ oldLines.forEach((line,index)=>{
+  const oldFulfilled=Math.max(0,Number(line.item?.productionFulfilledUnits)||0),newUnits=Math.max(0,Number(items[index]?.stockUnits)||0),keep=Math.min(oldFulfilled,newUnits),excess=oldFulfilled-keep;
+  if(excess){const count=lfReleaseProductionAllocationForOrderEdit(existingOrder.id,index,excess);if(count!==excess)throw new Error('كمية فائض الإنتاج غير متطابقة مع سجل الدفعات.');
+   const product=(db.products||[]).find(p=>p.id===line.productId);if(!product)throw new Error('المنتج المرتبط بالإنتاج غير موجود.');
+   product.stock=Math.max(0,Number(product.stock)||0)+count;product.reservedStock=Math.max(0,(Number(product.reservedStock)||0)-count);
+   released.push({productId:line.productId,qty:count});
+  }
+  items[index].productionFulfilledUnits=keep;
+ });
+ return{hasProduction:true,released};
+}
 function lfCanEditOrder(o){
  if(!o||!['جديد','قيد التجهيز'].includes(String(o.status||'جديد')))return false;
  if(paidOnOrder(o)>0||o.invoiceNumber||o.shippedAt||o.deliveredAt)return false;
  if((db.payments||[]).some(x=>x.orderId===o.id))return false;
- return !orderStockLines(o).some(line=>Number(line.item?.productionFulfilledUnits)||0);
+ return true;
 }
 function editOrder(id){
  const o=(db.orders||[]).find(x=>x.id===id);if(!o)return alert('الطلب غير موجود.');
@@ -1348,13 +1379,16 @@ function saveOrder(){
   if(editingOrderId&&!existingOrder)return alert('الطلب الذي تعدله لم يعد موجودًا؛ لم يتم حفظ أي تغيير.');
   if(existingOrder&&!lfCanEditOrder(existingOrder))return alert('تغيرت بيانات الطلب منذ فتحه؛ لم يتم حفظ التعديلات لحماية التحصيل والتصنيع.');
   if(existingOrder){for(const line of orderStockLines(existingOrder)){const p=db.products.find(x=>x.id===line.productId);if(!p)return alert('تعذر تعديل الطلب؛ أحد المنتجات المرتبطة به غير موجود.');const deducted=line.item?.stockDeductedUnits===undefined?line.units:Math.max(0,Number(line.item.stockDeductedUnits)||0);if(!Number.isSafeInteger(deducted)||deducted>line.units)return alert('تعذر تعديل الطلب؛ حركة المخزون القديمة غير متطابقة.');}}
+  let productionEdit={hasProduction:false,released:[]};
+  if(existingOrder){try{productionEdit=lfPreserveOrderProductionOnEdit(existingOrder,items)}catch(error){return alert(error.message||'تعذر الحفاظ على سجلات التصنيع؛ لم يتم حفظ التعديل.')}}
+
   let customer=selectedCustomer||phoneOwner||null;
   if(!customer){customer={id:id(),name:customerName,phone:enteredPhone,area,type:newCustomerType||'trader',createdAt:new Date().toISOString()};if(!Array.isArray(db.customers))db.customers=[];db.customers.push(customer)}else{if(!selectedCustomer&&phoneOwner)customer.name=customerName;customer.phone=enteredPhone||customer.phone||'';customer.area=area||customer.area||''}const orderPhone=customer.phone||enteredPhone||'',orderArea=customer.area||area||'';
   if(existingOrder){for(const line of orderStockLines(existingOrder)){const p=db.products.find(x=>x.id===line.productId),deducted=line.item?.stockDeductedUnits===undefined?line.units:Math.max(0,Number(line.item.stockDeductedUnits)||0);p.stock=(Number(p.stock)||0)+deducted;p.reservedStock=Math.max(0,(Number(p.reservedStock)||0)-deducted);}}
   const orderDate=existingOrder?.date||new Date().toISOString(),businessSnapshot=JSON.parse(JSON.stringify(db.businessProfile||{})),first=items[0],orderId=existingOrder?.id||id();
-  for(const [productId,required] of requiredStockByProduct){let p=db.products.find(x=>x.id===productId),available=Math.max(0,Number(p?.stock)||0),toDeduct=Math.min(available,required);
+  for(const [productId,required] of requiredStockByProduct){let p=db.products.find(x=>x.id===productId),available=Math.max(0,Number(p?.stock)||0),alreadyProduced=items.filter(x=>x.productId===productId).reduce((sum,x)=>sum+Math.min(Number(x.stockUnits)||0,Math.max(0,Number(x.productionFulfilledUnits)||0)),0),toDeduct=Math.min(available,Math.max(0,required-alreadyProduced));
    p.stock=available-toDeduct;p.reservedStock=Math.max(0,Number(p.reservedStock)||0)+toDeduct;let remainingDeduction=toDeduct;
-   for(const item of items.filter(x=>x.productId===productId)){let lineUnits=Number(item.stockUnits)||0,deducted=Math.min(lineUnits,remainingDeduction);item.stockDeductedUnits=deducted;item.productionPendingUnits=lineUnits-deducted;item.productionFulfilledUnits=0;remainingDeduction-=deducted}
+   for(const item of items.filter(x=>x.productId===productId)){let lineUnits=Number(item.stockUnits)||0,fulfilled=Math.min(lineUnits,Math.max(0,Number(item.productionFulfilledUnits)||0)),availableUnits=Math.max(0,lineUnits-fulfilled),deducted=Math.min(availableUnits,remainingDeduction);item.stockDeductedUnits=deducted;item.productionFulfilledUnits=fulfilled;item.productionPendingUnits=availableUnits-deducted;remainingDeduction-=deducted}
   }
   const savedOrder={...(existingOrder||{}),id:orderId,orderNumber:existingOrder?.orderNumber||lfNextOrderNumber(),customerId:customer.id,customer:customer.name||customerName,customerType:customer.type||newCustomerType||existingOrder?.customerType||'',phone:orderPhone,area:orderArea,items,total,productId:first.productId,productName:first.productName,productCode:first.productCode,productSnapshot:first.productSnapshot,qty:first.qty,unitType:first.unitType,stockUnits:items.reduce((v,x)=>v+x.stockUnits,0),price:first.price,deposit,depositMethod,depositPaymentId:existingOrder?.depositPaymentId||'',due:$('oDue').value,status:$('oStatus').value,date:orderDate,invoiceSnapshot:{date:orderDate,business:businessSnapshot,products:items.map(x=>x.productSnapshot),customer:{id:customer.id,customerId:customer.id,name:customer.name||customerName,phone:orderPhone,area:orderArea,type:customer.type||''}}};
   if(!Array.isArray(db.stockMovements))db.stockMovements=[];
@@ -3014,7 +3048,7 @@ window.cancelProductionBatch=function(batchId){const batch=(db.productions||[]).
  if(!Array.isArray(batch.allocationLines))return alert('لا يمكن إلغاء هذه الدفعة القديمة بأمان؛ لم يكن النظام يسجل توزيعها على الطلبات بالتفصيل.');
  const p=(db.products||[]).find(x=>x.id===batch.productId);
  if(!p)return alert('لا يمكن الإلغاء: المنتج المرتبط بالدفعة غير موجود.');
- const added=Math.max(0,Number(batch.addedToStock)||0),allocated=Math.max(0,Number(batch.allocatedToOrders)||0),currentStock=Math.max(0,Number(p.stock)||0);
+ const releasedToStock=(batch.allocationLines||[]).reduce((sum,line)=>sum+Math.max(0,Number(line.releasedToStockOnOrderEdit)||0),0),added=Math.max(0,Number(batch.addedToStock)||0)+releasedToStock,allocated=Math.max(0,Number(batch.allocatedToOrders)||0)-releasedToStock,currentStock=Math.max(0,Number(p.stock)||0);
  if((Number(p.reservedStock)||0)<allocated)return alert('لا يمكن إلغاء الدفعة بأمان: رصيد الحجز أقل من الكمية المخصصة للطلبات.');
  if(currentStock<added)return alert('لا يمكن إلغاء الدفعة بأمان: المخزون الحالي '+currentStock+' قطعة، بينما يلزم خصم '+added+' قطعة. راجع المبيعات وحركات المخزون أولاً.');
  for(const line of batch.allocationLines){
@@ -3025,14 +3059,14 @@ window.cancelProductionBatch=function(batchId){const batch=(db.productions||[]).
   if(/تسليم|شحن|delivered/i.test(String(order.status||'')))return alert('لا يمكن إلغاء الدفعة بأمان بعد بدء التسليم أو الشحن للطلب '+String(order.id).slice(-8)+'.');
   const item=line.itemIndex===null?order:order.items?.[line.itemIndex];
   if(!item)return alert('لا يمكن الإلغاء: بند الطلب المرتبط بالدفعة غير موجود.');
-  if(Number(item.productionFulfilledUnits||0)<Number(line.qty||0))return alert('بيانات تخصيص الطلب غير متطابقة؛ أوقفنا الإلغاء لحماية رصيد الطلب.');
+  const activeQty=Math.max(0,Number(line.qty||0)-Number(line.releasedToStockOnOrderEdit||0));if(Number(item.productionFulfilledUnits||0)<activeQty)return alert('بيانات تخصيص الطلب غير متطابقة؛ أوقفنا الإلغاء لحماية رصيد الطلب.');
  }
  const before=lfClone(db);
  try{p.stock=currentStock-added;p.reservedStock=Math.max(0,(Number(p.reservedStock)||0)-allocated);
   (db.stockMovements||(db.stockMovements=[])).push({id:id(),productId:p.id,delta:-added,reservedDelta:-allocated,reason:'عكس إنتاج وإلغاء دفعة '+batch.batchNo,productionBatchId:batch.id,batchNo:batch.batchNo,date:new Date().toISOString()});
   for(const line of batch.allocationLines){
    const order=db.orders.find(x=>x.id===line.orderId);
-   const item=line.itemIndex===null?order:order.items[line.itemIndex],qty=Math.max(0,Number(line.qty)||0);
+   const item=line.itemIndex===null?order:order.items[line.itemIndex],qty=Math.max(0,Number(line.qty)||0)-Math.max(0,Number(line.releasedToStockOnOrderEdit)||0);
    item.productionPendingUnits=(Number(item.productionPendingUnits)||0)+qty;
    item.productionFulfilledUnits=Math.max(0,(Number(item.productionFulfilledUnits)||0)-qty);
   }
