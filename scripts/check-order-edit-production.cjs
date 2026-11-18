@@ -24,7 +24,8 @@ const context = vm.createContext({
     payments: []
   },
   orderStockLines: order => (order.items || []).map(item => ({ item, productId: item.productId, units: item.stockUnits })),
-  paidOnOrder: () => 0
+  paidOnOrder: () => 0,
+  lfOrderHasShipped: order => !!(order?.stockIssuedAt || order?.stockIssueMigrated || order?.shippedAt || ['تم تسليمه لشركة الشحن','تم التسليم','تم التسليم للعميل'].includes(String(order?.status || '')))
 });
 vm.runInContext(helperSource, context);
 const order = { id: 'o1', status: 'قيد التجهيز', items: [{
@@ -55,7 +56,8 @@ const guarded = vm.createContext({
     payments: []
   },
   orderStockLines: value => (value.items || []).map(item => ({ item, productId: item.productId, units: item.stockUnits })),
-  paidOnOrder: () => 0
+  paidOnOrder: () => 0,
+  lfOrderHasShipped: order => !!(order?.stockIssuedAt || order?.stockIssueMigrated || order?.shippedAt || ['تم تسليمه لشركة الشحن','تم التسليم','تم التسليم للعميل'].includes(String(order?.status || '')))
 });
 vm.runInContext(helperSource, guarded);
 let mismatchRejected = false;
