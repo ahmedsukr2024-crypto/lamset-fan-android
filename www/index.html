@@ -1575,7 +1575,7 @@ function confirmOrderStatusChange(){
  applyOrderStatusChange(id,status);
 }
 function lfOrderCancellationReleaseUnits(line){
- const units=Number(line?.units),item=line?.item||{},deducted=item.stockDeductedUnits===undefined?units:Number(item.stockDeductedUnits),fulfilled=Number(item.productionFulfilledUnits)||0;
+ const units=Number(line?.units),item=line?.item||{},fulfilled=Number(item.productionFulfilledUnits)||0,deducted=item.stockDeductedUnits===undefined?Math.max(0,units-fulfilled):Number(item.stockDeductedUnits);
  if(!Number.isSafeInteger(units)||units<0||!Number.isSafeInteger(deducted)||deducted<0||!Number.isSafeInteger(fulfilled)||fulfilled<0||deducted+fulfilled>units)
   throw new Error('توجد كميات مخزون أو إنتاج غير متطابقة في الطلب؛ أوقفنا الإلغاء لحماية رصيد المخزون وسجلات التصنيع.');
  return deducted+fulfilled;
