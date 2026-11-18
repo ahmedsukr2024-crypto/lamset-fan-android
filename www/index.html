@@ -1011,7 +1011,7 @@ function renderCentralStockMovements(){
  const orderById=oid=>orders.find(o=>String(o.id)===String(oid));
  const rows=[],movementBatchIds=new Set();
  movements.forEach(m=>{
-  const delta=Number(m.delta)||0,mode=String(m.movementType||''),source=String(m.source||''),isProduction=!!(m.productionBatchId||m.batchNo||/إنتاج دفعة/.test(String(m.reason||''))||(source==='production'||source==='production_surplus'||mode.startsWith('production_surplus')),isOrder=!!(m.orderId||m.orderNumber||mode.startsWith('order_'));
+  const delta=Number(m.delta)||0,mode=String(m.movementType||''),source=String(m.source||''),isProduction=!!(m.productionBatchId||m.batchNo||/إنتاج دفعة/.test(String(m.reason||''))||(source==='production'||source==='production_surplus'||mode.startsWith('production_surplus'))),isOrder=!!(m.orderId||m.orderNumber||mode.startsWith('order_'));
   const isAdjust=mode==='set'||/تسوية|تصحيح رصيد/.test(String(m.reason||'')),kind=isProduction?'production':isOrder?'order':isAdjust?'adjust':delta<0?'out':'in';
   if(m.productionBatchId)movementBatchIds.add(String(m.productionBatchId));if(m.batchNo)movementBatchIds.add(String(m.batchNo));
   const order=orderById(m.orderId),batch=batches.find(b=>String(b.id)===String(m.productionBatchId)||String(b.batchNo)===String(m.batchNo));
