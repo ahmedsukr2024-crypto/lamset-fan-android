@@ -25,6 +25,8 @@ const context = vm.createContext({
   },
   orderStockLines: order => (order.items || []).map(item => ({ item, productId: item.productId, units: item.stockUnits })),
   paidOnOrder: () => 0,
+  id: () => 'movement-test',
+  lfOrderNumber: order => String(order.id),
   lfOrderHasShipped: order => !!(order?.stockIssuedAt || order?.stockIssueMigrated || order?.shippedAt || ['تم تسليمه لشركة الشحن','تم التسليم','تم التسليم للعميل'].includes(String(order?.status || '')))
 });
 vm.runInContext(helperSource, context);
