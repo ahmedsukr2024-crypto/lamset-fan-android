@@ -21,7 +21,7 @@ for (const token of [
   'font-family:"Tajawal"',
   '@page{size:A5 portrait;margin:10mm}',
   'فاتورة تحصيل عربون',
-  'رقم فاتورة التحصيل:',
+  'رقم إيصال التحصيل:',
   'رقم الطلب',
   'رقم الفاتورة',
   'المبلغ المستلم بهذه العملية',
@@ -38,6 +38,8 @@ for (const token of [
 }
 assert(receipt.includes('paymentReceiptBalances(payment)'), 'receipt uses the existing payment balance calculation');
 assert(receipt.includes('paymentReceiptAmountWords(current)'), 'receipt shows the collected amount in Arabic words');
+assert(receipt.includes('payment.receiptNumber||payment.id'), 'printed receipt uses the immutable serial number');
+assert(receipt.includes("payment.status==='cancelled'") && receipt.includes('payment.cancelReason'), 'cancelled receipt remains printable with a clear cancellation stamp and reason');
 assert(receipt.includes('esc(amountWords)'), 'amount-in-words output is HTML escaped');
 assert(!receipt.includes('تكلفة') && !receipt.includes('ربح') && !receipt.includes('مرتجع'), 'receipt does not expose internal costs, profits, or returns');
 if (process.exitCode) process.exit(process.exitCode);
