@@ -6,10 +6,13 @@ assert.match(html,/<select id="productSort"[\s\S]*?<option value="manual">ترت
 assert.match(html,/sort==='manual'[\s\S]{0,180}\?\(Number\(a\.sortOrder\?\?db\.products\.indexOf\(a\)\)/,'manual sort must use persisted sortOrder with stable original-order fallback');
 assert.match(html,/class="card product-tile" data-product-id="'\+esc\(p\.id\)/,'each product tile must expose its stable product id');
 assert.match(html,/const manual=sort==='manual'&&!q&&!design&&stockFilter==='all'/,'drag reorder must be restricted to an unfiltered manual list');
+assert.match(html,/lf-product-drag-handle/,'manual reorder affordance missing');
+assert.match(html,/list\.classList\.toggle\('lf-manual-product-order',manual\)/,'manual list state class missing');
 assert.match(html,/tile\.addEventListener\('dragstart'/,'drag start handler missing');
 assert.match(html,/tile\.addEventListener\('drop'/,'drop handler missing');
 assert.match(html,/p\.sortOrder=index/,'drop must persist a complete ordering');
 assert.match(html,/if\(!save\(\)\)\{db=before/,'failed persistence must roll back the ordering');
+assert.match(css,/\.lf-product-drag-handle/,'manual reorder handle styling missing');
 assert.match(css,/\.lf-product-drop-target/,'drop target feedback missing');
 assert.match(css,/\.lf-product-dragging/,'drag state feedback missing');
 console.log('Manual product ordering checks passed.');
