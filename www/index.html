@@ -30,7 +30,81 @@ function closeDocumentPreview(){
  window.lfCurrentDocumentKind='';
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
  if(modal)modal.classList.remove('open');
- if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body></body></html>';}
+ if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body>
+<style id="lf-production-workspace-v2">
+#production .lf-production-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 12px;padding:5px;background:var(--surface,#fff);border:1px solid var(--line);border-radius:15px}
+#production .lf-production-tab{min-width:0;padding:9px 4px!important;border-radius:11px!important;background:transparent!important;color:var(--muted)!important;border:1px solid transparent!important;box-shadow:none!important;font-size:12px}
+#production .lf-production-tab.active{background:var(--lavender-2)!important;color:var(--purple)!important;border-color:var(--purple)!important;font-weight:800}
+#production [data-production-pane]{min-width:0}
+#production .lf-production-overview-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+#production .lf-production-overview-stat{padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--surface,#fff);min-width:0}
+#production .lf-production-overview-stat span{display:block;font-size:11px;color:var(--muted)}
+#production .lf-production-overview-stat b{display:block;font-size:20px;margin-top:4px;color:var(--ink)}
+#production .lf-production-alert{padding:11px 12px;margin:8px 0;border:1px solid #F2D39A;border-right:4px solid #D97706;border-radius:12px;background:#FFFAEB;font-size:12px;color:#854D0E}
+#production .lf-production-alert.danger{border-color:#F2B8B5;border-right-color:#D92D20;background:#FEF3F2;color:#912018}
+#production .lf-production-alert.info{border-color:#B8D8F8;border-right-color:#1877F2;background:#EFF6FF;color:#184F91}
+#production .lf-production-group-card.is-overdue{border-right:4px solid #D92D20}
+#production .lf-production-group-card.is-upcoming{border-right:4px solid #D97706}
+@media(max-width:360px){#production .lf-production-tab{font-size:10px;padding:8px 2px!important}}
+</style>
+<script id="LAMSET_PRODUCTION_WORKSPACE_V2">
+(function(){
+ 'use strict';
+ const section=document.getElementById('production');
+ if(!section||section.dataset.workspaceV2==='1')return;
+ const byId=id=>document.getElementById(id);
+ const firstHead=section.querySelector('.sectionhead');
+ const needsSummary=byId('productionNeedsSummary'),needsList=byId('productionNeedsList');
+ const stock=byId('stockDashboard'),stockModal=byId('lfStockAdjustModal');
+ const entryHead=[...section.querySelectorAll('.sectionhead')].find(el=>/تسجيل الإنتاج/.test(el.textContent||''));
+ const entryCard=entryHead?.nextElementSibling;
+ const history=byId('lfProductionBatchAudit');
+ const tabs=document.createElement('div');
+ tabs.className='lf-production-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','أقسام التصنيع');
+ const definitions=[['overview','نظرة عامة'],['now','المطلوب'],['groups','مجموعات التصنيع'],['history','سجل الدفعات']];
+ definitions.forEach(([key,label])=>{const b=document.createElement('button');b.type='button';b.className='lf-production-tab';b.dataset.productionTab=key;b.setAttribute('role','tab');b.setAttribute('aria-selected','false');b.textContent=label;b.addEventListener('click',()=>window.setProductionTab?.(key));tabs.appendChild(b)});
+ section.insertBefore(tabs,section.firstChild);
+ const panes={};
+ definitions.forEach(([key])=>{const pane=document.createElement('div');pane.dataset.productionPane=key;pane.hidden=true;panes[key]=pane;section.appendChild(pane)});
+ const groupAlerts=document.createElement('div');groupAlerts.id='lfProductionGroupAlerts';
+ const groupList=document.createElement('div');groupList.id='lfProductionGroupsList';
+ const overviewStats=document.createElement('div');overviewStats.id='lfProductionOverviewStats';overviewStats.className='lf-production-overview-stats';
+ const overviewAlerts=document.createElement('div');overviewAlerts.id='lfProductionOverviewAlerts';
+ panes.overview.append(overviewStats,overviewAlerts);
+ if(stock){const stockTitle=stock.previousElementSibling;if(stockTitle?.classList.contains('sectionhead'))panes.overview.appendChild(stockTitle);panes.overview.appendChild(stock)}
+ if(entryHead)panes.overview.appendChild(entryHead);
+ if(entryCard)panes.overview.appendChild(entryCard);
+ if(firstHead)panes.now.appendChild(firstHead);
+ if(needsSummary)panes.now.appendChild(needsSummary);
+ if(needsList)panes.now.appendChild(needsList);
+ panes.groups.append(groupAlerts,groupList);
+ if(history)panes.history.appendChild(history);
+ if(stockModal)section.appendChild(stockModal);
+ section.dataset.workspaceV2='1';
+ window.renderProductionOverview=function(){
+  const groups=typeof lfBuildProductionGroups==='function'?lfBuildProductionGroups():[];
+  const open=groups.filter(g=>g.remaining>0),complete=groups.filter(g=>g.remaining===0);
+  const required=groups.reduce((n,g)=>n+g.required,0),made=groups.reduce((n,g)=>n+g.manufactured,0),remaining=groups.reduce((n,g)=>n+g.remaining,0);
+  overviewStats.innerHTML=[['مجموعات مفتوحة',open.length],['مجموعات مكتملة',complete.length],['إجمالي المطلوب',required.toLocaleString('en-US')+' قطعة'],['تم تصنيعه',made.toLocaleString('en-US')+' قطعة'],['المتبقي',remaining.toLocaleString('en-US')+' قطعة']].map(([label,value])=>'<div class="lf-production-overview-stat"><span>'+label+'</span><b>'+value+'</b></div>').join('');
+  const today=new Date();today.setHours(0,0,0,0);const soon=new Date(today);soon.setDate(soon.getDate()+3);
+  const alerts=[];
+  open.forEach(g=>{if(!g.nearestDue)return;const d=new Date(g.nearestDue+'T00:00:00');if(!Number.isFinite(d.getTime()))return;if(d<today)alerts.push({kind:'danger',text:'مجموعة '+g.name+' متأخرة؛ المتبقي '+g.remaining+' قطعة وموعد التسليم '+g.nearestDue});else if(d<=soon)alerts.push({kind:'',text:'موعد مجموعة '+g.name+' قريب؛ المتبقي '+g.remaining+' قطعة وموعد التسليم '+g.nearestDue})});
+  const specsByProduct=new Map();groups.forEach(g=>{const k=String(g.productId);specsByProduct.set(k,(specsByProduct.get(k)||0)+1)});
+  groups.filter(g=>specsByProduct.get(String(g.productId))>1).forEach(g=>alerts.push({kind:'info',text:'يوجد أكثر من مجموعة بمواصفات مختلفة للمنتج '+g.name+'؛ راجع المواصفات قبل تسجيل الإنتاج'}));
+  const surplus=(db.productions||[]).filter(b=>b.status!=='cancelled'&&Number(b.addedToStock)>0);
+  if(surplus.length)alerts.push({kind:'info',text:'توجد '+surplus.length+' دفعة بها إنتاج غير موزع أضيف للمخزون؛ راجعها قبل تخصيصه لطلبات أخرى.'});
+  overviewAlerts.innerHTML=alerts.length?alerts.map(a=>'<div class="lf-production-alert '+a.kind+'">'+a.text+'</div>').join(''):'<div class="lf-production-alert info">لا توجد تنبيهات تصنيع نشطة حاليًا.</div>';
+ };
+ const oldGroups=window.renderProductionGroups;
+ window.renderProductionGroups=function(){if(typeof oldGroups==='function')oldGroups();const groups=typeof lfBuildProductionGroups==='function'?lfBuildProductionGroups():[];const today=new Date();today.setHours(0,0,0,0);const soon=new Date(today);soon.setDate(soon.getDate()+3);const alerts=[];groups.filter(g=>g.remaining>0&&g.nearestDue).forEach(g=>{const d=new Date(g.nearestDue+'T00:00:00');if(!Number.isFinite(d.getTime()))return;if(d<today)alerts.push('<div class="lf-production-alert danger">متأخرة: '+String(g.name)+' · المتبقي '+g.remaining+' قطعة · التسليم '+g.nearestDue+'</div>');else if(d<=soon)alerts.push('<div class="lf-production-alert">موعد قريب: '+String(g.name)+' · المتبقي '+g.remaining+' قطعة · التسليم '+g.nearestDue+'</div>')});groupAlerts.innerHTML=alerts.join('')};
+ const oldSet=window.setProductionTab;
+ window.setProductionTab=function(key){if(typeof oldSet==='function')oldSet(key);const selected=definitions.some(x=>x[0]===key)?key:'overview';definitions.forEach(([name])=>{const active=name===selected;panes[name].hidden=!active;const b=tabs.querySelector('[data-production-tab="'+name+'"]');if(b){b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active))}});if(selected==='overview')window.renderProductionOverview();if(selected==='groups')window.renderProductionGroups?.();if(selected==='now')window.renderProductionNeeds?.();if(selected==='history')window.renderProductionBatchHistory?.()};
+ const oldRenderAll=window.renderAll;
+ if(typeof oldRenderAll==='function')window.renderAll=function(){const result=oldRenderAll.apply(this,arguments);window.renderProductionOverview();return result};
+ window.setProductionTab('overview');
+})();
+</script>
+</body></html>';}
  document.body.classList.remove('lf-modal-open');
 }
 async function printDocumentPreview(){
