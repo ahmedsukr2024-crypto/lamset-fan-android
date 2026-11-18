@@ -2,4 +2,6 @@ const fs=require('node:fs');const assert=require('node:assert/strict');const htm
 assert(html.includes("collectionTitle=o.due&&o.due<today?'متأخر':o.due&&o.due<=collectionDueWindow?'موعد قريب':'مستحق'"),'collection alerts must distinguish overdue, near due, and due balances');
 assert(html.includes("' — '+lfOrderNumber(o)+' — المتبقي '+money(balance)"),'collection alerts must show order number and remaining amount');
 assert(html.includes("action:'order',targetId:oid,actionLabel:'فتح الطلب'"),'collection alerts must target the order details');
-assert(html.includes("x.category==='التحصيل'&&x.targetId?' role=\"button\" tabindex=\"0\" onclick=\"openHomeOrder('"),'dashboard collection alerts must open order details');console.log('Home dashboard status, delivery follow-up, and quick-action checks passed.');
+assert(html.includes("x.category==='التحصيل'&&x.targetId?' role=\"button\" tabindex=\"0\" onclick=\"openHomeOrder('"),'dashboard collection alerts must open order details');
+assert(html.includes("onkeydown=\"if(event.key==='Enter'||event.key===' '){event.preventDefault();openHomeOrder("),'collection alert must support keyboard activation');
+assert(css.includes('.lf-dash-alert[role="button"]:focus-visible'),'actionable alert focus state missing');console.log('Home dashboard status, delivery follow-up, and quick-action checks passed.');
