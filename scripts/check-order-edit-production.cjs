@@ -48,6 +48,23 @@ const eligible = context.lfCanEditOrder(order);
 assert(eligible, 'an unpaid, uninvoiced, unshipped order remains editable after production');
 context.db.payments.push({ orderId: 'o1', amount: 1 });
 assert(!context.lfCanEditOrder(order), 'orders with payment history remain protected from editing');
+const guarded = vm.createContext({
+  db: {
+    products: [{ id: 'p1', stock: 0, reservedStock: 10 }],
+    productions: [{ id: 'b2', status: 'active', allocationLines: [{ orderId: 'o2', itemIndex: 0, qty: 10 }] }],
+    payments: []
+  },
+  orderStockLines: value => (value.items || []).map(item => ({ item, productId: item.productId, units: item.stockUnits })),
+  paidOnOrder: () => 0
+});
+vm.runInContext(helperSource, guarded);
+let mismatchRejected = false;
+try {
+  guarded.lfPreserveOrderProductionOnEdit({ id: 'o2', status: 'قيد التجهيز', items: [{ productId: 'p1', stockUnits: 10, productionFulfilledUnits: 10 }] }, [{ productId: 'p1', stockUnits: 0 }]);
+} catch (_) { mismatchRejected = true; }
+assert(mismatchRejected, 'an edit with an unmatched production ledger is rejected');
+assert(guarded.db.products[0].stock === 0 && guarded.db.products[0].reservedStock === 10, 'failed prevalidation leaves stock balances untouched');
+assert(guarded.db.productions[0].allocationLines[0].releasedToStockOnOrderEdit === undefined, 'failed prevalidation does not partially mutate batch history');
 assert(html.includes('alreadyProduced=items.filter') && html.includes('productionFulfilledUnits=fulfilled'), 'save operation preserves fulfilled quantities and subtracts them before stock reservation');
 assert(html.includes('releasedToStockOnOrderEdit') && html.includes('const activeQty='), 'production batch cancellation respects quantities released by order edits');
 if (process.exitCode) process.exit(process.exitCode);
