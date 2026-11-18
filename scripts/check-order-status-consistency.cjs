@@ -47,5 +47,8 @@ const renderEnd = html.indexOf('function factoryOrderHtml', renderStart);
 const render = renderStart >= 0 && renderEnd > renderStart ? html.slice(renderStart, renderEnd) : '';
 assert(render.includes('const archived=lfIsArchivedOrder;'), 'open/archive tabs use the same canonical status helper');
 assert(render.includes('orderWorkflowSnapshot(o)'), 'order cards use canonical workflow status');
+assert(html.includes('سبب إلغاء / إغلاق الطلب (مطلوب):'), 'exceptional order closure requires a reason');
+assert(html.includes('o.cancelReason=statusReason'), 'order closure reason is retained with the order');
+assert(html.includes('...(statusReason?{reason:statusReason}:{})'), 'order status history records the closure reason');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Order status consistency checks passed.');
