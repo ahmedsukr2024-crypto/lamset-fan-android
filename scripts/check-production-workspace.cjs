@@ -1,0 +1,12 @@
+const fs=require('node:fs');const assert=require('node:assert/strict');const html=fs.readFileSync('www/index.html','utf8');
+assert(html.includes('id="LAMSET_PRODUCTION_WORKSPACE_V2"'),'production workspace controller missing');
+assert(html.includes("definitions=[['overview','نظرة عامة'],['now','المطلوب'],['groups','مجموعات التصنيع'],['history','سجل الدفعات']]"),'production workspace must expose the four approved tabs');
+for(const id of ['productionNeedsSummary','productionNeedsList','stockDashboard','lfProductionBatchAudit'])assert(html.includes('byId(''+id+'')')||html.includes('id="'+id+'"'),'production region missing: '+id);
+for(const fn of ['renderProductionOverview','renderProductionGroups','renderProductionNeeds','renderProductionBatchHistory'])assert(html.includes(fn),'production renderer missing: '+fn);
+assert(html.includes('lfProductionOverviewStats'),'production overview counters missing');
+assert(html.includes('lfProductionOverviewAlerts'),'production overview alerts missing');
+assert(html.includes('lfProductionGroupAlerts'),'production group alert region missing');
+assert(html.includes('oldRenderAll.apply(this,arguments)'),'production overview must refresh after app renders');
+assert(html.includes('window.setProductionTab(\'overview\')'),'production workspace must open on overview');
+assert(html.includes('lfProductionBatchAudit'),'existing production batch history must be preserved');
+console.log('Production workspace four-tab structure and existing production regions verified.');
