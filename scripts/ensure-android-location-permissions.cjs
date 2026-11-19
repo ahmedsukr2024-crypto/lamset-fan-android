@@ -21,15 +21,17 @@ if (!/<manifest\b/.test(xml) || !/<application\b/.test(xml)) {
   process.exit(1);
 }
 
-const missing = requiredPermissions.filter(permission =>
-  !new RegExp('<uses-permission\\b[^>]*android:name=["\\']' + permission.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&') + '["\\'][^>]*/?>').test(xml)
-);
+const missing = requiredPermissions.filter(permission => {
+  const escaped = permission.replaceAll('.', '\\.');
+  const declaration = new RegExp('<uses-permission\\b[^>]*android:name=["\\']' + escaped + '["\\'][^>]*/?>');
+  return !declaration.test(xml);
+});
 
 if (missing.length) {
   const declarations = missing.map(permission =>
     '    <uses-permission android:name="' + permission + '" />'
-  ).join('\\n');
-  xml = xml.replace(/(<application\\b)/, declarations + '\\n\\n    $1');
+  ).join('\n');
+  xml = xml.replace(/(<application\b)/, declarations + '\n\n    $1');
   fs.writeFileSync(manifestPath, xml, 'utf8');
   console.log('تمت إضافة صلاحيات الموقع: ' + missing.join(', '));
 } else {
