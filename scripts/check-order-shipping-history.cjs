@@ -32,4 +32,27 @@ const deleteEnd = html.indexOf('function offerProductChanged()', deleteStart);
 const deleteSource = html.slice(deleteStart, deleteEnd);
 assert(deleteSource.includes('if(lfOrderHasShipped(o)||o.deliveredAt)return alert'), 'delete guard protects migrated and issued shipment history');
 assert(html.includes('o.statusHistory.push({status:s,previousStatus:previous,date:statusChangedAt'), 'status history appends instead of replacing prior events');
+
+const reviewStart = html.indexOf('function lfReviewOrderBeforeDelivery(o)');
+const reviewEnd = html.indexOf('function orderWorkflowSnapshot(o)', reviewStart);
+assert(reviewStart >= 0 && reviewEnd > reviewStart, 'final-delivery review helper exists');
+const stockLineSource = html.match(/function orderStockLines\\(o\\)\\{[^}]*\\}/)?.[0] || '';
+assert(!!stockLineSource, 'canonical order stock-line helper exists for delivery review');
+const reviewContext = vm.createContext({ db: { products: [{ id: 'p1', name: 'منتج 1' }] } });
+vm.runInContext(stockLineSource + '\\n' + html.slice(reviewStart, reviewEnd) + '\\nthis.review=lfReviewOrderBeforeDelivery;', reviewContext);
+const completeUnpaid = { customer: 'عميل', items: [{ productId: 'p1', productName: 'منتج 1', stockUnits: 5, stockDeductedUnits: 5, productionFulfilledUnits: 0, productionPendingUnits: 0 }] };
+assert(reviewContext.review(completeUnpaid).ok, 'fully prepared order can be delivered while payment remains outstanding');
+assert(!reviewContext.review({ ...completeUnpaid, items: [{ ...completeUnpaid.items[0], productionPendingUnits: 2, stockDeductedUnits: 3 }] }).ok, 'delivery is blocked while production remains pending');
+assert(!reviewContext.review({ ...completeUnpaid, items: [{ ...completeUnpaid.items[0], stockDeductedUnits: 3 }] }).ok, 'delivery is blocked when prepared quantity is below required quantity even if pending field is zero');
+assert(!reviewContext.review({ ...completeUnpaid, customer: ' ' }).ok, 'delivery is blocked when customer name is missing');
+assert(!reviewContext.review({ ...completeUnpaid, items: [{ ...completeUnpaid.items[0], productId: 'missing' }] }).ok, 'delivery is blocked when an order product reference is missing');
+assert(!reviewContext.review({ ...completeUnpaid, items: [{ ...completeUnpaid.items[0], stockUnits: 0 }] }).ok, 'delivery is blocked for zero or invalid item quantity');
+assert(!reviewContext.review({ ...completeUnpaid, stockIssuedAt: '2026-11-19T10:00:00Z', stockIssuedUnits: 4 }).ok, 'delivery is blocked when recorded issued quantity differs from order total');
+assert(reviewContext.review({ ...completeUnpaid, stockIssuedAt: '2026-11-19T10:00:00Z', stockIssueMigrated: true }).ok, 'legacy migrated issue history remains compatible');
+const deliveryReviewCall = statusSource.indexOf('lfReviewOrderBeforeDelivery(o)');
+const statusSnapshot = statusSource.indexOf('const before=JSON.parse(JSON.stringify(db))');
+assert(deliveryReviewCall >= 0 && statusSnapshot > deliveryReviewCall, 'final-delivery review runs before any order or stock mutation');
+const reviewSource = html.slice(reviewStart, reviewEnd);
+assert(!reviewSource.includes('paidOnOrder') && !reviewSource.includes('orderDue'), 'final delivery review does not require full payment');
+
 console.log('Order shipping history checks passed.');
