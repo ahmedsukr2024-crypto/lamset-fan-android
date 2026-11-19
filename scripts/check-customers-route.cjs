@@ -21,6 +21,12 @@ assert.match(route,/if\(flow\.shipped&&!flow\.delivered&&typeof applyOrderStatus
 assert.match(route,/consignmentDue\(customer\)/);
 assert.match(route,/function startCampaign\(\)/);
 assert.match(route,/function campaignNext\(\)/);
+assert.match(route,/escape\(JSON\.stringify\(c\.id\)\)/);
+assert.match(route,/escape\(JSON\.stringify\(item\.customerId\)\)/);
+assert.match(route,/escape\(JSON\.stringify\(customer\.id\)\)/);
+assert.doesNotMatch(route,/onclick="[^"]*'\\s*\\+\\s*JSON\.stringify\(/);
+assert.match(route,/function renderRadar\(\)\{\\s*const host=\$\('lfCrRadarPanel'\)/);
+assert.doesNotThrow(()=>new Function(route),'Customer route script must parse before the app is built.');
 assert.match(route,/const whatsappPhone=value=>/);
 assert.match(route,/20'\+digits\.slice\(1\)/);
 assert.match(route,/whatsapp\(queue\[0\]\)/);
