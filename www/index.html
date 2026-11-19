@@ -1492,7 +1492,7 @@ async function saveOrder(){
   else{db.orders.push(savedOrder);lfRecordActivity('إنشاء طلب',savedOrder.orderNumber,'تم تسجيل طلب للعميل '+String(customer.name||customerName).slice(0,70)+' · '+items.length+' أصناف')}
   if(!existingOrder&&deposit>0){
    if(!Array.isArray(db.payments))db.payments=[];
-   const depositPayment={id:id(),orderId:savedOrder.id,amount:deposit,method:depositMethod,note:'عربون عند تسجيل الطلب',date:new Date().toISOString(),kind:'deposit'};
+   const depositPayment={id:id(),receiptNumber:lfNextPaymentReceiptNumber(),orderId:savedOrder.id,amount:deposit,method:depositMethod,note:'عربون عند تسجيل الطلب',date:new Date().toISOString(),kind:'deposit',status:'active'};
    db.payments.push(depositPayment);savedOrder.depositPaymentId=depositPayment.id;
    lfRecordActivity('تسجيل عربون',savedOrder.orderNumber,'تم تسجيل عربون '+money(deposit)+' بطريقة '+depositMethod);
   }
@@ -3169,14 +3169,14 @@ function lfMigrateLegacyOrderDeposits(){
    const existing=lfOrderDepositPayment(order);
    if(lfOrderHasDepositLedgerEntry(order)){if(existing&&order.depositPaymentId!==existing.id){order.depositPaymentId=existing.id;changed=true}return}
    const method=['نقدي','تحويل بنكي','محفظة إلكترونية','أخرى'].includes(order.depositMethod)?order.depositMethod:'غير محدد';
-   const payment={id:id(),orderId:order.id,amount,method,note:'عربون محفوظ سابقًا على الطلب',date:order.depositDate||order.date||new Date().toISOString(),kind:'deposit',legacyMigration:true};
+   const payment={id:id(),receiptNumber:lfNextPaymentReceiptNumber(),orderId:order.id,amount,method,note:'عربون محفوظ سابقًا على الطلب',date:order.depositDate||order.date||new Date().toISOString(),kind:'deposit',status:'active',legacyMigration:true};
    db.payments.push(payment);order.depositPaymentId=payment.id;changed=true;
   });
   if(changed&&!save()){db=JSON.parse(before);return false}
   return changed;
  }catch(error){db=JSON.parse(before);console.error('Legacy order deposit migration failed:',error);return false}
 }
-const lamsetDataReady=load();if(lamsetDataReady){lfMigrateLegacyOrderDeposits();lfMigrateStockReservations(db)}if(lfEnsureOrderNumbers()&&lamsetDataReady)save();pendingOrderItems=Array.isArray(db.orderDraft)?JSON.parse(JSON.stringify(db.orderDraft)):[];applyLamsetAppearance();if(!Array.isArray(db.customers))db.customers=[];db.products.forEach(p=>{if(!p.unitsPerCarton)p.unitsPerCarton=1});db.orders.forEach(o=>{let p=db.products.find(x=>x.id===o.productId);if(o.stockUnits==null)o.stockUnits=o.qty*(o.unitType==='carton'?(p?.unitsPerCarton||1):1);if(!o.customerId&&o.phone){let c=findUniqueCustomerByPhone(o.phone);if(c)o.customerId=c.id}});if(lamsetDataReady)save();else $('saveStatus').textContent='الحفظ متوقف لحماية البيانات؛ استعد نسخة احتياطية سليمة أولاً';renderAutoBackupSettings();$('today').textContent=new Date().toLocaleDateString('ar-EG');renderAll();lfRestoreOrderFormDraft();
+const lamsetDataReady=load();if(lamsetDataReady){lfMigrateLegacyOrderDeposits();lfEnsurePaymentReceiptNumbers();lfMigrateStockReservations(db)}if(lfEnsureOrderNumbers()&&lamsetDataReady)save();pendingOrderItems=Array.isArray(db.orderDraft)?JSON.parse(JSON.stringify(db.orderDraft)):[];applyLamsetAppearance();if(!Array.isArray(db.customers))db.customers=[];db.products.forEach(p=>{if(!p.unitsPerCarton)p.unitsPerCarton=1});db.orders.forEach(o=>{let p=db.products.find(x=>x.id===o.productId);if(o.stockUnits==null)o.stockUnits=o.qty*(o.unitType==='carton'?(p?.unitsPerCarton||1):1);if(!o.customerId&&o.phone){let c=findUniqueCustomerByPhone(o.phone);if(c)o.customerId=c.id}});if(lamsetDataReady)save();else $('saveStatus').textContent='الحفظ متوقف لحماية البيانات؛ استعد نسخة احتياطية سليمة أولاً';renderAutoBackupSettings();$('today').textContent=new Date().toLocaleDateString('ar-EG');renderAll();lfRestoreOrderFormDraft();
 ['oCustomerSelect','oCustomerNew','oCountryCode','oPhone','oArea','oDeposit','oDepositMethod','oDue','oStatus'].forEach(id=>{const field=$(id);if(!field||field.dataset.lfDraftBound==='1')return;field.dataset.lfDraftBound='1';field.addEventListener('input',lfSaveOrderFormDraft);field.addEventListener('change',lfSaveOrderFormDraft)});
 </script>
 <!-- Local UI primitives: selected Lucide SVG paths (ISC license), no remote runtime or network dependency. -->
