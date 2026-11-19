@@ -52,4 +52,7 @@ assert.match(route,/if\(state\.view==='map'\)renderMap\(\)/,'Refreshing GPS loca
 assert.match(route,/if\(!Number\.isFinite\(lat\)\|\|!Number\.isFinite\(lng\)\|\|Math\.abs\(lat\)>90\|\|Math\.abs\(lng\)>180\)/,'GPS coordinates must be validated before use.');
 assert.match(route,/if\(!stop\|\|stop\.doneAt\)return/,'A completed route stop must not be recorded twice.');
 assert.match(route,/searchInput&&searchInput\.value!==state\.search/,'Rendering must not reset the active search input unnecessarily.');
+assert.match(route,/id="lfCrCustomerArea" value=/,'Customer form area input must have a unique id separate from the area filter.');
+assert.match(route,/area=\$\('lfCrCustomerArea'\)\?\.value\.trim\(\)/,'Saving a customer must read the customer form area, not the area filter.');
+assert.doesNotMatch(route,/setView\(\[30\.0444,31\.2357\],6\)/,'Empty map results must not force the map to Cairo.');
 console.log('Customer route static checks passed.');
