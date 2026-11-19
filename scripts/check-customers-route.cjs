@@ -19,6 +19,9 @@ assert.match(route,/applyOrderStatusChange\(item\.order\.id,'تم التسليم
 assert.match(route,/if\(flow\.readyToShip>0\).*openOrderShipmentModal/s);
 assert.match(route,/if\(flow\.shipped&&!flow\.delivered&&typeof applyOrderStatusChange==='function'\)/);
 assert.match(route,/consignmentDue\(customer\)/);
+assert.match(route,/if\(!order\|\|order\.status==='ملغي'\|\|typeof orderWorkflowSnapshot!=='function'\)return/);
+assert.match(route,/if\(due>0\)items\.push\(\{key:stopKey\('collection'/);
+assert.match(route,/order\.status!=='ملغي'&&typeof orderDue==='function'&&orderDue\(order\)<=0/);
 assert.doesNotMatch(route,/customer\.balance_due\s*=(?!=)/);
 assert.doesNotMatch(route,/order\.status\s*=(?!=)/);
 assert.match(route,/haversine/);
