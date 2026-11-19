@@ -14,8 +14,8 @@ assert.match(html,/orderHistoryFrom[\s\S]{0,200}orderHistoryTo/,'order history m
 const archiveStart=html.indexOf('function lfIsArchivedOrder(o)');
 const archiveEnd=html.indexOf('\nfunction ',archiveStart);
 assert.ok(archiveStart>=0&&archiveEnd>archiveStart,'archive status rule must be isolated');
-const archiveFn=html.slice(archiveStart,archiveEnd);
-const isArchived=vm.runInNewContext(archiveFn+';lfIsArchivedOrder');
+const statusStart=html.indexOf('function lfOrderStatusKey(o)');
+const isArchived=vm.runInNewContext(html.slice(statusStart,archiveEnd)+';lfIsArchivedOrder');
 for(const status of ['تم التسليم','تم التسليم للعميل','ملغي','مكتمل','مغلقة','مؤرشف'])assert.equal(isArchived({status}),true,'terminal status must be archived: '+status);
 for(const status of ['جديد','قيد التجهيز','جاهز للشحن','تم تسليمه لشركة الشحن'])assert.equal(isArchived({status}),false,'active workflow status must remain open: '+status);
 const invoiceStart=html.indexOf('function invoiceHtml(o)');
