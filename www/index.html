@@ -1093,10 +1093,10 @@ function lfOpenOrderWhatsAppConfirmation(order){
  const phone=customerPhoneDigits(order?.phone||'');
  if(!phone||phone.length<7||phone.length>15)return {opened:false,missingPhone:true};
  const code=lfOrderNumber(order),customerName=order.customer||order.invoiceSnapshot?.customer?.name||'غير محدد',customerPhone=formatLocalBusinessPhone(order.phone||order.invoiceSnapshot?.customer?.phone||''),address=order.area||order.address||order.invoiceSnapshot?.customer?.area||'غير محدد';
+ const amount=value=>(Number(value)||0).toLocaleString('ar-EG',{maximumFractionDigits:2})+' جنيه';
  const sourceLines=Array.isArray(order.items)&&order.items.length?order.items:[{productName:order.productName||order.productSnapshot?.name||'منتج',qty:order.qty,unitType:order.unitType,price:order.price}];
  const lines=sourceLines.map(item=>{const name=String(item.productName||item.productSnapshot?.name||'منتج'),qty=Math.max(0,Number(item.qty)||0),unit=item.unitType==='carton'?'كرتونة':'قطعة',unitPrice=Math.max(0,Number(item.price)||0);return '- '+name+': '+qty+' '+unit+' × '+amount(unitPrice)+' = '+amount(qty*unitPrice)});
  const total=orderGrossTotal(order),paid=paidOnOrder(order),remaining=orderDue(order);
- const amount=value=>(Number(value)||0).toLocaleString('ar-EG',{maximumFractionDigits:2})+' جنيه';
  const message=[
   'تأكيد طلب جديد - لمسة فن',
   '',
