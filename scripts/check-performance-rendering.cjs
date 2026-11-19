@@ -12,6 +12,8 @@ const refresh=html.slice(refreshStart,refreshEnd);
 assert.match(renderPage,/case'dashboard':renderDash\(\)/,'dashboard must render on demand');
 for(const page of ['treasury','expenses','consignment','catalogs','settings','alerts','collections','products','costs','production','orders','customers','database','offers','reports','backup'])assert.ok(renderPage.includes("case'"+page+"':"),'page-specific rendering missing for '+page);
 assert.match(renderPage,/case'expenses':renderExpenses\(\);renderFinancialMovementReport\(\)/,'expense page refreshes both expenses and financial movement report');
+assert.match(renderPage,/case'orders':[^;]*if\(ordersWorkspaceTab==='overview'\)renderOrdersOverview\(\)/,'orders overview counters refresh when the overview tab is active');
+assert.match(renderPage,/case'production':[^;]*window\.renderProductionOverview\?\.\(\);window\.renderProductionGroups\?\.\(\)/,'production overview and group summaries refresh after production mutations');
 assert.doesNotMatch(renderPage,/renderAll\(\);/,'page navigation must not trigger a full-app render');
 assert.match(refresh,/document\.querySelector\('\.panel\.active'\)\?\.id\|\|'dashboard'/,'mutation refresh resolves the currently active page');
 assert.match(refresh,/renderPage\(page\)/,'mutation refresh delegates to the active page renderer');
