@@ -28,6 +28,10 @@ assert.match(html,/سيختفي من اختيارات الطلبات الجدي�
 assert.match(html,/الاحتفاظ بكل الطلبات وسجلات التصنيع السابقة/,'deactivation must preserve historical orders and production records');
 assert.match(html,/p\.active===false\?'<div class="muted">هذا المنتج موقوف عن الطلبات الجديدة/,'inactive product must not offer a new-order cart action');
 assert.match(html,/class="lf-product-name-line"[\s\S]{0,500}class="pill lf-product-status-badge '\+\(p\.active===false\?'is-inactive':'is-active'\)\+'">'\+\(p\.active===false\?'موقوف':'نشط'\)\+'/,'product activation status must appear beside its name in both states');
+assert.match(css,/#productList \.lf-product-status-badge\.is-active[\s\S]*?color:#187A3D/,'active product status must have a distinct readable style');
+assert.match(css,/#productList \.lf-product-status-badge\.is-inactive[\s\S]*?color:#B42318/,'inactive product status must have a distinct readable style');
+assert.match(css,/html\[data-theme="dark"\] #productList \.lf-product-status-badge\.is-active/,'active product status must remain readable in dark theme');
+assert.match(css,/html\[data-theme="dark"\] #productList \.lf-product-status-badge\.is-inactive/,'inactive product status must remain readable in dark theme');
 assert.match(html,/function filterOrderProductOptions\(\)[\s\S]{0,260}p\.active!==false/,'inactive products must be excluded from new order choices');
 
 console.log('Manual product ordering checks passed.');
