@@ -16,6 +16,8 @@ assert.match(index,/data-nav-target="customers-route"/);
 assert.match(route,/customerRoutePlans/);
 assert.match(route,/orderDue\(order\)/);
 assert.match(route,/applyOrderStatusChange\(item\.order\.id,'تم التسليم'\)/);
+assert.match(route,/if\(flow\.readyToShip>0\).*openOrderShipmentModal/s);
+assert.match(route,/if\(flow\.shipped&&!flow\.delivered&&typeof applyOrderStatusChange==='function'\)/);
 assert.match(route,/consignmentDue\(customer\)/);
 assert.doesNotMatch(route,/customer\.balance_due\s*=(?!=)/);
 assert.doesNotMatch(route,/order\.status\s*=(?!=)/);
