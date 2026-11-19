@@ -76,4 +76,19 @@ assert(html.includes("String(p.image||'').startsWith('data:image/')"),'factory s
 assert(html.includes('class="factory-product-image"'),'factory PDF sheet displays the existing product image beside the product name');
 assert.match(html,/class="lf-production-group-identity">'\+image\+'<div><b>'\+esc\(group\.name\)/,'production group keeps its name and specs when the optional image is empty');
 
+
+assert(html.includes('function lfProductionGroupClosureFor(group)'), 'production group closure lookup preserves closed group snapshots');
+assert(html.includes('window.closeProductionGroup=async function(groupKey)'), 'manual production group closure action exists');
+const groupCloseStart=html.indexOf('window.closeProductionGroup=async function(groupKey)');
+const groupCloseEnd=html.indexOf('function renderProductionGroups()',groupCloseStart);
+const groupCloseSource=html.slice(groupCloseStart,groupCloseEnd);
+assert(groupCloseSource.includes('if(group.remaining>0)'), 'production group cannot close while production remains');
+assert(groupCloseSource.includes('unreviewedSurplus>0||unallocated>0'), 'production group cannot close with unreviewed surplus or unallocated units');
+assert(groupCloseSource.includes('lamsetRequireOwnerPin'), 'production group closure requires owner PIN');
+assert(groupCloseSource.includes('ownerApproved:true')&&groupCloseSource.includes('productionGroupClosures.push'), 'production group closure is saved as an owner-approved immutable snapshot');
+assert(groupCloseSource.includes("lfRecordActivity('إغلاق مجموعة تصنيع'"), 'production group closure is recorded in activity log');
+assert(groupCloseSource.includes('if(!save())'), 'production group closure checks persistence before reporting success');
+assert(html.includes('مراجعة وإغلاق المجموعة'), 'completed production groups expose a manual review-and-close action');
+assert(html.includes('سجل مجموعات التصنيع المغلقة'), 'closed production groups remain visible in a history section');
+
 console.log('Production workspace four-tab structure and existing production regions verified.');
