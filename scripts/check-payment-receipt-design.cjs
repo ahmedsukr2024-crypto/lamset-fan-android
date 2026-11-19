@@ -79,7 +79,7 @@ if(serialRuntime){
   {id:'p4',receiptNumber:'RCPT-000004',status:'active'},
   {id:'p5',receiptNumber:'BAD-000005',status:'active'}
  ]},save:()=>true,console};
- vm.runInNewContext(serialRuntime+'\\nthis.serialApi={lfNextPaymentReceiptNumber,lfEnsurePaymentReceiptNumbers};',context);
+ vm.runInNewContext(serialRuntime+'\nthis.serialApi={lfNextPaymentReceiptNumber,lfEnsurePaymentReceiptNumbers};',context);
  const api=context.serialApi;
  const originalCancelledNumber=context.db.payments[1].receiptNumber;
  const repaired=api.lfEnsurePaymentReceiptNumbers();
