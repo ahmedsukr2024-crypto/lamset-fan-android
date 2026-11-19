@@ -39,7 +39,9 @@ assert.match(html,/function filterOrderProductOptions\(\)[\s\S]{0,260}p\.active!
 const draftStart=html.indexOf("const LF_PRODUCT_FORM_DRAFT_KEY='lamset_fan_product_form_draft_v1'");
 const draftEnd=html.indexOf("document.addEventListener('input',event=>{if(lfOrderDraftFields",draftStart);
 assert.ok(draftStart>=0&&draftEnd>draftStart,'product form auto-save and restore helpers must exist');
-const draftSource=html.slice(draftStart,draftEnd);\nconst draftCoreEnd=html.indexOf("document.addEventListener('input',event=>{if(lfProductDraftFields",draftStart);\nconst draftCore=html.slice(draftStart,draftCoreEnd);
+const draftSource=html.slice(draftStart,draftEnd);
+const draftCoreEnd=html.indexOf("document.addEventListener('input',event=>{if(lfProductDraftFields",draftStart);
+const draftCore=html.slice(draftStart,draftCoreEnd);
 assert.match(draftSource,/document\.addEventListener\('input',event=>\{if\(lfProductDraftFields\.includes\(event\.target\?\.id\)\)lfSaveProductFormDraft\(\)\}\)/,'product form inputs must auto-save drafts');
 assert.match(draftSource,/document\.addEventListener\('change',event=>\{if\(lfProductDraftFields\.includes\(event\.target\?\.id\)\)lfSaveProductFormDraft\(\)\}\)/,'product form selections must auto-save drafts');
 assert.match(draftSource,/showProductForm=async function\(product\)[\s\S]*?lfRestoreProductFormDraft\(product\?\.id\|\|''\)/,'matching product draft must be restored when opening the form');
