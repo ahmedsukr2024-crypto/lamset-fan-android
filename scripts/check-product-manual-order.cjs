@@ -34,4 +34,40 @@ assert.match(css,/html\[data-theme="dark"\] #productList \.lf-product-status-bad
 assert.match(css,/html\[data-theme="dark"\] #productList \.lf-product-status-badge\.is-inactive/,'inactive product status must remain readable in dark theme');
 assert.match(html,/function filterOrderProductOptions\(\)[\s\S]{0,260}p\.active!==false/,'inactive products must be excluded from new order choices');
 
-console.log('Manual product ordering checks passed.');
+
+const draftStart=html.indexOf("const LF_PRODUCT_FORM_DRAFT_KEY='lamset_fan_product_form_draft_v1'");
+const draftEnd=html.indexOf("document.addEventListener('input',event=>{if(lfProductDraftFields",draftStart);
+assert.ok(draftStart>=0&&draftEnd>draftStart,'product form auto-save and restore helpers must exist');
+const draftSource=html.slice(draftStart,draftEnd);
+assert.match(draftSource,/document\.addEventListener\('input',event=>\{if\(lfProductDraftFields\.includes\(event\.target\?\.id\)\)lfSaveProductFormDraft\(\)\}\)/,'product form inputs must auto-save drafts');
+assert.match(draftSource,/document\.addEventListener\('change',event=>\{if\(lfProductDraftFields\.includes\(event\.target\?\.id\)\)lfSaveProductFormDraft\(\)\}\)/,'product form selections must auto-save drafts');
+assert.match(draftSource,/showProductForm=async function\(product\)[\s\S]*?lfRestoreProductFormDraft\(product\?\.id\|\|''\)/,'matching product draft must be restored when opening the form');
+assert.match(draftSource,/localStorage\.removeItem\(LF_PRODUCT_FORM_DRAFT_KEY\)/,'successful save or empty form clears its draft');
+assert.match(draftSource,/window\.__lfProductDraftImage/,'selected product image preview is retained in the local draft');
+
+if(draftStart>=0&&draftEnd>draftStart){
+ const fields=['pId','pName','pCode','pDesign','pCost','pDistributor','pWholesale','pShop','pRetail','pMin','pStock','pSuggestedDistributor','pSuggestedWholesale','pSuggestedShop','pSuggestedRetail','pDesc','pContents','pCartonType','pUnitsPerCarton'];
+ const elements=Object.fromEntries(fields.map(id=>[id,{value:id==='pId'?'product-1':id==='pName'?'مسودة منتج':id==='pMin'?'10':id==='pUnitsPerCarton'?'1':'0'}]));
+ elements.pImagePreview={innerHTML:'',querySelector:()=>null};
+ const storage=new Map(),toasts=[];
+ const sandbox={window:{__lfProductDraftImage:'data:image/png;base64,ZmFrZQ==',LamsetUI:{toast:value=>toasts.push(value)}},localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},$:id=>elements[id]||null};
+ vm.runInNewContext(draftSource+'\nthis.api={lfSaveProductFormDraft,lfRestoreProductFormDraft,LF_PRODUCT_FORM_DRAFT_KEY};',sandbox);
+ assert.equal(sandbox.api.lfSaveProductFormDraft(),true,'product draft saves without failure');
+ const saved=JSON.parse(storage.get(sandbox.api.LF_PRODUCT_FORM_DRAFT_KEY));
+ assert.equal(saved.productId,'product-1','draft is scoped to the edited product');
+ assert.equal(saved.values.pName,'مسودة منتج','draft preserves product fields');
+ assert.equal(saved.imageData,'data:image/png;base64,ZmFrZQ==','draft preserves a selected image preview');
+ elements.pName.value='قيمة مختلفة';
+ elements.pImagePreview.innerHTML='';
+ sandbox.api.lfRestoreProductFormDraft('product-1');
+ assert.equal(elements.pName.value,'مسودة منتج','matching draft restores entered fields');
+ assert.match(elements.pImagePreview.innerHTML,/data:image\/png;base64/,'matching draft restores selected image preview');
+ elements.pName.value='لا تستبدل هذه البيانات';
+ sandbox.api.lfRestoreProductFormDraft('another-product');
+ assert.equal(elements.pName.value,'لا تستبدل هذه البيانات','draft for another product is never applied');
+ fields.forEach(id=>{elements[id].value=id==='pId'?'product-1':id==='pMin'?'10':id==='pUnitsPerCarton'?'1':'0'});
+ sandbox.window.__lfProductDraftImage='';
+ assert.equal(sandbox.api.lfSaveProductFormDraft(),true,'empty form draft cleanup succeeds');
+ assert.equal(storage.has(sandbox.api.LF_PRODUCT_FORM_DRAFT_KEY),false,'empty product form removes stale draft');
+}
+\nconsole.log('Manual product ordering and product draft checks passed.');
