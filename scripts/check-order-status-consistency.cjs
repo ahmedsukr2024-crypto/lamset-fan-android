@@ -89,7 +89,7 @@ async function checkDeliveryCorrectionBehavior() {
       prompt: message => { context.prompts.push(message); return overrides.reason === undefined ? 'تصحيح تأكيد تم بالخطأ' : overrides.reason; },
       alert: message => { context.alerts.push(message); },
       save: () => { context.saves++; return overrides.saveResult !== false; },
-      renderAll: () => { context.renders++; },
+      lfRefreshCurrentPage: () => { context.renders++; },
       lfIsDeliveredOrder: order => ['تم التسليم','تم التسليم للعميل'].includes(String(order?.status || '')),
       lfOrderNumber: order => '123',
       lfRecordActivity: (...args) => { context.db.activityLog.unshift({ args }); },
