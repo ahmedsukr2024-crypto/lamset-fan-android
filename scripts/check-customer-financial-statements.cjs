@@ -12,5 +12,10 @@ check(html.includes('لا يشمل هذا التقرير الإيداعات وا
 check(html.includes('هذا التقرير مستقل عن تقرير الخزينة ولا يعرض تكلفة التصنيع أو الأرباح'),'financial report does not expose internal costs or profit');
 check(html.includes('renderCustomerStatement(cid);'),'customer statement renders when customer profile opens');
 check((pkg.scripts['check:all']||'').includes('check-customer-financial-statements.cjs'),'new checks are included in check:all');
+
+check(html.includes("esc(p.receiptNumber||p.id||'—')"),'customer statement payment rows show the receipt serial');
+check(html.includes("esc(p.method||'غير محدد')"),'customer statement payment rows show the payment method');
+check(html.includes('التفاصيل / طريقة الدفع'),'on-screen and printable statement tables expose payment details');
+check(html.includes("lfOrderNumber(order||{})"),'customer statement payment rows link collections to the related order number');
 if(process.exitCode)process.exit(process.exitCode);
 console.log('Customer statement and financial movement report checks passed.');
