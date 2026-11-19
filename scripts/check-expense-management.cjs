@@ -4,7 +4,19 @@ const vm=require('node:vm');
 const html=fs.readFileSync('www/index.html','utf8');
 function check(ok,message){if(!ok){console.error('Expense management checks failed: '+message);process.exitCode=1;}}
 for(const id of ['lfExpenseAmount','lfExpenseDate','lfExpenseCategory','lfExpenseMethod','lfExpenseNotes','lfExpenseReceipt','lfExpenseSearch','lfExpenseFilterMethod','lfExpenseFrom','lfExpenseTo','lfExpenseList'])check(html.includes('id="'+id+'"'),'expense UI includes '+id);
-const saveStart=html.indexOf('async function saveExpense(button)');
+
+const dateStart=html.indexOf('function lfIsValidExpenseDate(value)');
+const dateEnd=html.indexOf('function lfExpenseToday()',dateStart);
+check(dateStart>=0&&dateEnd>dateStart,'timezone-independent expense date validator exists');
+if(dateStart>=0&&dateEnd>dateStart){
+ const validateDate=vm.runInNewContext(html.slice(dateStart,dateEnd)+';lfIsValidExpenseDate');
+ check(validateDate('2026-11-19'),'valid expense calendar date is accepted');
+ check(validateDate('2024-02-29'),'valid leap-day expense date is accepted');
+ check(!validateDate('2025-02-29')&&!validateDate('2026-02-30')&&!validateDate('2026-13-01'),'impossible expense dates are rejected');
+ check(!validateDate('19-11-2026')&&!validateDate(''),'malformed and empty expense dates are rejected');
+}
+check(save.includes('lfIsValidExpenseDate(date)')&&edit.includes('lfIsValidExpenseDate(date)'),'expense create and edit share strict calendar-date validation');
+\nconst saveStart=html.indexOf('async function saveExpense(button)');
 const saveEnd=html.indexOf('async function editExpense(expenseId)',saveStart);
 const save=saveStart>=0&&saveEnd>saveStart?html.slice(saveStart,saveEnd):'';
 check(!!save,'expense registration handler exists');
