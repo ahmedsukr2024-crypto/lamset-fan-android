@@ -75,4 +75,34 @@ if(draftStart>=0&&draftEnd>draftStart){
  assert.equal(storage.has(sandbox.api.LF_PRODUCT_FORM_DRAFT_KEY),false,'empty product form removes stale draft');
 }
 
-console.log('Manual product ordering and product draft checks passed.');
+
+const orderGuard=html.slice(html.indexOf('if(window.__lfOrderSaving)return;'),html.indexOf('function orderDisplayLines',html.indexOf('if(window.__lfOrderSaving)return;')));
+assert.match(orderGuard,/if\(window\.__lfOrderSaving\)return;/,'order save must reject duplicate in-flight calls');
+assert.match(orderGuard,/window\.__lfOrderSaving=true/,'order save must lock before validation and persistence');
+assert.match(orderGuard,/saveButton\.disabled=true/,'order save must visibly disable its submit button');
+assert.match(orderGuard,/window\.__lfOrderSaving=false/,'order save lock must be released after completion');
+assert.match(html,/window\.saveProduct=async function\(\)\{if\(lfProductSaving\)return false;lfProductSaving=true/,'product save must reject duplicate in-flight calls');
+assert.match(html,/window\.lamsetRunButtonAction=async function\(button,action,label\)/,'shared button action handler must exist');
+assert.match(html,/button\.dataset\.lfLoading==='true'\)return false/,'shared button action handler must ignore repeated clicks while loading');
+assert.match(html,/جارٍ التنفيذ…/,'shared button action handler must show a loading state');
+
+const activityStart=html.indexOf('function lfRecordActivity(action,entity,details)');
+const activityEnd=html.indexOf('function save()',activityStart);
+assert.ok(activityStart>=0&&activityEnd>activityStart,'activity recording and display helpers must exist');
+const activitySource=html.slice(activityStart,activityEnd);
+assert.match(activitySource,/db\.activityLog\.unshift/,'activity log must place newest operations first');
+assert.match(activitySource,/db\.activityLog\.length>200/,'activity log storage must remain bounded');
+assert.match(activitySource,/slice\(0,100\)/,'activity view must render the latest 100 entries');
+assert.match(html,/id="activityLogList"/,'activity log must be visible in the existing data page');
+assert.match(html,/يسجل أهم العمليات الإدارية محليًا/,'activity log must explain its local administrative scope');
+if(activityStart>=0&&activityEnd>activityStart){
+ let sequence=0;
+ const activityContext={db:{activityLog:[]},id:()=>String(++sequence)};
+ vm.runInNewContext(activitySource+'\nthis.record=lfRecordActivity;',activityContext);
+ for(let index=0;index<205;index++)activityContext.record('تعديل','منتج '+index,'تفصيل '+index);
+ assert.equal(activityContext.db.activityLog.length,200,'activity history must retain only the newest 200 entries');
+ assert.equal(activityContext.db.activityLog[0].entity,'منتج 204','newest activity must appear first');
+ assert.equal(activityContext.db.activityLog[199].entity,'منتج 5','oldest retained activity must be the 200th newest');
+ assert.equal(activityContext.db.activityLog[0].date.length>0,true,'activity must retain a timestamp');
+}
+\nconsole.log('Product ordering, draft recovery, duplicate guards, and activity log checks passed.');
