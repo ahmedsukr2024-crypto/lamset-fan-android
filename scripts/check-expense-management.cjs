@@ -38,7 +38,10 @@ if(edit){
  const prompts=['125','2026-11-10','تغليف','تحويل بنكي','ملاحظة جديدة','تصحيح بيانات'],alerts=[],localDb={removeCashLink:async(...args)=>sandbox.removed.push(args),applyCashLink:async(...args)=>sandbox.applied.push(args)};
  const sandbox={db:{expenses:[{id:'expense-1',amount:100,date:'2026-11-01',category:'مواصلات',method:'نقدي',notes:'قديم',status:'active'}]},removed:[],applied:[],prompt:()=>prompts.shift(),alert:value=>alerts.push(value),save(){return true},lfRecordActivity(){},renderExpenses(){},LamsetLocalDB:localDb,window:{lamsetRequireOwnerPin:async()=>true,LamsetLocalDB:localDb}};
  vm.createContext(sandbox);
- vm.runInContext(edit+'\nthis.api={editExpense};',sandbox);
+ const dateHelperStart=html.indexOf('function lfIsValidExpenseDate(value)');
+ const dateHelperEnd=html.indexOf('function lfExpenseToday()',dateHelperStart);
+ const dateHelper=html.slice(dateHelperStart,dateHelperEnd);
+ vm.runInContext(dateHelper+'\n'+edit+'\nthis.api={editExpense};',sandbox);
  (async()=>{
   await sandbox.api.editExpense('expense-1');
   const item=sandbox.db.expenses[0];
