@@ -11,6 +11,7 @@ const sandbox = {
   META: 'meta', MOVEMENTS: 'treasuryMovements', CASH_LINKS: 'treasuryCashLinks', CLOSEOUTS: 'treasuryCloseouts',
   requestValue: value => Promise.resolve(value),
   transactionDone: () => Promise.resolve(true),
+  toCents: value => { const amount = Number(value); if (!Number.isFinite(amount) || amount <= 0) throw new Error('invalid amount'); return Math.round(amount * 100); },
   fromCents: value => Number((Number(value || 0) / 100).toFixed(2))
 };
 vm.runInNewContext(method + '\nthis.runLedger = recomputeTreasuryLedger;', sandbox);
