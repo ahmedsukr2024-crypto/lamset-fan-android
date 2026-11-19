@@ -1378,7 +1378,14 @@ function lfIsValidOrderDate(value){
  date.setFullYear(year,month-1,day);date.setHours(12,0,0,0);
  return date.getFullYear()===year&&date.getMonth()===month-1&&date.getDate()===day;
 }
-function saveOrder(){
+function lfOrderPriceChanges(existingOrder,nextItems){
+ const previous=Array.isArray(existingOrder?.items)&&existingOrder.items.length?existingOrder.items:[existingOrder||{}],queues=new Map(),changes=[];
+ const key=item=>String(item?.productId||'')+'|'+String(item?.unitType||'piece');
+ previous.forEach(item=>{const k=key(item);if(!queues.has(k))queues.set(k,[]);queues.get(k).push(item)});
+ (nextItems||[]).forEach(item=>{const old=queues.get(key(item))?.shift();if(!old)return;const before=Number(old.price)||0,after=Number(item.price)||0;if(before!==after)changes.push({productId:String(item.productId||''),productName:String(item.productName||old.productName||'منتج'),unitType:item.unitType||old.unitType||'piece',beforePrice:before,afterPrice:after})});
+ return changes;
+}
+async function saveOrder(){
  const customerChoice=$('oCustomerSelect')?.value||'';
  const selectedCustomer=customerChoice&&customerChoice!=='__new__'?(db.customers||[]).find(c=>c.id===customerChoice):null;
  const customerName=(customerChoice==='__new__'?$('oCustomerNew').value:(selectedCustomer?.name||'')).trim();
@@ -1406,8 +1413,22 @@ function saveOrder(){
   const phoneOwner=phoneMatches.length===1?phoneMatches[0]:null;
   if(selectedCustomer&&phoneMatches.length&&!phoneMatches.some(c=>c.id===selectedCustomer.id))return alert('رقم الهاتف الذي أدخلته مرتبط بعميل آخر. اختر العميل الصحيح أو راجع بيانات العملاء قبل تسجيل الطلب.');
   const existingOrder=editingOrderId?(db.orders||[]).find(x=>x.id===editingOrderId):null;
+  let priceChangeEntry=null;
+
   if(editingOrderId&&!existingOrder)return alert('الطلب الذي تعدله لم يعد موجودًا؛ لم يتم حفظ أي تغيير.');
   if(existingOrder&&!lfCanEditOrder(existingOrder))return alert('تغيرت بيانات الطلب منذ فتحه؛ لم يتم حفظ التعديلات لحماية التحصيل والتصنيع.');
+  if(existingOrder){
+   const priceChanges=lfOrderPriceChanges(existingOrder,items);
+   if(priceChanges.length){
+    const reason=prompt('سبب تعديل سعر صنف داخل الطلب (مطلوب):','');
+    if(reason===null)return;
+    if(!reason.trim())return alert('سبب تعديل السعر إلزامي.');
+    if(typeof window.lamsetRequireOwnerPin!=='function')return alert('خدمة التحقق من رمز المالك غير متاحة؛ لم يتم تعديل الأسعار.');
+    if(!(await window.lamsetRequireOwnerPin('تعديل أسعار الطلب '+(existingOrder.orderNumber||existingOrder.id))))return;
+    priceChangeEntry={id:id(),date:new Date().toISOString(),reason:reason.trim().slice(0,300),authorizedBy:'owner',changes:priceChanges};
+   }
+  }
+
   if(existingOrder){for(const line of orderStockLines(existingOrder)){const p=db.products.find(x=>x.id===line.productId);if(!p)return alert('تعذر تعديل الطلب؛ أحد المنتجات المرتبطة به غير موجود.');const deducted=line.item?.stockDeductedUnits===undefined?line.units:Math.max(0,Number(line.item.stockDeductedUnits)||0);if(!Number.isSafeInteger(deducted)||deducted>line.units)return alert('تعذر تعديل الطلب؛ حركة المخزون القديمة غير متطابقة.');}}
   let productionEdit={hasProduction:false,released:[]};
   if(existingOrder){try{productionEdit=lfPreserveOrderProductionOnEdit(existingOrder,items)}catch(error){return alert(error.message||'تعذر الحفاظ على سجلات التصنيع؛ لم يتم حفظ التعديل.')}}
@@ -1421,10 +1442,15 @@ function saveOrder(){
    for(const item of items.filter(x=>x.productId===productId)){let lineUnits=Number(item.stockUnits)||0,fulfilled=Math.min(lineUnits,Math.max(0,Number(item.productionFulfilledUnits)||0)),availableUnits=Math.max(0,lineUnits-fulfilled),deducted=Math.min(availableUnits,remainingDeduction);item.stockDeductedUnits=deducted;item.productionFulfilledUnits=fulfilled;item.productionPendingUnits=availableUnits-deducted;remainingDeduction-=deducted}
   }
   const savedOrder={...(existingOrder||{}),id:orderId,orderNumber:existingOrder?.orderNumber||lfNextOrderNumber(),customerId:customer.id,customer:customer.name||customerName,customerType:customer.type||newCustomerType||existingOrder?.customerType||'',phone:orderPhone,area:orderArea,items,total,productId:first.productId,productName:first.productName,productCode:first.productCode,productSnapshot:first.productSnapshot,qty:first.qty,unitType:first.unitType,stockUnits:items.reduce((v,x)=>v+x.stockUnits,0),price:first.price,deposit,depositMethod,depositPaymentId:existingOrder?.depositPaymentId||'',due:$('oDue').value,status:$('oStatus').value,date:orderDate,invoiceSnapshot:{date:orderDate,business:businessSnapshot,products:items.map(x=>x.productSnapshot),customer:{id:customer.id,customerId:customer.id,name:customer.name||customerName,phone:orderPhone,area:orderArea,type:customer.type||''}}};
+  if(existingOrder){
+   savedOrder.priceChangeHistory=Array.isArray(existingOrder.priceChangeHistory)?existingOrder.priceChangeHistory.slice():[];
+   if(priceChangeEntry){savedOrder.priceChangeHistory.push(priceChangeEntry);if(savedOrder.priceChangeHistory.length>100)savedOrder.priceChangeHistory=savedOrder.priceChangeHistory.slice(-100)}
+  }
+
   if(!Array.isArray(db.stockMovements))db.stockMovements=[];
   const movementProducts=new Set([...(before.products||[]).map(p=>p.id),...requiredStockByProduct.keys()]);
   movementProducts.forEach(productId=>{const previousProduct=(before.products||[]).find(p=>p.id===productId),currentProduct=db.products.find(p=>p.id===productId);if(!previousProduct||!currentProduct)return;const beforeAvailable=Math.max(0,Number(previousProduct.stock)||0),afterAvailable=Math.max(0,Number(currentProduct.stock)||0),beforeReserved=Math.max(0,Number(previousProduct.reservedStock)||0),afterReserved=Math.max(0,Number(currentProduct.reservedStock)||0),delta=afterAvailable-beforeAvailable,reservedDelta=afterReserved-beforeReserved;if(!delta&&!reservedDelta)return;db.stockMovements.push({id:id(),productId,date:new Date().toISOString(),before:beforeAvailable,after:afterAvailable,delta,reservedDelta,reason:(existingOrder?'تعديل حجز مخزون للطلب ':'حجز مخزون للطلب ')+savedOrder.orderNumber,orderId:savedOrder.id,orderNumber:savedOrder.orderNumber,movementType:'order_reserve',source:'order'});});
-  if(existingOrder){Object.assign(existingOrder,savedOrder);lfRecordActivity('تعديل طلب',savedOrder.orderNumber,'تم تحديث بيانات الطلب للعميل '+String(customer.name||customerName).slice(0,70)+' · '+items.length+' أصناف')}
+  if(existingOrder){Object.assign(existingOrder,savedOrder);lfRecordActivity('تعديل طلب',savedOrder.orderNumber,'تم تحديث بيانات الطلب للعميل '+String(customer.name||customerName).slice(0,70)+' · '+items.length+' أصناف');if(priceChangeEntry)lfRecordActivity('تعديل أسعار طلب',savedOrder.orderNumber,'تغيير '+priceChangeEntry.changes.length+' سعر/أسعار · السبب: '+priceChangeEntry.reason.slice(0,70))}
   else{db.orders.push(savedOrder);lfRecordActivity('إنشاء طلب',savedOrder.orderNumber,'تم تسجيل طلب للعميل '+String(customer.name||customerName).slice(0,70)+' · '+items.length+' أصناف')}
   if(!existingOrder&&deposit>0){
    if(!Array.isArray(db.payments))db.payments=[];
