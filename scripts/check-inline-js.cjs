@@ -58,5 +58,23 @@ if (classicSources.length > 1) {
     console.error(combinedResult.stderr || combinedResult.stdout);
   }
 }
+const messageModal = html.match(/function lamsetShowSystemMessage\(message,kind,technical\)\{([\\s\\S]*?)\\n\}/);
+if (!messageModal) {
+  console.error('System message modal function was not found.');
+  process.exit(1);
+}
+const modalSource = messageModal[1];
+if (!/id="lf-system-message-x"/.test(html) || !/querySelector\('#lf-system-message-x'\)/.test(modalSource)) {
+  console.error('System message modal must focus its actual close button id (lf-system-message-x).');
+  process.exit(1);
+}
+if (/querySelector\('#lf-system-message-close'\)/.test(modalSource)) {
+  console.error('System message modal references a missing close button id.');
+  process.exit(1);
+}
+if (!/closeButton&&typeof closeButton\.focus==='function'/.test(modalSource)) {
+  console.error('System message modal focus must be guarded when the close button is unavailable.');
+  process.exit(1);
+}
 if (failed) process.exit(1);
 console.log('Validated ' + checked.length + ' inline JavaScript block(s) and cross-script declarations in www/index.html.');
