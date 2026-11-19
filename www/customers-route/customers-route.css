@@ -38,6 +38,8 @@
 .lf-cr-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
 .lf-cr-card-actions button,.lf-cr-card-actions a{flex:1 1 auto;min-width:0;min-height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--cr-line);border-radius:10px;background:var(--cr-soft);color:var(--ink);text-decoration:none;padding:7px 8px;font:inherit;font-size:11px}
 .lf-cr-card-actions .primary{background:var(--cr-blue);color:#fff;border-color:var(--cr-blue)}
+.lf-cr-actions button,.lf-cr-view button,.lf-cr-filter,.lf-cr-card-actions button,.lf-cr-card-actions a,.lf-cr-task-actions button,.lf-cr-radar-buttons button,.lf-cr-form-footer button{max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.4;text-align:center;min-width:0}
+.lf-cr-action-disabled{flex:1 1 auto;min-width:0;min-height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px dashed var(--cr-line);border-radius:10px;background:var(--cr-soft);color:var(--muted);padding:7px 8px;font-size:11px;text-align:center;overflow-wrap:anywhere}
 .lf-cr-task{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding:11px 0;border-bottom:1px solid var(--cr-line);min-width:0}
 .lf-cr-task:last-child{border-bottom:0}
 .lf-cr-task-main{min-width:0;width:100%;flex:1 1 auto}
