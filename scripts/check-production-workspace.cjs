@@ -64,5 +64,6 @@ assert(reversalSource.includes('batch.reversal={movementId:'),'original batch re
 assert(reversalSource.includes("lfRecordActivity('عكس دفعة تصنيع'"),'production reversal is written to the activity log');
 assert(reversalSource.includes('ownerApproved:true'),'reversal records owner approval');
 assert(!reversalSource.includes('db.productions=db.productions.filter'),'production correction does not delete the original batch');
+assert(reversalSource.includes('lfOrderHasShipped(order)'),'production batch reversal is blocked when any linked order has a partial or complete shipment');
 
 console.log('Production workspace four-tab structure and existing production regions verified.');
