@@ -68,7 +68,8 @@ if(draftStart>=0&&draftEnd>draftStart){
  elements.pName.value='لا تستبدل هذه البيانات';
  sandbox.api.lfRestoreProductFormDraft('another-product');
  assert.equal(elements.pName.value,'لا تستبدل هذه البيانات','draft for another product is never applied');
- fields.forEach(id=>{elements[id].value=id==='pId'?'product-1':id==='pMin'?'10':id==='pUnitsPerCarton'?'1':'0'});
+ const textFields=['pName','pCode','pDesign','pDesc','pContents','pCartonType'];
+ fields.forEach(id=>{elements[id].value=id==='pId'?'product-1':id==='pMin'?'10':id==='pUnitsPerCarton'?'1':textFields.includes(id)?'':'0'});
  sandbox.window.__lfProductDraftImage='';
  assert.equal(sandbox.api.lfSaveProductFormDraft(),true,'empty form draft cleanup succeeds');
  assert.equal(storage.has(sandbox.api.LF_PRODUCT_FORM_DRAFT_KEY),false,'empty product form removes stale draft');
