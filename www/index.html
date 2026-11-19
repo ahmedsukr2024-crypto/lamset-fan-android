@@ -2014,7 +2014,7 @@ function printCustomerStatement(cid){const data=lfCustomerStatementData(cid);if(
 function shareCustomerStatement(cid){
  const data=lfCustomerStatementData(cid);if(!data)return alert('العميل غير موجود.');if(!data.valid)return alert('راجع تاريخ بداية ونهاية الكشف.');
  const phone=String(data.customer.phone||'').replace(/\D/g,'');if(!phone)return alert('لا يوجد رقم هاتف مسجل لهذا العميل.');
- const msg=['كشف حساب لمسة فن - '+data.customer.name,'الفترة: '+data.fromValue+' إلى '+data.toValue,'رصيد قبل الفترة: '+money(data.opening.due)+' ج.م','مبيعات الفترة: '+money(data.sales)+' ج.م','تحصيلات الفترة: '+money(data.collected)+' ج.م','المستحق حتى نهاية الفترة: '+money(data.closing.due)+' ج.م','رصيد زائد: '+money(data.closing.credit)+' ج.م'].join('\n');
+ const msg=['كشف حساب لمسة فن - '+data.customer.name,'الفترة: '+data.fromValue+' إلى '+data.toValue,'رصيد قبل الفترة: '+money(data.opening.due)+' ج.م','مبيعات الفترة: '+money(data.sales)+' ج.م','تحصيلات الفترة: '+money(data.collected)+' ج.م','صرف أرصدة زائدة خلال الفترة: '+money(data.creditsSettled)+' ج.م','المستحق حتى نهاية الفترة: '+money(data.closing.due)+' ج.م','الرصيد الزائد حتى نهاية الفترة: '+money(data.closing.credit)+' ج.م'].join('\\n');
  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
 }
 
