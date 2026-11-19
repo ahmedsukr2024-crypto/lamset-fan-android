@@ -15,7 +15,6 @@ if(dateStart>=0&&dateEnd>dateStart){
  check(!validateDate('2025-02-29')&&!validateDate('2026-02-30')&&!validateDate('2026-13-01'),'impossible expense dates are rejected');
  check(!validateDate('19-11-2026')&&!validateDate(''),'malformed and empty expense dates are rejected');
 }
-check(save.includes('lfIsValidExpenseDate(date)')&&edit.includes('lfIsValidExpenseDate(date)'),'expense create and edit share strict calendar-date validation');
 
 const saveStart=html.indexOf('async function saveExpense(button)');
 const saveEnd=html.indexOf('async function editExpense(expenseId)',saveStart);
@@ -25,6 +24,7 @@ for(const token of ['amount<=0',"status:'active'","file.type.startsWith('image/'
 const editStart=html.indexOf('async function editExpense(expenseId)');
 const editEnd=html.indexOf('async function cancelExpense(expenseId)',editStart);
 const edit=editStart>=0&&editEnd>editStart?html.slice(editStart,editEnd):'';
+check(save.includes('lfIsValidExpenseDate(date)')&&edit.includes('lfIsValidExpenseDate(date)'),'expense create and edit share strict calendar-date validation');
 check(!!edit,'expense edit handler exists');
 for(const token of ['oldValues','newValues','item.audit','reason:reason.trim()','lamsetRequireOwnerPin','removeCashLink','applyCashLink','committed'])check(edit.includes(token),'expense edit protects and audits '+token);
 const cancelStart=html.indexOf('async function cancelExpense(expenseId)');
