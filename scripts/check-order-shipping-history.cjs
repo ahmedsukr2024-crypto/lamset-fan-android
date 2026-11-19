@@ -54,6 +54,7 @@ assert(reviewContext.review({ ...completeUnpaid, stockIssuedAt: '2026-11-19T10:0
 const deliveryReviewCall = statusSource.indexOf('lfReviewOrderBeforeDelivery(o)');
 const statusSnapshot = statusSource.indexOf('const before=JSON.parse(JSON.stringify(db))');
 assert(deliveryReviewCall >= 0 && statusSnapshot > deliveryReviewCall, 'final-delivery review runs before any order or stock mutation');
+assert(statusSource.includes('المتبقي للتحصيل:') && statusSource.includes('(لا يمنع إغلاق الطلب)') && statusSource.includes('if(!confirm(summary))return'), 'final delivery shows outstanding balance and requires confirmation without blocking unpaid orders');
 const reviewSource = html.slice(reviewStart, reviewEnd);
 assert(!reviewSource.includes('paidOnOrder') && !reviewSource.includes('orderDue'), 'final delivery review does not require full payment');
 
