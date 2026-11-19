@@ -4,4 +4,15 @@ assert(html.includes("' — '+lfOrderNumber(o)+' — المتبقي '+money(bala
 assert(html.includes("action:'order',targetId:oid,actionLabel:'فتح الطلب'"),'collection alerts must target the order details');
 assert(html.includes("x.category==='التحصيل'&&x.targetId?' role=\"button\" tabindex=\"0\" onclick=\"openHomeOrder('"),'dashboard collection alerts must open order details');
 assert(html.includes("onkeydown=\"if(event.keyCode===13||event.keyCode===32){event.preventDefault();openHomeOrder("),'collection alert must support keyboard activation');
-assert(css.includes('.lf-dash-alert[role="button"]:focus-visible'),'actionable alert focus state missing');console.log('Home dashboard status, delivery follow-up, and quick-action checks passed.');
+assert(css.includes('.lf-dash-alert[role="button"]:focus-visible'),'actionable alert focus state missing');
+for(const id of ['lfHomePausedOrders','lfHomePausedCount'])assert(html.includes('id="'+id+'"'),'missing paused-order dashboard region '+id);
+for(const fn of ['lfPauseOrder','lfResumeOrder','renderHomePausedOrders'])assert(html.includes('function '+fn+'('),'missing paused-order workflow function '+fn);
+assert(html.includes('renderHomePausedOrders();'),'dashboard refreshes paused-order follow-up');
+assert(html.includes('سبب إيقاف العمل على الطلب (مطلوب)'),'pausing an order requires a reason');
+assert(html.includes("order.pauseHistory.push({action:'pause'"),'pause events are retained in order history');
+assert(html.includes("order.pauseHistory.push({action:'resume'"),'resume events are retained in order history');
+assert(html.includes('موعد التسليم الأصلي:'),'paused-order dashboard keeps the original due date visible');
+assert(html.includes("o?.pausedAt?'متوقف مؤقتاً'"),'paused orders get a distinct workflow state');
+assert(html.includes('lfResumeOrder('),'order manager exposes resume action');
+assert(html.includes('lfPauseOrder('),'order manager exposes pause action');
+console.log('Home dashboard status, delivery follow-up, and quick-action checks passed.');
