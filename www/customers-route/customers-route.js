@@ -81,8 +81,11 @@
   if(saveDb(before,'تم تسجيل إنجاز الزيارة.'))render();
  }
  function taskAction(item){
-  if(item.taskType==='delivery'){const flow=orderWorkflowSnapshot(item.order);if(flow.pending>0){if(typeof openOrderShipmentModal==='function')openOrderShipmentModal(item.order.id);else window.LamsetUI?.toast('مسار تسجيل الشحنة غير متاح.','error');return}
-   if(typeof applyOrderStatusChange==='function'){applyOrderStatusChange(item.order.id,'تم التسليم');syncCompletedStops();render();return}}
+  if(item.taskType==='delivery'){const flow=orderWorkflowSnapshot(item.order);
+   if(flow.readyToShip>0){if(typeof openOrderShipmentModal==='function')openOrderShipmentModal(item.order.id);else window.LamsetUI?.toast('مسار تسجيل الشحنة غير متاح.','error');return}
+   if(flow.pending>0){window.LamsetUI?.toast('لا توجد كمية جاهزة للشحن حالياً؛ المتبقي للتصنيع '+flow.pending+' قطعة.','warning');return}
+   if(flow.shipped&&!flow.delivered&&typeof applyOrderStatusChange==='function'){applyOrderStatusChange(item.order.id,'تم التسليم');syncCompletedStops();render();return}
+   window.LamsetUI?.toast('راجع حالة التصنيع والشحن للطلب قبل إتمام التسليم.','warning');return}
   if(item.taskType==='collection'){if(typeof openOrderCollection==='function')openOrderCollection(item.order.id);return}
   if(item.taskType==='consignment'){openConsignment(item.customerId);return}
  }
