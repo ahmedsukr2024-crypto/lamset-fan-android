@@ -2681,7 +2681,7 @@ function setTreasuryTab(name){
  renderTreasury();
 }
 
-function lfExpenseToday(){return localDay(new Date())}
+function lfIsValidExpenseDate(value){const match=String(value||'').match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);if(!match)return false;const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]),date=new Date(Date.UTC(year,month-1,day));return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day}\nfunction lfExpenseToday(){return localDay(new Date())}
 function renderExpenses(){
  if($('lfExpenseDate')&&!$('lfExpenseDate').value)$('lfExpenseDate').value=lfExpenseToday();
  const rows=(Array.isArray(db.expenses)?db.expenses:[]),query=String($('lfExpenseSearch')?.value||'').trim().toLocaleLowerCase('ar'),method=$('lfExpenseFilterMethod')?.value||'',from=$('lfExpenseFrom')?.value||'',to=$('lfExpenseTo')?.value||'';
