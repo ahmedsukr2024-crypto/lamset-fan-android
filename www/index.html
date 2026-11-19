@@ -1151,18 +1151,18 @@ function lfRemoveLegacyMaterialData(data){
 }
 function orderStockLines(o){return Array.isArray(o?.items)&&o.items.length?o.items.map(x=>({item:x,productId:x.productId,units:Math.max(0,Number(x.stockUnits)||0)})):[{item:o,productId:o?.productId,units:Math.max(0,Number(o?.stockUnits)||((Number(o?.qty)||0)*(o?.unitType==='carton'?Math.max(1,Number(o?.productSnapshot?.unitsPerCarton)||1):1)))}]}
 function lfOrderShipmentState(o){
- const lines=orderStockLines(o),shipments=Array.isArray(o?.shipments)?o.shipments:[],status=String(o?.status||''),total=lines.reduce((sum,line)=>sum+Math.max(0,Number(line.units)||0),0),legacyFull=!shipments.length&&(o?.stockIssueMigrated||['تم تسليمه لشركة الشحن','تم التسليم','تم التسليم للعميل'].includes(status)||(o?.stockIssuedAt&&Number(o?.stockIssuedUnits)>=total&&total>0));
- let shipped=0,ready=0,pending=0;
+ const lines=orderStockLines(o),shipments=Array.isArray(o?.shipments)?o.shipments:[],status=String(o?.status||''),total=lines.reduce((sum,line)=>sum+Math.max(0,Number(line.units)||0),0),legacyStatus=['تم تسليمه لشركة الشحن','تم التسليم','تم التسليم للعميل'].includes(status),legacyFull=!shipments.length&&(o?.stockIssueMigrated||(o?.stockIssuedAt?Number(o?.stockIssuedUnits)===total:legacyStatus));
+ let shipped=0,ready=0,pending=0,invalid=false;
  const rows=lines.map((line,index)=>{
   const item=line.item||{},units=Math.max(0,Number(line.units)||0),deducted=item.stockDeductedUnits===undefined?units:Math.min(units,Math.max(0,Number(item.stockDeductedUnits)||0)),fulfilled=Math.min(Math.max(0,units-deducted),Math.max(0,Number(item.productionFulfilledUnits)||0)),prepared=Math.min(units,deducted+fulfilled);
   const itemIndex=Array.isArray(o?.items)&&o.items.length?index:null;
   const sent=legacyFull?units:shipments.reduce((sum,shipment)=>sum+(shipment.lines||[]).filter(row=>(row.itemIndex??null)===(itemIndex??null)&&String(row.productId)===String(line.productId)).reduce((n,row)=>n+Math.max(0,Number(row.qty)||0),0),0);
-  const shippedUnits=Math.min(units,sent),available=Math.max(0,prepared-shippedUnits),remaining=Math.max(0,units-shippedUnits);
+  if(sent>units)invalid=true;const shippedUnits=Math.min(units,sent),available=Math.max(0,prepared-shippedUnits),remaining=Math.max(0,units-shippedUnits);
   shipped+=shippedUnits;ready+=available;pending+=Math.max(0,Number(item.productionPendingUnits)||0);
   const product=(db.products||[]).find(p=>String(p.id)===String(line.productId));
   return{itemIndex,productId:line.productId,productName:item.productName||item.productSnapshot?.name||product?.name||'منتج',required:units,prepared,shipped:shippedUnits,available,remaining};
  });
- return{total,shipped,ready,pending,remaining:Math.max(0,total-shipped),complete:total>0&&shipped===total&&pending===0,partial:shipped>0&&shipped<total,lines:rows,legacyFull};
+ return{total,shipped,ready,pending,remaining:Math.max(0,total-shipped),complete:total>0&&shipped===total&&pending===0,partial:shipped>0&&shipped<total,invalid,lines:rows,legacyFull};
 }
 function lfOrderShipmentHistoryHtml(o){
  const shipments=Array.isArray(o?.shipments)?o.shipments:[];
@@ -1525,7 +1525,7 @@ function lfReviewOrderBeforeDelivery(o){
  if(total<=0)issues.push('إجمالي كميات الطلب غير صالح');
  if(pending>0)issues.push('متبقي تصنيع '+pending+' قطعة');
  if(total>0&&prepared!==total)issues.push('الكميات الجاهزة '+prepared+' من إجمالي '+total+' قطعة؛ يجب استكمال '+(total-prepared)+' قطعة');
- const shipping=lfOrderShipmentState(o);if((o?.shipments?.length||o?.stockIssuedAt||o?.stockIssueMigrated||o?.shippedAt)&&shipping.shipped!==total)issues.push('تم شحن '+shipping.shipped+' من '+total+' قطعة فقط؛ يجب تسجيل شحن الكمية المتبقية '+Math.max(0,total-shipping.shipped)+' قطعة قبل تأكيد التسليم النهائي');
+ const shipping=lfOrderShipmentState(o);if(shipping.invalid)issues.push('سجل الشحن يحتوي على كميات تتجاوز الكمية المطلوبة لأحد الأصناف');if((o?.shipments?.length||o?.stockIssuedAt||o?.stockIssueMigrated||o?.shippedAt)&&shipping.shipped!==total)issues.push('تم شحن '+shipping.shipped+' من '+total+' قطعة فقط؛ يجب تسجيل شحن الكمية المتبقية '+Math.max(0,total-shipping.shipped)+' قطعة قبل تأكيد التسليم النهائي');if(o?.stockIssuedAt&&!o?.stockIssueMigrated&&Number(o.stockIssuedUnits)!==shipping.shipped)issues.push('إجمالي الصرف المسجل لا يطابق مجموع الشحنات المسجلة');
  return{ok:issues.length===0,issues,total,prepared,pending,remaining:Math.max(0,total-prepared),shipped:shipping.shipped,remainingToShip:shipping.remaining};
 }
 function orderWorkflowSnapshot(o){
@@ -1755,7 +1755,7 @@ async function confirmOrderShipment(){
  const before=lfClone(db),shipmentAt=new Date().toISOString(),shipmentId=id(),shipmentNo=lfNextSequenceNumber((db.orders||[]).flatMap(x=>x.shipments||[]),'shipmentNumber','SH');
  try{
   const live=(db.orders||[]).find(x=>String(x.id)===String(orderId));if(!live)throw new Error('الطلب لم يعد موجوداً.');
-  const liveState=lfOrderShipmentState(live),byProduct=new Map();
+  const liveState=lfOrderShipmentState(live),byProduct=new Map();if(liveState.invalid)throw new Error('سجل الشحن الحالي يحتوي على كميات غير متطابقة؛ راجعه قبل إضافة شحنة.');
   selected.forEach(line=>{const current=liveState.lines[line.itemIndex===null?0:line.itemIndex];if(!current||String(current.productId)!==String(line.productId)||current.available<line.qty)throw new Error('تغيرت الكمية الجاهزة للصنف '+line.productName+'؛ أعد فتح نافذة الشحن.');byProduct.set(line.productId,(byProduct.get(line.productId)||0)+line.qty)});
   for(const [productId,qty] of byProduct){const product=(db.products||[]).find(x=>String(x.id)===String(productId));if(!product)throw new Error('المنتج المرتبط بالشحنة غير موجود.');if((Number(product.reservedStock)||0)<qty)throw new Error('المحجوز من المنتج '+(product.name||'')+' أقل من كمية الشحن المطلوبة.')}
   if(!Array.isArray(db.stockMovements))db.stockMovements=[];
