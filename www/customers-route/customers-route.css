@@ -73,8 +73,8 @@
 .lf-cr-check input{width:18px;height:18px}
 .lf-cr-empty{padding:18px;text-align:center;border:1px dashed var(--cr-line);border-radius:13px;color:var(--muted);font-size:12px;background:var(--surface,#fff)}
 .lf-cr-radar-note{padding:12px;border:1px solid var(--cr-line);border-radius:12px;background:var(--cr-soft);font-size:12px;line-height:1.7}
-.lf-cr-radar-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
-@media(max-width:620px){.lf-cr-grid{grid-template-columns:1fr}.lf-cr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lf-cr-top{grid-template-columns:1fr}.lf-cr-form-grid{grid-template-columns:1fr}.lf-cr-field.wide{grid-column:auto}.lf-cr-map-wrap{height:360px}.lf-cr-head h2{font-size:18px}}
+.lf-cr-radar-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.lf-cr-campaign-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:260px;overflow:auto;margin-top:9px}.lf-cr-campaign-choice{display:flex!important;align-items:center;gap:8px;padding:8px;border:1px solid var(--cr-line);border-radius:10px;background:var(--surface,#fff);min-width:0}.lf-cr-campaign-choice input{width:18px;height:18px;flex:none}.lf-cr-campaign-choice span{min-width:0;display:flex;flex-direction:column}.lf-cr-campaign-choice b,.lf-cr-campaign-choice small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lf-cr-campaign-choice b{font-size:11px}.lf-cr-campaign-choice small{font-size:10px;color:var(--muted)}
+@media(max-width:620px){.lf-cr-grid{grid-template-columns:1fr}.lf-cr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lf-cr-top{grid-template-columns:1fr}.lf-cr-form-grid{grid-template-columns:1fr}.lf-cr-campaign-list{grid-template-columns:1fr}.lf-cr-field.wide{grid-column:auto}.lf-cr-map-wrap{height:360px}.lf-cr-head h2{font-size:18px}}
 @media(max-width:360px){.lf-cr-card-actions button,.lf-cr-card-actions a{font-size:10px;padding:6px 5px}.lf-cr-stats{gap:5px}.lf-cr-stat{padding:8px}}
 :root[data-theme="dark"] .lf-cr-badge.blue{background:#203A58;color:#9CCAFF}
 :root[data-theme="dark"] .lf-cr-badge.orange{background:#49301F;color:#FFC18A}
