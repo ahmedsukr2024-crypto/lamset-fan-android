@@ -48,4 +48,12 @@ assert(html.includes("lfRecordActivity('تسجيل مصروف'")&&html.includes(
 assert(db.includes("if (balance < 0) throw new Error('التعديل سيؤدي إلى رصيد خزينة سالب بتاريخ ' + date + '.' );")||db.includes("if (balance < 0) throw new Error('التعديل سيؤدي إلى رصيد خزينة سالب بتاريخ ' + date + '.');"),'ledger must reject any withdrawal or correction that makes the cash balance negative');
 assert(db.includes("if (!['deposit', 'withdrawal'].includes(type))"),'manual treasury movement type must be restricted to deposits and withdrawals');
 assert(db.includes('this.requireOwnerSession();')&&db.includes('async recordTreasuryMovement(input)'),'manual treasury movements must be owner-session protected');
+assert(db.includes('async correctOpeningBalance(amount, correctionReason)'), 'opening balance correction must exist in the database layer');
+assert(db.includes('this.requireOwnerSession();')&&db.includes('سبب تصحيح الرصيد الافتتاحي مطلوب.'), 'opening balance correction must require an owner session and a mandatory reason');
+assert(db.includes('originalCents: previous.originalCents ?? Number(previous.cents || 0)'), 'opening balance correction must preserve the first original amount');
+assert(db.includes('corrections: [...(previous.corrections || []), correction]'), 'opening balance correction must append an immutable audit entry');
+assert(db.includes("action: 'opening-balance-correction'"), 'opening balance correction must trigger an audited ledger recalculation');
+assert(html.includes('async function correctTreasuryOpening(button)'), 'owner opening balance correction action must be available in the existing treasury section');
+assert(html.includes('lfTreasuryOpeningCorrection')&&html.includes('lamsetRequireOwnerPin(\'تصحيح الرصيد الافتتاحي\')'), 'opening balance correction UI must require owner PIN');
+assert(html.includes('الإقفالات التي ستتم إعادة مراجعة أرصدتها'), 'opening balance correction must preview affected historical closeouts');
 console.log('Owner PIN session, treasury date validation, and cash-link recovery checks passed.');
