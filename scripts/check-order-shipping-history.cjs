@@ -36,7 +36,9 @@ assert(html.includes('o.statusHistory.push({status:s,previousStatus:previous,dat
 const reviewStart = html.indexOf('function lfReviewOrderBeforeDelivery(o)');
 const reviewEnd = html.indexOf('function orderWorkflowSnapshot(o)', reviewStart);
 assert(reviewStart >= 0 && reviewEnd > reviewStart, 'final-delivery review helper exists');
-const stockLineSource = html.match(/function orderStockLines\\(o\\)\\{[^}]*\\}/)?.[0] || '';
+const stockLineStart = html.indexOf('function orderStockLines(o)');
+const stockLineEnd = html.indexOf('\\n', stockLineStart);
+const stockLineSource = stockLineStart >= 0 ? html.slice(stockLineStart, stockLineEnd > stockLineStart ? stockLineEnd : stockLineStart + 2000) : '';
 assert(!!stockLineSource, 'canonical order stock-line helper exists for delivery review');
 const reviewContext = vm.createContext({ db: { products: [{ id: 'p1', name: 'منتج 1' }] } });
 vm.runInContext(stockLineSource + '\\n' + html.slice(reviewStart, reviewEnd) + '\\nthis.review=lfReviewOrderBeforeDelivery;', reviewContext);
