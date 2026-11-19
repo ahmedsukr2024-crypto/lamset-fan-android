@@ -2681,7 +2681,8 @@ function setTreasuryTab(name){
  renderTreasury();
 }
 
-function lfIsValidExpenseDate(value){const match=String(value||'').match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);if(!match)return false;const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]),date=new Date(Date.UTC(year,month-1,day));return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day}\nfunction lfExpenseToday(){return localDay(new Date())}
+function lfIsValidExpenseDate(value){const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!match)return false;const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]),date=new Date(Date.UTC(year,month-1,day));return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day}
+function lfExpenseToday(){return localDay(new Date())}
 function renderExpenses(){
  if($('lfExpenseDate')&&!$('lfExpenseDate').value)$('lfExpenseDate').value=lfExpenseToday();
  const rows=(Array.isArray(db.expenses)?db.expenses:[]),query=String($('lfExpenseSearch')?.value||'').trim().toLocaleLowerCase('ar'),method=$('lfExpenseFilterMethod')?.value||'',from=$('lfExpenseFrom')?.value||'',to=$('lfExpenseTo')?.value||'';
@@ -2720,7 +2721,7 @@ function printFinancialMovementReport(){
 async function saveExpense(button){
  if(button?.disabled)return;const amount=Number($('lfExpenseAmount')?.value),date=$('lfExpenseDate')?.value||lfExpenseToday(),category=$('lfExpenseCategory')?.value||'أخرى',method=$('lfExpenseMethod')?.value||'نقدي',notes=$('lfExpenseNotes')?.value.trim()||'',file=$('lfExpenseReceipt')?.files?.[0]||null;
  if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا صحيحًا أكبر من صفر.');
- if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(new Date(date+'T00:00:00').getTime()))return alert('اختر تاريخًا صحيحًا للمصروف.');
+ if(!lfIsValidExpenseDate(date))return alert('اختر تاريخًا صحيحًا للمصروف.');
  button.disabled=true;const old=button.textContent;button.textContent='جارٍ الحفظ...';
  const before=JSON.parse(JSON.stringify(db));
  try{
@@ -2735,7 +2736,7 @@ async function saveExpense(button){
 async function editExpense(expenseId){
  const item=(db.expenses||[]).find(x=>x.id===expenseId&&x.status!=='cancelled');if(!item)return;
  const amountText=prompt('المبلغ الجديد للمصروف (ج.م):',String(item.amount));if(amountText===null)return;const amount=Number(amountText);if(!Number.isFinite(amount)||amount<=0)return alert('المبلغ الجديد غير صحيح.');
- const date=prompt('تاريخ المصروف (YYYY-MM-DD):',String(item.date||lfExpenseToday()));if(date===null)return;const parsedDate=new Date(date+'T00:00:00');if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(parsedDate.getTime())||parsedDate.toISOString().slice(0,10)!==date)return alert('تاريخ المصروف غير صحيح.');
+ const date=prompt('تاريخ المصروف (YYYY-MM-DD):',String(item.date||lfExpenseToday()));if(date===null)return;if(!lfIsValidExpenseDate(date))return alert('تاريخ المصروف غير صحيح.');
  const category=prompt('نوع المصروف:',String(item.category||'أخرى'));if(category===null)return;if(!category.trim())return alert('نوع المصروف مطلوب.');
  const methods=['نقدي','تحويل بنكي','محفظة إلكترونية','أخرى'],method=prompt('طريقة الدفع (نقدي / تحويل بنكي / محفظة إلكترونية / أخرى):',String(item.method||'نقدي'));if(method===null)return;if(!methods.includes(method.trim()))return alert('طريقة الدفع غير صحيحة.');
  const notes=prompt('الملاحظات (اختياري):',String(item.notes||''));if(notes===null)return;
