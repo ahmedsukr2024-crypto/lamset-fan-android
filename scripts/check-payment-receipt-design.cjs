@@ -61,7 +61,7 @@ const cancelSource=cancelStart>=0&&cancelEnd>cancelStart?html.slice(cancelStart,
 assert(cancelSource.includes("payment.status='cancelled'"),'cancellation marks the existing receipt instead of deleting it');
 assert(cancelSource.includes('payment.receiptNumber||'), 'cancellation confirmation retains the original receipt number');
 assert(html.includes('[p.receiptNumber,p.id,customer,invoice,o?.orderNumber,p.amount,p.method,p.note,p.cancelReason]'),'payment history search includes the receipt serial');
-assert(html.includes('previewPaymentReceipt('+JSON.stringify(p.id)+')')||html.includes('previewPaymentReceipt('),'receipt history offers viewing and reprinting');
+assert(html.includes('previewPaymentReceipt(paymentId)')&&html.includes('onclick=\"lamsetRunButtonAction(this,()=>previewPaymentReceipt('),'receipt history offers viewing and reprinting');
 
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Payment receipt design checks passed.');
