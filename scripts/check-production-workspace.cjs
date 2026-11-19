@@ -74,6 +74,6 @@ assert(html.includes("String(product.image||'').startsWith('data:image/')"),'pro
 assert(html.includes('class="lf-production-group-image"'),'production group cards display the existing product image');
 assert(html.includes("String(p.image||'').startsWith('data:image/')"),'factory sheet reuses the existing stored product image only when present');
 assert(html.includes('class="factory-product-image"'),'factory PDF sheet displays the existing product image beside the product name');
-assert(html.includes("'<div class=\"lf-production-group-identity\">'+image+'<div><b>'+esc(group.name)"),'production group remains text-only when no product image is stored');
+assert.match(html,/class="lf-production-group-identity">'\+image\+'<div><b>'\+esc\(group\.name\)/,'production group keeps its name and specs when the optional image is empty');
 
 console.log('Production workspace four-tab structure and existing production regions verified.');
