@@ -20,7 +20,7 @@ if (dateFunction) {
   assert(!validateDate('2026-13-01'), 'invalid month is rejected');
   assert(!validateDate('16-11-2026'), 'incorrect date format is rejected');
 }
-const saveStart = html.indexOf('function saveOrder()');
+const saveStart = html.indexOf('async function saveOrder()');
 const saveEnd = html.indexOf('function lfOrderStatusKey', saveStart);
 const saveOrder = saveStart >= 0 && saveEnd > saveStart ? html.slice(saveStart, saveEnd) : '';
 assert(!!saveOrder, 'saveOrder function can be inspected');
