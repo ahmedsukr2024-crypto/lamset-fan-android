@@ -183,6 +183,43 @@ class LamsetLocalDatabase {
     return { balance: fromCents(cents) };
   }
 
+  async correctOpeningBalance(amount, correctionReason) {
+    this.requireOwnerSession();
+    const cents = toCents(amount);
+    const reason = String(correctionReason || '').trim();
+    if (!reason) throw new Error('سبب تصحيح الرصيد الافتتاحي مطلوب.');
+    const database = await this.open();
+    const transaction = database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], 'readwrite');
+    const meta = transaction.objectStore(META);
+    const openingRecord = await requestValue(meta.get('treasury.opening'));
+    if (!openingRecord?.value) { transaction.abort(); throw new Error('لا يوجد رصيد افتتاحي مسجل لتصحيحه.'); }
+    const previous = openingRecord.value;
+    const now = new Date().toISOString();
+    const correction = {
+      at: now,
+      reason,
+      previous: { cents: Number(previous.cents || 0), businessDate: previous.businessDate },
+      next: { cents, businessDate: previous.businessDate }
+    };
+    const next = {
+      ...previous,
+      originalCents: previous.originalCents ?? Number(previous.cents || 0),
+      originalBusinessDate: previous.originalBusinessDate ?? previous.businessDate,
+      cents,
+      updatedAt: now,
+      corrections: [...(previous.corrections || []), correction]
+    };
+    meta.put({ key: 'treasury.opening', value: next });
+    const balance = await this.recomputeTreasuryLedger(transaction, {
+      action: 'opening-balance-correction',
+      reason,
+      effectiveDate: previous.businessDate,
+      at: now
+    });
+    await transactionDone(transaction);
+    return { opening: next, balance };
+  }
+
   async getTreasuryBalance() {
     const cents = Number(await this.getMeta('treasury.balance.cents') || 0);
     return fromCents(cents);
