@@ -95,7 +95,7 @@ async function checkDeliveryCorrectionBehavior() {
       lfRecordActivity: (...args) => { context.db.activityLog.unshift({ args }); },
       console: { error: () => {} }
     });
-    vm.runInContext(source + '\\nthis.correct=correctDeliveryConfirmation;', context);
+    vm.runInContext(source + '\nthis.correct=correctDeliveryConfirmation;', context);
     return context;
   };
   const same = (a,b) => JSON.stringify(a) === JSON.stringify(b);
