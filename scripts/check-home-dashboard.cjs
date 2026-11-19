@@ -15,4 +15,10 @@ assert(html.includes('موعد التسليم الأصلي:'),'paused-order dash
 assert(html.includes("o?.pausedAt?'متوقف مؤقتاً'"),'paused orders get a distinct workflow state');
 assert(html.includes('lfResumeOrder('),'order manager exposes resume action');
 assert(html.includes('lfPauseOrder('),'order manager exposes pause action');
+assert(html.includes("key:'paused-long:'+oid")&&html.includes('طلب متوقف منذ أكثر من 3 أيام'),'long pauses create a follow-up alert');
+assert(html.includes("key:'paused-due:'+oid")&&html.includes('موعد قريب لطلب متوقف')&&html.includes('طلب متوقف ومتأخر'),'paused orders alert when their original delivery date is near or overdue');
+assert(html.includes("delete order.pausedAt;delete order.pauseReason;delete order.pausedFromStatus;"),'resume clears only the active pause state');
+assert(html.includes("order.lastResumedAt=at;"),'resume records its timestamp');
+assert(html.includes("if(!o.pausedAt&&status!=='تم التسليم'"),'paused orders do not create duplicate generic overdue alerts');
+
 console.log('Home dashboard status, delivery follow-up, and quick-action checks passed.');
