@@ -6,7 +6,7 @@
  const PRICE_TIERS=[['distributor','سعر الموزع'],['trader','سعر الجملة'],['shop','سعر المحلات'],['retail','سعر القطاعي']];
  const FILTERS=[['all','الكل'],['tasks','مهام الشحن والتحصيل'],['today','جولة اليوم'],['due','عليهم تحصيل'],['consignment','بيع بالأمانة'],['distributor','موزعين'],['wholesale','تجار جملة'],['shop','محلات ومكتبات'],['online','أونلاين / قطاعي'],['followup','محتاجين متابعة']];
  const state={view:'list',filter:'all',search:'',area:'',selectedCustomerId:'',formCustomerId:null,radarResults:[],radarSelected:[],campaignQueue:[],campaignIndex:-1,map:null,mapPromise:null,location:null};
- const $=id=>document.getElementById(id),clone=value=>JSON.parse(escape(JSON.stringify(value)));
+ const $=id=>document.getElementById(id),clone=value=>JSON.parse(JSON.stringify(value));
  const today=()=>typeof localDay==='function'?localDay():new Date().toISOString().slice(0,10);
  const text=value=>String(value==null?'':value);
  const escape=value=>typeof esc==='function'?esc(value):text(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
