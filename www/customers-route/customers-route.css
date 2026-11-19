@@ -38,13 +38,13 @@
 .lf-cr-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
 .lf-cr-card-actions button,.lf-cr-card-actions a{flex:1 1 auto;min-width:0;min-height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--cr-line);border-radius:10px;background:var(--cr-soft);color:var(--ink);text-decoration:none;padding:7px 8px;font:inherit;font-size:11px}
 .lf-cr-card-actions .primary{background:var(--cr-blue);color:#fff;border-color:var(--cr-blue)}
-.lf-cr-task{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--cr-line)}
+.lf-cr-task{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;padding:11px 0;border-bottom:1px solid var(--cr-line);min-width:0}
 .lf-cr-task:last-child{border-bottom:0}
-.lf-cr-task-main{min-width:0;flex:1}
-.lf-cr-task-title{font-size:13px;font-weight:900}
-.lf-cr-task-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.55}
-.lf-cr-task-actions{display:flex;gap:5px;flex-wrap:wrap}
-.lf-cr-task-actions button{min-height:34px;padding:6px 9px;font-size:11px}
+.lf-cr-task-main{min-width:0;width:100%;flex:1 1 auto}
+.lf-cr-task-title{font-size:13px;font-weight:900;line-height:1.55;overflow-wrap:anywhere;word-break:normal}
+.lf-cr-task-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.65;overflow-wrap:anywhere;word-break:normal}
+.lf-cr-task-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap;min-width:0;max-width:100%}
+.lf-cr-task-actions button{min-height:34px;padding:6px 9px;font-size:11px;max-width:100%;white-space:normal}
 .lf-cr-done{opacity:.65}
 .lf-cr-done .lf-cr-task-title{text-decoration:line-through}
 .lf-cr-map-wrap{height:420px;min-height:300px;border:1px solid var(--cr-line);border-radius:15px;overflow:hidden;background:var(--cr-soft)}
@@ -74,7 +74,7 @@
 .lf-cr-empty{padding:18px;text-align:center;border:1px dashed var(--cr-line);border-radius:13px;color:var(--muted);font-size:12px;background:var(--surface,#fff)}
 .lf-cr-radar-note{padding:12px;border:1px solid var(--cr-line);border-radius:12px;background:var(--cr-soft);font-size:12px;line-height:1.7}
 .lf-cr-radar-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.lf-cr-campaign-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:260px;overflow:auto;margin-top:9px}.lf-cr-campaign-choice{display:flex!important;align-items:center;gap:8px;padding:8px;border:1px solid var(--cr-line);border-radius:10px;background:var(--surface,#fff);min-width:0}.lf-cr-campaign-choice input{width:18px;height:18px;flex:none}.lf-cr-campaign-choice span{min-width:0;display:flex;flex-direction:column}.lf-cr-campaign-choice b,.lf-cr-campaign-choice small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lf-cr-campaign-choice b{font-size:11px}.lf-cr-campaign-choice small{font-size:10px;color:var(--muted)}
-@media(max-width:620px){.lf-cr-grid{grid-template-columns:1fr}.lf-cr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lf-cr-top{grid-template-columns:1fr}.lf-cr-form-grid{grid-template-columns:1fr}.lf-cr-campaign-list{grid-template-columns:1fr}.lf-cr-field.wide{grid-column:auto}.lf-cr-map-wrap{height:360px}.lf-cr-head h2{font-size:18px}}
+@media(max-width:620px){.lf-cr-grid{grid-template-columns:1fr}.lf-cr-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lf-cr-top{grid-template-columns:1fr}.lf-cr-form-grid{grid-template-columns:1fr}.lf-cr-campaign-list{grid-template-columns:1fr}.lf-cr-field.wide{grid-column:auto}.lf-cr-map-wrap{height:360px}.lf-cr-head h2{font-size:18px}.lf-cr-task{grid-template-columns:minmax(0,1fr);gap:8px}.lf-cr-task-main{width:100%;min-width:0}.lf-cr-task-actions{width:100%;justify-content:flex-start;gap:6px}.lf-cr-task-actions button{flex:0 1 auto;min-width:0}.lf-cr-task-title,.lf-cr-task-desc{max-width:100%;white-space:normal;overflow-wrap:anywhere}}
 @media(max-width:360px){.lf-cr-card-actions button,.lf-cr-card-actions a{font-size:10px;padding:6px 5px}.lf-cr-stats{gap:5px}.lf-cr-stat{padding:8px}}
 :root[data-theme="dark"] .lf-cr-badge.blue{background:#203A58;color:#9CCAFF}
 :root[data-theme="dark"] .lf-cr-badge.orange{background:#49301F;color:#FFC18A}
