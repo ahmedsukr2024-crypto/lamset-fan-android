@@ -160,7 +160,7 @@
  function closeForm(){state.formCustomerId=null;const host=$('lfCrForm');if(host)host.innerHTML=''}
  function duplicateCustomer(phone,lat,lng,excludeId){
   const phoneKey=normalizePhone(phone);if(phoneKey&&allCustomers().some(c=>String(c.id)!==String(excludeId||'')&&[c.phone,c.phone2].some(v=>normalizePhone(v)===phoneKey)))return 'رقم الهاتف مسجل بالفعل لدى عميل آخر.';
-  if(Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))&&String(lat)!==''&&String(lng)!==''){const point={lat:Number(lat),lng:Number(lng)},near=allCustomers().find(c=>String(c.id)!==String(excludeId||'')&&coordinates(c)&&haversine(point,coordinates(c))<=30);if(near)return 'الموقع قريب جداً من العميل المسجل: '+near.name+' (أقل من 30 مترًا).'}
+  if(lat!==null&&lat!==undefined&&lng!==null&&lng!==undefined&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))){const point={lat:Number(lat),lng:Number(lng)},near=allCustomers().find(c=>String(c.id)!==String(excludeId||'')&&coordinates(c)&&haversine(point,coordinates(c))<=30);if(near)return 'الموقع قريب جداً من العميل المسجل: '+near.name+' (أقل من 30 مترًا).'}
   return '';
  }
  function saveCustomer(){
