@@ -7,6 +7,10 @@ assert(html.includes('lfProductionOverviewStats'),'production overview counters 
 assert(html.includes('lfProductionOverviewAlerts'),'production overview alerts missing');
 assert(html.includes('lfProductionGroupAlerts'),'production group alert region missing');
 assert(html.includes('oldRenderAll.apply(this,arguments)'),'production overview must refresh after app renders');
+assert(html.includes("filter(o=>!lfIsArchivedOrder(o)&&!o.pausedAt)"),'paused orders are excluded from active production groups and needs');
+assert(html.includes("filter(order=>!lfIsArchivedOrder(order)&&!order.pausedAt)"),'paused orders are excluded from production surplus assignment');
+assert(html.includes("const orders=(db.orders||[]).filter(o=>!lfIsArchivedOrder(o)&&!o.pausedAt)"),'paused orders are excluded from production allocation planning');
+
 assert(html.includes('window.setProductionTab(\'overview\')'),'production workspace must open on overview');
 assert(html.includes('lfProductionBatchAudit'),'existing production batch history must be preserved');
 
