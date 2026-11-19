@@ -13,7 +13,7 @@
     "check:order-edit-production": "node scripts/check-order-edit-production.cjs",
     "check:order-cancellation-ledger": "node scripts/check-order-cancellation-ledger.cjs",
     "check:order-shipping-history": "node scripts/check-order-shipping-history.cjs",
-    "check:customers-route": "node scripts/check-customers-route.cjs"
+    "check:customers-route": "node --check www/customers-route/customers-route.js && node scripts/check-customers-route.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
