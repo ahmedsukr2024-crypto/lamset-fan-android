@@ -7,6 +7,7 @@ const end = source.indexOf('\n  async updateTreasuryMovement(', start);
 if (start < 0 || end < 0) throw new Error('Treasury ledger implementation could not be isolated.');
 const method = source.slice(start, end).trim().replace(/^async recomputeTreasuryLedger/, 'async function recomputeTreasuryLedger');
 const sandbox = {
+  META: 'meta', MOVEMENTS: 'treasuryMovements', CASH_LINKS: 'treasuryCashLinks', CLOSEOUTS: 'treasuryCloseouts',
   requestValue: value => Promise.resolve(value),
   fromCents: value => Number((Number(value || 0) / 100).toFixed(2))
 };
