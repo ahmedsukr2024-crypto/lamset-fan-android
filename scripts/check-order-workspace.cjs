@@ -21,9 +21,9 @@ for(const status of ['جديد','قيد التجهيز','جاهز للشحن','�
 const invoiceStart=html.indexOf('function invoiceHtml(o)');
 const invoiceEnd=html.indexOf('\nfunction ',invoiceStart);
 const invoice=html.slice(invoiceStart,invoiceEnd);
-const orderMessageStart=html.indexOf('function lfOpenOrderWhatsAppConfirmation(order)');
-const orderMessageEnd=html.indexOf('\nfunction ',orderMessageStart);
-const orderMessage=html.slice(orderMessageStart,orderMessageEnd);
+const whatsStart=html.indexOf('function lfOpenOrderWhatsAppConfirmation(order)');
+const whatsEnd=html.indexOf('\nfunction ',whatsStart);
+const whats=html.slice(whatsStart,whatsEnd);
 assert.ok(invoice&&whats,'invoice and WhatsApp customer message implementations must exist');
 for(const term of ['مرتجع','استبدال']){assert.ok(!invoice.includes(term),'sales invoice must not contain returns/exchanges: '+term);assert.ok(!whats.includes(term),'order WhatsApp message must not contain returns/exchanges: '+term);}
 
