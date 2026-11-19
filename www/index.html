@@ -1634,7 +1634,7 @@ let allowed=['جديد','قيد التجهيز','جاهز للشحن','تم تس
 if(!allowed.includes(s))return alert('الحالة غير معتمدة. اختر حالة من القائمة المعروضة.');
 let statusReason='';
 if(['جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(s)&&orderPendingProductionUnits(o)>0)return alert('لا يمكن نقل الطلب إلى مرحلة الشحن أو التسليم قبل اكتمال التصنيع. توجد '+orderPendingProductionUnits(o)+' قطعة ناقصة في صفحة التصنيع المطلوب.');
-if(['تم التسليم','تم التسليم للعميل'].includes(s)){const review=lfReviewOrderBeforeDelivery(o);if(!review.ok)return alert('لا يمكن إغلاق الطلب قبل استكمال المراجعة:\n• '+review.issues.join('\n• '));}
+if(['تم التسليم','تم التسليم للعميل'].includes(s)){const review=lfReviewOrderBeforeDelivery(o);if(!review.ok)return alert('لا يمكن إغلاق الطلب قبل استكمال المراجعة:\n• '+review.issues.join('\n• '));const due=Math.max(0,Number(orderDue(o))||0),summary='المراجعة النهائية لإغلاق الطلب '+lfOrderNumber(o)+'\nالعميل: '+String(o.customer||'')+'\nالكميات الجاهزة: '+review.prepared+' من '+review.total+' قطعة\nالمتبقي للتصنيع: '+review.pending+' قطعة\nالمتبقي للتحصيل: '+money(due)+(due>0?' (لا يمنع إغلاق الطلب)':'')+'\n\nسيتم تسجيل تأكيد التسليم وحركة الصرف إن لم تكن مسجلة. هل تؤكد الإغلاق؟';if(!confirm(summary))return;}
 let previous=o.status;if(s===previous)return;
 if(['تم التسليم','تم التسليم للعميل'].includes(previous)||o.deliveredAt)return alert('لا يمكن تعديل حالة طلب مكتمل؛ تم الاحتفاظ بسجل التسليم والحسابات كما هو.');
 const wasShipped=lfOrderHasShipped(o);
