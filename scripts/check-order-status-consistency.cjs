@@ -49,6 +49,16 @@ assert(render.includes('const archived=lfIsArchivedOrder;'), 'open/archive tabs 
 assert(render.includes('orderWorkflowSnapshot(o)'), 'order cards use canonical workflow status');
 assert(html.includes('سبب إلغاء / إغلاق الطلب (مطلوب):'), 'exceptional order closure requires a reason');
 assert(html.includes('o.cancelReason=statusReason'), 'order closure reason is retained with the order');
+assert(html.includes('async function correctDeliveryConfirmation(orderId)'), 'owner-only delivery correction action exists');
+assert(html.includes("window.lamsetRequireOwnerPin('تصحيح تأكيد تسليم الطلب '+lfOrderNumber(order))"), 'delivery correction requires owner PIN');
+assert(html.includes("prompt('سبب تصحيح تأكيد التسليم (مطلوب):','')"), 'delivery correction requires a reason');
+assert(html.includes("order.status=waitingStatus;")&&html.includes("order.shippedAt?'تم تسليمه لشركة الشحن':'جاهز للشحن'"), 'delivery correction returns the order to the appropriate waiting state');
+assert(html.includes('previousDeliveredAt}),'), 'previous delivery confirmation timestamp is retained in correction history');
+assert(html.includes("delete order.deliveredAt;")&&html.includes("delete order.closedAt;"), 'correction reopens delivery confirmation without retaining final closure state');
+assert(html.includes("lfRecordActivity('تصحيح تأكيد التسليم'"), 'delivery correction is recorded in activity log');
+assert(html.includes("تصحيح تأكيد التسليم</button>"), 'delivered orders expose the correction action');
+assert(html.includes("لم تتغير الشحنات أو المخزون أو التحصيلات"), 'correction explicitly preserves shipping, stock and collections');
+
 assert(html.includes('...(statusReason?{reason:statusReason}:{})'), 'order status history records the closure reason');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Order status consistency checks passed.');
