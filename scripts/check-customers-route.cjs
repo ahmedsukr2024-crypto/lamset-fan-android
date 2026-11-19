@@ -55,4 +55,8 @@ assert.match(route,/searchInput&&searchInput\.value!==state\.search/,'Rendering 
 assert.match(route,/id="lfCrCustomerArea" value=/,'Customer form area input must have a unique id separate from the area filter.');
 assert.match(route,/area=\$\('lfCrCustomerArea'\)\?\.value\.trim\(\)/,'Saving a customer must read the customer form area, not the area filter.');
 assert.doesNotMatch(route,/setView\(\[30\.0444,31\.2357\],6\)/,'Empty map results must not force the map to Cairo.');
+assert.equal((route.match(/lf-cr-action-disabled/g)||[]).length,2,'Both customer list and detail must handle missing phone numbers without opening an empty dialer.');
+assert.match(route,/فتح الكتالوج للعميل/,'Catalog action label must describe opening the catalog, not claim it was sent.');
+assert.match(route,/فتح ملخص الحساب في واتساب/,'Account WhatsApp action must not imply automatic sending.');
+assert.match(css,/overflow-wrap:anywhere;line-height:1\.4;text-align:center/,'Long action labels must wrap within their buttons.');
 console.log('Customer route static checks passed.');
