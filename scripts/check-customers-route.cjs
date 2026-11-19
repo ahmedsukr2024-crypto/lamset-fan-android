@@ -59,4 +59,5 @@ assert.equal((route.match(/lf-cr-action-disabled/g)||[]).length,2,'Both customer
 assert.match(route,/فتح الكتالوج للعميل/,'Catalog action label must describe opening the catalog, not claim it was sent.');
 assert.match(route,/فتح ملخص الحساب في واتساب/,'Account WhatsApp action must not imply automatic sending.');
 assert.match(css,/overflow-wrap:anywhere;line-height:1\.4;text-align:center/,'Long action labels must wrap within their buttons.');
+assert.match(route,/category=c\?categoryOf\(c\):'prospect'/,'New customers must default to prospect instead of silently becoming wholesale customers.');
 console.log('Customer route static checks passed.');
