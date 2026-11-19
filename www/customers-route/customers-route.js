@@ -71,7 +71,7 @@
   if(saveDb(before,'تمت إزالة المهمة من الجولة.'))render();
  }
  function routeMarkDone(stopId){
-  const before=clone(db),plan=getPlan(false),stop=plan?.stops.find(s=>String(s.id)===String(stopId));if(!stop)return;
+  const before=clone(db),plan=getPlan(false),stop=plan?.stops.find(s=>String(s.id)===String(stopId));if(!stop||stop.doneAt)return;
   if(stop.taskType==='delivery'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(!order)return;if(typeof lfIsDeliveredOrder==='function'&&lfIsDeliveredOrder(order)){stop.doneAt=order.deliveredAt||new Date().toISOString()}else return window.LamsetUI?.toast('أكمل تأكيد التسليم من المهمة أولاً.','warning')}
   if(stop.taskType==='collection'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(!order||order.status==='ملغي')return window.LamsetUI?.toast('الفاتورة غير متاحة للتحصيل؛ راجع سجل الطلب أولاً.','warning');if(typeof orderDue==='function'&&orderDue(order)>0)return window.LamsetUI?.toast('ما زال على الفاتورة مبلغ مستحق؛ سجّل التحصيل أولاً.','warning');stop.doneAt=new Date().toISOString()}
   if(stop.taskType==='consignment'||stop.taskType==='visit')stop.doneAt=new Date().toISOString();
@@ -122,7 +122,8 @@
   const host=$('lfCrMap'),note=$('lfCrMapNote');if(!host)return;let L;
   try{L=await ensureLeaflet()}catch(error){if(note)note.textContent=error.message+' · يمكنك استخدام قائمة العملاء والملاحة الخارجية دون إنترنت.';return}
   const customers=state.filter==='today'?stopsForToday().map(x=>x.customer):state.filter==='tasks'?taskCandidates().map(x=>x.customer):filteredCustomers(),withCoords=[...new Map(customers.filter(c=>coordinates(c)).map(c=>[String(c.id),c])).values()];
-  if(!withCoords.length){if(note)note.textContent='لا توجد إحداثيات محفوظة للعملاء الظاهرين. افتح ملف العميل والتقط موقعه الحالي أولاً.';return}
+  if(state.map?._lfMarkers){state.map._lfMarkers.forEach(marker=>marker.remove());state.map._lfMarkers=[];}
+  if(!withCoords.length){if(state.map)state.map.setView([30.0444,31.2357],6);if(note)note.textContent='لا توجد إحداثيات محفوظة للعملاء الظاهرين. افتح ملف العميل والتقط موقعه الحالي أولاً.';return}
   if(note)note.textContent='الخريطة تعرض العملاء ذوي الإحداثيات المحفوظة. طبقات الخريطة تحتاج الإنترنت؛ بيانات الدليل والجولة محفوظة محلياً.';
   if(!state.map){state.map=L.map(host,{zoomControl:true}).setView([withCoords[0].lat,withCoords[0].lng],13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map)}
   state.map.invalidateSize();if(state.map._lfMarkers)state.map._lfMarkers.forEach(m=>m.remove());state.map._lfMarkers=[];
@@ -158,7 +159,7 @@
  function render(){
   const page=$(PAGE);if(!page)return;
   if(syncCompletedStops())save();
-  $('lfCrSearch').value=state.search;
+  const searchInput=$('lfCrSearch');if(searchInput&&searchInput.value!==state.search)searchInput.value=state.search;
   $('lfCrArea').innerHTML='<option value="">كل المناطق</option>'+[...new Set(allCustomers().map(c=>text(c.area).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar')).map(area=>'<option value="'+escape(area)+'" '+(state.area===area?'selected':'')+'>'+escape(area)+'</option>').join('');
   renderFilters();renderStats();renderTasks();renderList();renderRadar();renderDetail();
   $('lfCrViewList').classList.toggle('active',state.view==='list');$('lfCrViewMap').classList.toggle('active',state.view==='map');$('lfCrViewRadar').classList.toggle('active',state.view==='radar');
@@ -171,8 +172,8 @@
  function newCustomer(category){state.formCustomerId='';renderForm();if(category&&$('lfCrCategory'))$('lfCrCategory').value=category;$('lfCrForm')?.scrollIntoView({behavior:'smooth',block:'center'})}
  function editCustomer(customerId){if(!customerById(customerId))return;state.formCustomerId=String(customerId);renderForm();$('lfCrForm')?.scrollIntoView({behavior:'smooth',block:'center'})}
  function closeForm(){state.formCustomerId=null;const host=$('lfCrForm');if(host)host.innerHTML=''}
- function duplicateCustomer(phone,lat,lng,excludeId){
-  const phoneKey=normalizePhone(phone);if(phoneKey&&allCustomers().some(c=>String(c.id)!==String(excludeId||'')&&[c.phone,c.phone2].some(v=>normalizePhone(v)===phoneKey)))return 'رقم الهاتف مسجل بالفعل لدى عميل آخر.';
+ function duplicateCustomer(phone,phone2,lat,lng,excludeId){
+  const phoneKeys=[phone,phone2].map(normalizePhone).filter(Boolean);if(phoneKeys.some(phoneKey=>allCustomers().some(c=>String(c.id)!==String(excludeId||'')&&[c.phone,c.phone2].some(v=>normalizePhone(v)===phoneKey))))return 'رقم الهاتف مسجل بالفعل لدى عميل آخر.';
   if(lat!==null&&lat!==undefined&&lng!==null&&lng!==undefined&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))){const point={lat:Number(lat),lng:Number(lng)},near=allCustomers().find(c=>String(c.id)!==String(excludeId||'')&&coordinates(c)&&haversine(point,coordinates(c))<=30);if(near)return 'الموقع قريب جداً من العميل المسجل: '+near.name+' (أقل من 30 مترًا).'}
   return '';
  }
@@ -182,7 +183,8 @@
   if(phone&&normalizePhone(phone).length<7)return window.LamsetUI?.toast('رقم الهاتف غير مكتمل.','warning');
   if(!CATEGORIES.some(x=>x[0]===category)||!PRICE_TIERS.some(x=>x[0]===tier))return window.LamsetUI?.toast('راجع فئة العميل وشريحة السعر.','warning');
   if((lat===null)!==(lng===null)||(lat!==null&&(!Number.isFinite(lat)||Math.abs(lat)>90||!Number.isFinite(lng)||Math.abs(lng)>180)))return window.LamsetUI?.toast('إحداثيات الموقع غير صحيحة.','warning');
-  const duplicate=duplicateCustomer(phone,lat,lng,state.formCustomerId);if(duplicate)return window.LamsetUI?.toast(duplicate,'warning');
+  if(phone2&&normalizePhone(phone2).length<7)return window.LamsetUI?.toast('رقم الهاتف البديل غير مكتمل.','warning');
+  const duplicate=duplicateCustomer(phone,phone2,lat,lng,state.formCustomerId);if(duplicate)return window.LamsetUI?.toast(duplicate,'warning');
   const before=clone(db);let c=state.formCustomerId?customerById(state.formCustomerId):null;
   if(!c){c={id:typeof id==='function'?id():'customer-'+Date.now(),createdAt:new Date().toISOString()};db.customers.push(c)}
   c.name=name;c.phone=phone;c.phone2=phone2;c.type=tier;c.category=category;c.area=area;c.note=note;c.notes=note;c.has_consignment=hasConsignment;
@@ -191,7 +193,7 @@
   state.selectedCustomerId=String(c.id);state.formCustomerId=null;render();
  }
  async function requestLocation(){
-  try{let position;if(typeof window.lamsetGetCurrentPosition==='function')position=await window.lamsetGetCurrentPosition({enableHighAccuracy:true,timeout:15000,maximumAge:30000});else position=await new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(new Error('خدمة تحديد الموقع غير متاحة.'));navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:30000})});state.location={lat:Number(position.coords?.latitude??position.latitude),lng:Number(position.coords?.longitude??position.longitude)};return state.location}
+  try{let position;if(typeof window.lamsetGetCurrentPosition==='function')position=await window.lamsetGetCurrentPosition({enableHighAccuracy:true,timeout:15000,maximumAge:30000});else position=await new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(new Error('خدمة تحديد الموقع غير متاحة.'));navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:30000})});const lat=Number(position.coords?.latitude??position.latitude),lng=Number(position.coords?.longitude??position.longitude);if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180)throw new Error('تعذر قراءة إحداثيات موقع صحيحة.');state.location={lat,lng};if(state.view==='map')renderMap();return state.location}
   catch(error){window.LamsetUI?.toast(error.message||'تعذر تحديد موقعك. تحقق من إذن الموقع وGPS.','warning');return null}
  }
  async function captureLocation(){const point=await requestLocation();if(!point)return;if($('lfCrLat'))$('lfCrLat').value=point.lat;if($('lfCrLng'))$('lfCrLng').value=point.lng;if($('lfCrGpsStatus'))$('lfCrGpsStatus').textContent='تم التقاط الموقع الحالي؛ سيتم حفظه مع العميل بعد الضغط على حفظ.'}
