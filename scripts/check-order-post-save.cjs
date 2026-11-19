@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const fs = require('node:fs');
+const vm = require('node:vm');
 const html = fs.readFileSync('www/index.html', 'utf8');
 function assert(condition, message) {
   if (!condition) {
@@ -27,7 +28,7 @@ const priceHelperStart = html.indexOf('function lfOrderPriceChanges(existingOrde
 const priceHelperEnd = html.indexOf('async function saveOrder()', priceHelperStart);
 assert(priceHelperStart >= 0 && priceHelperEnd > priceHelperStart, 'order price comparison helper exists');
 const priceContext = vm.createContext({});
-vm.runInContext(html.slice(priceHelperStart, priceHelperEnd) + '\\nthis.priceChanges=lfOrderPriceChanges;', priceContext);
+vm.runInContext(html.slice(priceHelperStart, priceHelperEnd) + '\nthis.priceChanges=lfOrderPriceChanges;', priceContext);
 const previousOrder = { items: [
   { productId: 'p1', unitType: 'piece', productName: 'منتج أول', price: 10 },
   { productId: 'p2', unitType: 'carton', productName: 'منتج ثان', price: 25 }
