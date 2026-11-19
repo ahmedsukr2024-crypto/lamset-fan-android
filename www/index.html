@@ -1878,6 +1878,59 @@ $('analyticsStockAlerts').innerHTML=stockAlerts.length?'<div class="analytics-st
 async function exportAnalyticsCSV(){try{const range=analyticsRangeData();if(!range.valid)return alert('راجع تاريخ البداية والنهاية قبل التصدير.');const rows=[['تقرير لمسة فن','من',range.from.toLocaleDateString('ar-EG'),'إلى',range.to.toLocaleDateString('ar-EG')],['العميل','الهاتف','رقم الطلب','التاريخ','المنتج','الكود','الكمية','الوحدة','عدد القطع الفعلي','سعر الوحدة','إجمالي البند','إجمالي الفاتورة','المحصل','المتبقي','رصيد زائد','الحالة']];range.orders.forEach(o=>{const items=analyticsItems(o);items.forEach((item,index)=>{const p=db.products.find(x=>x.id===item.productId),qty=Number(item.qty)||0,price=Number(item.price)||0,unit=(item.unitType||o.unitType)==='carton'?'كرتونة':'قطعة',units=analyticsItemUnits(item,o),first=index===0;rows.push([o.customer||'',o.phone||'',lfOrderNumber(o),o.date||o.createdAt||'',item.productSnapshot?.name||item.productName||p?.name||'',item.productSnapshot?.code||item.productCode||p?.code||'',qty,unit,units,price,qty*price,first?orderGrossTotal(o):'',first?paidOnOrder(o):'',first?orderDue(o):'',first?orderCredit(o):'',first?(o.status||''):''])})});const csv='\ufeff'+rows.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n'),filename='lamset-fan-analytics-'+new Date().toISOString().slice(0,10)+'.csv';if(window.lamsetNativeExport){await window.lamsetNativeExport(csv,filename,'text/csv');alert('تم تجهيز التقرير. اختر مكان حفظه أو مشاركته.');return}const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);alert('تم تنزيل تقرير التحليلات بنجاح')}catch(err){console.error(err);alert('تعذر تصدير التقرير. حاول مرة أخرى.')}}
 function printAnalytics(){try{const section=$('reports');if(!section)return alert('صفحة التحليلات غير متاحة.');const range=analyticsRangeData();if(!range.valid)return alert('راجع تاريخ البداية والنهاية قبل الطباعة.');renderReports();const clone=section.cloneNode(true);clone.querySelectorAll('.analytics-export,.analytics-filter').forEach(x=>x.remove());clone.querySelectorAll('button').forEach(x=>x.remove());const reportCss='@page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:Tahoma,Arial,sans-serif;direction:rtl;color:#18191A;background:#fff;margin:0;font-size:12px}.report-head{padding:18px 20px;border-radius:14px;background:linear-gradient(120deg,#242526,#1877F2);color:#fff;margin-bottom:14px}.report-head h1{margin:0 0 6px;font-size:22px}.report-head p{margin:0;color:#F7F8FA}.analytics-hero{display:none!important}.analytics-section-title{margin:16px 0 8px;font-weight:bold;color:#242526}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.analytics-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:0 0 9px;break-inside:avoid}.analytics-panel-head{font-weight:bold;margin-bottom:8px}.analytics-panel-head h3{font-size:14px;margin:0}.analytics-panel-head small,.muted,small{color:#666}.analytics-kpi strong{display:block;font-size:15px;margin-top:5px}.analytics-kpi-icon{display:none}.lf-sales-svg{width:100%;height:auto}.analytics-collection-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.analytics-collection-grid>div,.analytics-compare-grid>div{padding:7px;background:#F7F8FA;border-radius:7px}.analytics-collection-grid b,.analytics-compare-grid b{display:block;margin-top:4px}.analytics-ranking,.analytics-status-list,.analytics-week-list,.analytics-stock-list{display:flex;flex-direction:column;gap:7px}.analytics-rank-track,.analytics-status-row>span,.analytics-week-row>span{display:block;height:7px;background:#eee;border-radius:9px;overflow:hidden}.analytics-rank-track i,.analytics-status-row i,.analytics-week-row i{display:block;height:100%;background:#1877F2;border-radius:9px}.analytics-table-row,.analytics-stock-list>div{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #eee}.analytics-stock-list>div span{display:flex;flex-direction:column}.analytics-compare-main{display:flex;flex-direction:column;gap:4px}.analytics-compare-main strong{font-size:22px}.analytics-compare-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}.positive{color:#128047}.negative{color:#bd263f}.warning{color:#a15c00}.neutral{color:#666}.lf-empty{padding:12px;text-align:center;color:#666}.lf-chart-accessible{font-size:10px;margin-top:6px;color:#555}.analytics-section-title span{font-size:10px;color:#666}@media print{.card{break-inside:avoid}}';const html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تقرير تحليلات لمسة فن</title><style>'+reportCss+'</style></head><body><header class="report-head"><h1>تقرير تحليلات لمسة فن</h1><p>الفترة: '+esc(range.from.toLocaleDateString('ar-EG'))+' — '+esc(range.to.toLocaleDateString('ar-EG'))+' · '+range.orders.length+' طلب</p></header>'+clone.innerHTML+'</body></html>';showDocumentPreview(html,'تقرير تحليلات لمسة فن — جاهز للطباعة');}catch(error){console.error('Analytics print error',error);alert('تعذر تجهيز تقرير الطباعة. حاول تحديث التحليلات ثم أعد المحاولة.')}}let editingCustomerId='';
 const customerCodes=[['20','مصر +20'],['966','السعودية +966'],['971','الإمارات +971'],['965','الكويت +965'],['974','قطر +974'],['973','البحرين +973'],['968','عُمان +968'],['962','الأردن +962'],['961','لبنان +961'],['964','العراق +964'],['212','المغرب +212'],['213','الجزائر +213'],['216','تونس +216'],['218','ليبيا +218'],['249','السودان +249'],['1','أمريكا/كندا +1'],['44','بريطانيا +44'],['49','ألمانيا +49'],['33','فرنسا +33']];
+
+function lamsetLocationControlsMarkup(customer,prefix){
+ const lat=customer&&customer.lat!==undefined?customer.lat:'',lng=customer&&customer.lng!==undefined?customer.lng:'';
+ const has=lat!==''&&lng!==''&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lng));
+ return '<div class="lf-location-picker"><input type="hidden" id="'+prefix+'Lat" value="'+(has?esc(String(lat)):'')+'"><input type="hidden" id="'+prefix+'Lng" value="'+(has?esc(String(lng)):'')+'"><div class="lf-location-heading"><b>موقع العميل على الخريطة</b><small id="'+prefix+'LocationStatus">'+(has?'تم حفظ إحداثيات العميل':'اختياري · لم يتم تحديد الموقع')+'</small></div><button type="button" class="ghost smallbtn" onclick="lamsetCaptureCustomerLocation(\''+prefix+'\')">التقاط الموقع الحالي GPS</button><div class="lf-location-link"><input id="'+prefix+'MapLink" type="url" inputmode="url" placeholder="الصق رابط Google Maps هنا"><button type="button" class="ghost smallbtn" onclick="lamsetResolveCustomerMapLink(\''+prefix+'\')">استخراج الموقع</button></div><div class="lf-location-search"><input id="'+prefix+'PlaceSearch" type="search" placeholder="ابحث عن اسم المكان أو العنوان"><button type="button" class="ghost smallbtn" onclick="lamsetSearchCustomerPlace(\''+prefix+'\')">بحث على الخريطة</button></div><div class="lf-location-results" id="'+prefix+'LocationResults"></div></div>';
+}
+function lamsetSetCustomerLocation(prefix,lat,lng,label){
+ lat=Number(lat);lng=Number(lng);
+ if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){window.LamsetUI?.toast('تعذر اعتماد إحداثيات موقع صحيحة.','warning');return false}
+ const latField=document.getElementById(prefix+'Lat'),lngField=document.getElementById(prefix+'Lng');if(!latField||!lngField)return false;
+ latField.value=String(lat);lngField.value=String(lng);
+ const status=document.getElementById(prefix+'LocationStatus');if(status)status.textContent='تم تحديد الموقع: '+String(label||'إحداثيات محفوظة')+' · سيتم الحفظ مع بيانات العميل';
+ const results=document.getElementById(prefix+'LocationResults');if(results)results.innerHTML='';
+ window.LamsetUI?.toast('تم تحديد موقع العميل؛ اضغط حفظ العميل لاعتماد البيانات.','success');return true;
+}
+function lamsetSelectCustomerLocation(button,prefix){if(button)lamsetSetCustomerLocation(prefix,button.dataset.lat,button.dataset.lng,button.dataset.label||'نتيجة البحث')}
+async function lamsetCaptureCustomerLocation(prefix){
+ try{
+  let position;
+  if(typeof window.lamsetGetCurrentPosition==='function')position=await window.lamsetGetCurrentPosition({enableHighAccuracy:true,timeout:15000,maximumAge:30000});
+  else position=await new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(new Error('خدمة تحديد الموقع غير متاحة.'));navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:30000})});
+  const lat=Number(position.coords?.latitude??position.latitude),lng=Number(position.coords?.longitude??position.longitude);
+  if(!lamsetSetCustomerLocation(prefix,lat,lng,'موقعك الحالي'))throw new Error('تعذر اعتماد إحداثيات الموقع.');
+ }catch(error){window.LamsetUI?.toast(error.message||'تعذر تحديد موقعك. تحقق من إذن الموقع وGPS.','warning')}
+}
+async function lamsetSearchCustomerPlace(prefix,queryOverride){
+ const input=document.getElementById(prefix+'PlaceSearch'),results=document.getElementById(prefix+'LocationResults'),query=String(queryOverride??input?.value??'').trim();
+ if(!query){window.LamsetUI?.toast('اكتب اسم المكان أو العنوان أولاً.','warning');return}
+ if(results)results.innerHTML='<small>جارٍ البحث عن المكان…</small>';
+ try{
+  const response=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q='+encodeURIComponent(query),{headers:{'Accept-Language':'ar,en'}});
+  if(!response.ok)throw new Error('خدمة البحث عن الأماكن غير متاحة حالياً.');
+  const data=await response.json();
+  if(!Array.isArray(data)||!data.length){if(results)results.innerHTML='<small>لم نعثر على نتائج. جرّب كتابة اسم الشارع أو المنطقة بشكل أوضح.</small>';return}
+  if(results)results.innerHTML=data.map(item=>'<button type="button" class="lf-location-result" data-lat="'+Number(item.lat)+'" data-lng="'+Number(item.lon)+'" data-label="'+esc(String(item.display_name||'').slice(0,240))+'" onclick="lamsetSelectCustomerLocation(this,\''+prefix+'\')"><b>'+esc(String(item.name||item.display_name||'مكان').slice(0,90))+'</b><small>'+esc(String(item.display_name||'').slice(0,220))+'</small></button>').join('');
+ }catch(error){if(results)results.innerHTML='<small>'+esc(error.message||'تعذر البحث عن المكان. تحقق من الاتصال بالإنترنت.')+'</small>'}
+}
+function lamsetCoordsFromMapUrl(value){
+ const source=String(value||''),patterns=[/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/i,/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/i,/[?&](?:q|query|destination)=(-?\d{1,2}(?:\.\d+)?)[,%2C]+(-?\d{1,3}(?:\.\d+)?)/i];
+ for(const pattern of patterns){const match=source.match(pattern);if(match){const lat=Number(match[1]),lng=Number(match[2]);if(Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180)return{lat,lng}}}return null;
+}
+async function lamsetResolveCustomerMapLink(prefix){
+ const field=document.getElementById(prefix+'MapLink'),raw=String(field?.value||'').trim();if(!raw){window.LamsetUI?.toast('الصق رابط Google Maps أولاً.','warning');return}
+ let url;try{url=new URL(/^https?:\/\//i.test(raw)?raw:'https://'+raw)}catch(_){window.LamsetUI?.toast('الرابط غير صحيح.','warning');return}
+ const direct=lamsetCoordsFromMapUrl(url.href);if(direct){lamsetSetCustomerLocation(prefix,direct.lat,direct.lng,'رابط Google Maps');return}
+ const place=url.searchParams.get('query')||url.searchParams.get('q')||url.searchParams.get('destination');
+ if(place&&!/^-?\d/.test(place)){await lamsetSearchCustomerPlace(prefix,place);return}
+ if(/maps\.app\.goo\.gl|goo\.gl\/maps/i.test(url.hostname+url.pathname)){
+  try{const response=await fetch(url.href,{method:'GET',redirect:'follow'}),resolved=lamsetCoordsFromMapUrl(response.url||'');if(resolved){lamsetSetCustomerLocation(prefix,resolved.lat,resolved.lng,'رابط Google Maps المختصر');return}const body=await response.text(),fromBody=lamsetCoordsFromMapUrl(body);if(fromBody){lamsetSetCustomerLocation(prefix,fromBody.lat,fromBody.lng,'رابط Google Maps المختصر');return}}catch(_){}
+ }
+ window.LamsetUI?.toast('تعذر استخراج الإحداثيات مباشرة من هذا الرابط المختصر. ابحث عن اسم المكان في خانة البحث، أو افتح الرابط وانسخ رابط خرائط كامل يحتوي على الإحداثيات.','warning');
+}
+
 function customerFormMarkup(c){
  let d=String(c&&c.phone||'').replace(/[^0-9]/g,'');
  let found=customerCodes.find(x=>d.startsWith(x[0]))||customerCodes[0];
@@ -1894,15 +1947,16 @@ function customerFormMarkup(c){
  '<div class="customer-field customer-field-wide"><label for="cPhone">رقم الهاتف</label><div class="phone-entry"><select id="cCountryCode" aria-label="كود الدولة">'+customerCodes.map(x=>'<option value="'+x[0]+'" '+(x[0]===found[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select><input id="cPhone" value="'+esc(local)+'" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="أدخل رقم الهاتف"></div><small class="customer-field-hint">اختر كود الدولة أولًا، ثم اكتب الرقم بدون كود الدولة</small></div>'+
  '</div></div>'+
  '<div class="customer-form-section"><div class="customer-form-section-title"><span>معلومات إضافية</span><small>اختيارية</small></div>'+
- '<div class="customer-form-grid"><div class="customer-field customer-field-wide"><label for="cArea">المنطقة / العنوان</label><input id="cArea" value="'+esc(c&&c.area||'')+'" placeholder="المدينة أو المنطقة" autocomplete="street-address"></div>'+
+ '<div class="customer-form-grid"><div class="customer-field customer-field-wide"><label for="cArea">المنطقة / العنوان</label><input id="cArea" value="'+esc(c&&c.area||'')+'" placeholder="المدينة أو المنطقة" autocomplete="street-address"></div>'+ '<div class="customer-field customer-field-wide">'+lamsetLocationControlsMarkup(c,'c')+'</div>'+''+
  '<div class="customer-field customer-field-wide"><label for="cNote">ملاحظات عن العميل</label><textarea id="cNote" rows="3" placeholder="أي تفاصيل مهمة عن التعامل مع العميل">'+esc(c&&c.note||'')+'</textarea></div></div></div>'+
  '<div class="customer-form-section"><div class="customer-form-section-title"><span>صورة العميل</span><small>اختياري</small></div><div class="customer-photo-picker">'+avatar+'<div class="customer-photo-copy"><strong>'+(c&&c.photo?'صورة الملف الشخصي':'أضف صورة للعميل')+'</strong><small>صورة واضحة تسهّل تمييز العميل</small><label class="photo-upload" for="cPhoto">📷 '+(c&&c.photo?'تغيير الصورة':'اختيار صورة')+'</label></div><input id="cPhoto" type="file" accept="image/*" hidden onchange="previewCustomerPhoto(this)"></div></div>'+
  '<div class="customer-form-actions"><button onclick="lamsetRunButtonAction(this,saveCustomerForm)">حفظ البيانات</button><button class="ghost" onclick="cancelCustomerForm()">إلغاء</button></div></div>';
 }
 function previewCustomerPhoto(input){let file=input.files&&input.files[0];if(!file)return;if(!file.type.startsWith('image/')){input.value='';return alert('اختار ملف صورة صحيح')}if(file.size>1500000){input.value='';return alert('حجم الصورة كبير؛ اختار صورة أقل من 1.5 ميجابايت')}resizeImage(file).then(src=>{let p=$('cPhotoPreview');if(p){p.outerHTML='<img class="customer-form-avatar" id="cPhotoPreview" src="'+src+'" alt="معاينة صورة العميل">'}}).catch(()=>alert('تعذر تجهيز الصورة؛ جرّب صورة أخرى'))}function newCustomer(){editingCustomerId='';$('customerProfile').innerHTML='';$('customerForm').innerHTML=customerFormMarkup(null)}function editCustomer(cid){let c=db.customers.find(x=>x.id===cid);if(!c)return;editingCustomerId=cid;$('customerForm').innerHTML=customerFormMarkup(c)}
 function saveCustomerForm(){
- let before=JSON.parse(JSON.stringify(db)),name=$('cName').value.trim(),phone=normalizePhone($('cPhone').value,$('cCountryCode').value),type=$('cType').value,file=$('cPhoto').files&&$('cPhoto').files[0];
+ let before=JSON.parse(JSON.stringify(db)),name=$('cName').value.trim(),phone=normalizePhone($('cPhone').value,$('cCountryCode').value),type=$('cType').value,file=$('cPhoto').files&&$('cPhoto').files[0],latText=$('cLat')?.value||'',lngText=$('cLng')?.value||'',lat=latText===''?null:Number(latText),lng=lngText===''?null:Number(lngText);
  if(!name)return alert('اكتب اسم العميل');
+ if((lat===null)!==(lng===null)||(lat!==null&&(!Number.isFinite(lat)||Math.abs(lat)>90||!Number.isFinite(lng)||Math.abs(lng)>180)))return alert('إحداثيات موقع العميل غير صحيحة؛ راجع الموقع قبل الحفظ.');
  if(!Array.isArray(db.customers))db.customers=[];
  const existingCustomer=editingCustomerId?(db.customers||[]).find(x=>x.id===editingCustomerId):null;
  if(editingCustomerId&&!existingCustomer)return alert('العميل الذي تعدله لم يعد موجودًا؛ حدّث القائمة ثم حاول مرة أخرى.');
@@ -1914,6 +1968,7 @@ function saveCustomerForm(){
   let c=existingCustomer;
   if(!c){c={id:id(),createdAt:new Date().toISOString()};db.customers.push(c)}
   c.name=name;c.type=type;c.phone=phone;c.area=$('cArea').value.trim();c.note=$('cNote').value.trim();
+  if(lat!==null){c.lat=lat;c.lng=lng}else{delete c.lat;delete c.lng}
   if(photo)c.photo=photo;
   linkLegacyOrdersToCustomer(c,previousPhone,previousPhoneOwner?.id===c.id);
   if(!save()){db=before;return alert('تعذر حفظ بيانات العميل؛ لم يتم اعتماد التغييرات.')}

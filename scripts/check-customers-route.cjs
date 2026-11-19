@@ -60,4 +60,14 @@ assert.match(route,/فتح الكتالوج للعميل/,'Catalog action label 
 assert.match(route,/فتح ملخص الحساب في واتساب/,'Account WhatsApp action must not imply automatic sending.');
 assert.match(css,/overflow-wrap:anywhere;line-height:1\.4;text-align:center/,'Long action labels must wrap within their buttons.');
 assert.match(route,/category=c\?categoryOf\(c\):'prospect'/,'New customers must default to prospect instead of silently becoming wholesale customers.');
+
+assert.match(index,/function lamsetResolveCustomerMapLink/,'Google Maps links must have a resolver.');
+assert.match(index,/function lamsetSearchCustomerPlace/,'Customer place search must be available.');
+assert.match(index,/function lamsetCaptureCustomerLocation/,'Customer form must support GPS capture.');
+assert.match(index,/lamsetLocationControlsMarkup\(c,'c'\)/,'Main customer form must expose the location picker.');
+assert.match(index,/c\.lat=lat;c\.lng=lng/,'Main customer save must persist validated coordinates.');
+assert.match(index,/lamsetCoordsFromMapUrl/,'Google Maps coordinates must be extracted and validated.');
+assert.match(route,/lamsetLocationControlsMarkup\(c,'lfCr'\)/,'Route customer form must expose the shared location picker.');
+assert.match(route,/GPS أو رابط Google Maps أو البحث عن المكان/,'Map empty-state must explain all supported location methods.');
+
 console.log('Customer route static checks passed.');
