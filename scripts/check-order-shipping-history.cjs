@@ -61,6 +61,9 @@ assert(partialState.shipped === 2 && partialState.remaining === 3 && partialStat
 assert(!reviewContext.review(partialShipment).ok, 'final delivery is blocked until all partial shipments are recorded');
 const completeShipment = { ...completeUnpaid, stockIssuedAt: '2026-11-19T10:00:00Z', stockIssuedUnits: 5, shipments: [{ shipmentNumber: 'SH-000001', lines: [{ itemIndex: 0, productId: 'p1', qty: 5 }] }] };
 assert(reviewContext.review(completeShipment).ok, 'final delivery is allowed after the full required quantity has shipment records');
+const overShipment = { ...completeUnpaid, stockIssuedAt: '2026-11-19T10:00:00Z', stockIssuedUnits: 6, shipments: [{ shipmentNumber: 'SH-000002', lines: [{ itemIndex: 0, productId: 'p1', qty: 6 }] }] };
+assert(reviewContext.shipmentState(overShipment).invalid && !reviewContext.review(overShipment).ok, 'over-shipment and mismatched ledger quantities are rejected');
+
 assert(html.includes("movementType:'order_ship_partial'") && html.includes("source:'manual_shipment'"), 'manual partial shipment creates a stock-ledger movement and an order shipment record');
 assert(html.includes('shipmentState.ready>0&&!archived&&!flow.cancelled'), 'order cards expose shipment action only while ready quantities remain');
 assert(html.includes('lfOrderShipmentHistoryHtml(o)'), 'order details display the recorded shipment history');
