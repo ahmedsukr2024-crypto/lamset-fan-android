@@ -23,14 +23,13 @@ check(html.includes("x.status!=='cancelled'&&inRange((x.date||'')+'T12:00:00')")
 check(html.includes("expense.status!=='cancelled'&&expense.method==='نقدي'"),'cash expense reconciliation is limited to active cash expenses');
 
 if(edit){
- const prompts=['125','2026-11-10','تغليف','تحويل بنكي','ملاحظة جديدة','تصحيح بيانات'],alerts=[];
- const sandbox={db:{expenses:[{id:'expense-1',amount:100,date:'2026-11-01',category:'مواصلات',method:'نقدي',notes:'قديم',status:'active'}]},removed:[],applied:[],prompt:()=>prompts.shift(),alert:value=>alerts.push(value),save(){return true},lfRecordActivity(){},renderExpenses(){},window:{lamsetRequireOwnerPin:async()=>true,LamsetLocalDB:{removeCashLink:async(...args)=>sandbox.removed.push(args),applyCashLink:async(...args)=>sandbox.applied.push(args)}}};
+ const prompts=['125','2026-11-10','تغليف','تحويل بنكي','ملاحظة جديدة','تصحيح بيانات'],alerts=[],localDb={removeCashLink:async(...args)=>sandbox.removed.push(args),applyCashLink:async(...args)=>sandbox.applied.push(args)};
+ const sandbox={db:{expenses:[{id:'expense-1',amount:100,date:'2026-11-01',category:'مواصلات',method:'نقدي',notes:'قديم',status:'active'}]},removed:[],applied:[],prompt:()=>prompts.shift(),alert:value=>alerts.push(value),save(){return true},lfRecordActivity(){},renderExpenses(){},LamsetLocalDB:localDb,window:{lamsetRequireOwnerPin:async()=>true,LamsetLocalDB:localDb}};
  vm.createContext(sandbox);
  vm.runInContext(edit+'\nthis.api={editExpense};',sandbox);
  (async()=>{
   await sandbox.api.editExpense('expense-1');
   const item=sandbox.db.expenses[0];
-  console.log('Expense edit test state:',JSON.stringify({item,removed:sandbox.removed,applied:sandbox.applied,alerts}));
   check(item.amount===125&&item.date==='2026-11-10'&&item.category==='تغليف'&&item.method==='تحويل بنكي'&&item.notes==='ملاحظة جديدة','edit updates all supported expense fields');
   check(item.audit?.length===1&&item.audit[0].oldValues.amount===100&&item.audit[0].newValues.amount===125&&item.audit[0].reason==='تصحيح بيانات','edit stores complete before/after values and mandatory reason');
   check(sandbox.removed.length===1&&sandbox.applied.length===0,'cash-to-bank edit removes the previous cash link exactly once');
