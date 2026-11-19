@@ -56,4 +56,5 @@ assert(db.includes("action: 'opening-balance-correction'"), 'opening balance cor
 assert(html.includes('async function correctTreasuryOpening(button)'), 'owner opening balance correction action must be available in the existing treasury section');
 assert(html.includes('lfTreasuryOpeningCorrection')&&html.includes('lamsetRequireOwnerPin(\'تصحيح الرصيد الافتتاحي\')'), 'opening balance correction UI must require owner PIN');
 assert(html.includes('الإقفالات التي ستتم إعادة مراجعة أرصدتها'), 'opening balance correction must preview affected historical closeouts');
+assert(html.includes('async function showTreasuryOpeningCorrectionHistory()')&&html.includes('lfTreasuryOpeningHistory'), 'opening balance correction history must be viewable with original and corrected values');
 console.log('Owner PIN session, treasury date validation, and cash-link recovery checks passed.');
