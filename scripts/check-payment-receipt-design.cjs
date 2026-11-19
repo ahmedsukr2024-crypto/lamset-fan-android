@@ -72,7 +72,7 @@ const sequenceEnd=html.indexOf('function lfNextOrderNumber',sequenceStart);
 const paymentSerialStart=html.indexOf('function lfNextPaymentReceiptNumber');
 const paymentSerialEnd=html.indexOf('function renderCollections',paymentSerialStart);
 const serialRuntime=sequenceStart>=0&&sequenceEnd>sequenceStart&&paymentSerialStart>=0&&paymentSerialEnd>paymentSerialStart
- ? html.slice(sequenceStart,sequenceEnd)+'\\n'+html.slice(paymentSerialStart,paymentSerialEnd)
+ ? html.slice(sequenceStart,sequenceEnd)+'\n'+html.slice(paymentSerialStart,paymentSerialEnd)
  : '';
 assert(!!serialRuntime,'receipt serial generation and legacy repair helpers can be isolated for runtime testing');
 if(serialRuntime){
