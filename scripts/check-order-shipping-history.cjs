@@ -67,6 +67,7 @@ assert(reviewContext.shipmentState(overShipment).invalid && !reviewContext.revie
 assert(html.includes("movementType:'order_ship_partial'") && html.includes("source:'manual_shipment'"), 'manual partial shipment creates a stock-ledger movement and an order shipment record');
 assert(html.includes('shipmentState.ready>0&&!archived&&!flow.cancelled'), 'order cards expose shipment action only while ready quantities remain');
 assert(html.includes('lfOrderShipmentHistoryHtml(o)'), 'order details display the recorded shipment history');
+assert(html.includes("if(order.pausedAt)return alert('الطلب متوقف مؤقتاً") && html.includes('if(live.pausedAt)throw new Error'), 'shipment recording is blocked while an order is paused');
 
 const deliveryReviewCall = statusSource.indexOf('lfReviewOrderBeforeDelivery(o)');
 const statusSnapshot = statusSource.indexOf('const before=JSON.parse(JSON.stringify(db))');
