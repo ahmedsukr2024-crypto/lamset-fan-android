@@ -53,7 +53,7 @@ assert(html.includes('async function correctDeliveryConfirmation(orderId)'), 'ow
 assert(html.includes("window.lamsetRequireOwnerPin('تصحيح تأكيد تسليم الطلب '+lfOrderNumber(order))"), 'delivery correction requires owner PIN');
 assert(html.includes("prompt('سبب تصحيح تأكيد التسليم (مطلوب):','')"), 'delivery correction requires a reason');
 assert(html.includes("order.status=waitingStatus;")&&html.includes("order.shippedAt?'تم تسليمه لشركة الشحن':'جاهز للشحن'"), 'delivery correction returns the order to the appropriate waiting state');
-assert(html.includes('previousDeliveredAt}),'), 'previous delivery confirmation timestamp is retained in correction history');
+assert(html.includes('previousDeliveredAt});'), 'previous delivery confirmation timestamp is retained in correction history');
 assert(html.includes("delete order.deliveredAt;")&&html.includes("delete order.closedAt;"), 'correction reopens delivery confirmation without retaining final closure state');
 assert(html.includes("lfRecordActivity('تصحيح تأكيد التسليم'"), 'delivery correction is recorded in activity log');
 assert(html.includes("تصحيح تأكيد التسليم</button>"), 'delivered orders expose the correction action');
