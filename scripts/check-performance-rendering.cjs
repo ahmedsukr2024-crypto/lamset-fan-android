@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+const fs=require('node:fs');
+const vm=require('node:vm');
+const assert=require('node:assert/strict');
+const html=fs.readFileSync('www/index.html','utf8');
+const renderStart=html.indexOf('function renderPage(page)');
+const refreshStart=html.indexOf('function lfRefreshCurrentPage()');
+const refreshEnd=html.indexOf('\n',refreshStart);
+assert.ok(renderStart>=0&&refreshStart>renderStart,'page renderer and active-page refresh helper must exist');
+const renderPage=html.slice(renderStart,refreshStart);
+const refresh=html.slice(refreshStart,refreshEnd);
+assert.match(renderPage,/case'dashboard':renderDash\(\)/,'dashboard must render on demand');
+for(const page of ['treasury','expenses','consignment','catalogs','settings','alerts','collections','products','costs','production','orders','customers','database','offers','reports','backup'])assert.ok(renderPage.includes("case'"+page+"':"),'page-specific rendering missing for '+page);
+assert.match(renderPage,/case'expenses':renderExpenses\(\);renderFinancialMovementReport\(\)/,'expense page refreshes both expenses and financial movement report');
+assert.doesNotMatch(renderPage,/renderAll\(\);/,'page navigation must not trigger a full-app render');
+assert.match(refresh,/document\.querySelector\('\.panel\.active'\)\?\.id\|\|'dashboard'/,'mutation refresh resolves the currently active page');
+assert.match(refresh,/renderPage\(page\)/,'mutation refresh delegates to the active page renderer');
+assert.match(html,/renderAll\(\)/,'full render remains available as a fallback for exceptional cases');
+assert.equal((html.match(/renderAll\(\);/g)||[]).length,0,'ordinary mutation handlers no longer call the full-app renderer');
+for(const token of ['lfRefreshCurrentPage();','lfRefreshCurrentPage()'])assert.ok(html.includes(token),'active-page refresh is wired after mutations');
+const context={document:{querySelector:()=>({id:'orders'})},renderPage:page=>{context.rendered=page}};
+vm.runInNewContext(refresh+';this.refresh=lfRefreshCurrentPage;',context);
+assert.equal(context.refresh(),'orders','active-page refresh returns the selected page');
+assert.equal(context.rendered,'orders','active-page refresh renders only the selected page');
+console.log('Active-page rendering and targeted refresh checks passed.');
