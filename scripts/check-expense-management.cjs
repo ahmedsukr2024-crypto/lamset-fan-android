@@ -16,7 +16,8 @@ if(dateStart>=0&&dateEnd>dateStart){
  check(!validateDate('19-11-2026')&&!validateDate(''),'malformed and empty expense dates are rejected');
 }
 check(save.includes('lfIsValidExpenseDate(date)')&&edit.includes('lfIsValidExpenseDate(date)'),'expense create and edit share strict calendar-date validation');
-\nconst saveStart=html.indexOf('async function saveExpense(button)');
+
+const saveStart=html.indexOf('async function saveExpense(button)');
 const saveEnd=html.indexOf('async function editExpense(expenseId)',saveStart);
 const save=saveStart>=0&&saveEnd>saveStart?html.slice(saveStart,saveEnd):'';
 check(!!save,'expense registration handler exists');
