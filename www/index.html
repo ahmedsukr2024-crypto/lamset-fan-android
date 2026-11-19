@@ -112,7 +112,7 @@ function lamsetShowSystemMessage(message,kind,technical){
  copyButton.textContent='نسخ تفاصيل الخطأ';copyButton.classList.remove('copied');
  modal.dataset.copyText=[text,details].filter(Boolean).join('\n\n');
  document.body?.classList.add('lf-modal-open');
- const closeButton=modal.querySelector('#lf-system-message-x');if(closeButton&&typeof closeButton.focus==='function')closeButton.focus({preventScroll:true});
+ try{const closeButton=modal?.querySelector?.('#lf-system-message-x');if(typeof closeButton?.focus==='function')closeButton.focus({preventScroll:true})}catch(focusError){console.warn('System message modal focus skipped:',focusError)}
 }
 window.alert=function(message){
  const text=String(message??'');
