@@ -22,6 +22,7 @@ assert.match(route,/consignmentDue\(customer\)/);
 assert.match(route,/function startCampaign\(\)/);
 assert.match(route,/function campaignNext\(\)/);
 assert.match(route,/escape\(JSON\.stringify\(c\.id\)\)/);
+assert.match(route,/clone=value=>JSON\.parse\(JSON\.stringify\(value\)\)/);
 assert.match(route,/escape\(JSON\.stringify\(item\.customerId\)\)/);
 assert.match(route,/escape\(JSON\.stringify\(customer\.id\)\)/);
 assert.doesNotMatch(route,/onclick="[^"]*'\s*\+\s*JSON\.stringify\(/);
