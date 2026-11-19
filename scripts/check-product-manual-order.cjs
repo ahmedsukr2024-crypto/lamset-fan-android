@@ -54,7 +54,7 @@ if(draftStart>=0&&draftEnd>draftStart){
  elements.pImagePreview={innerHTML:'',querySelector:()=>null};
  const storage=new Map(),toasts=[];
  const sandbox={window:{__lfProductDraftImage:'data:image/png;base64,ZmFrZQ==',LamsetUI:{toast:value=>toasts.push(value)}},localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},$:id=>elements[id]||null};
- vm.runInNewContext(draftSource+'\nthis.api={lfSaveProductFormDraft,lfRestoreProductFormDraft,LF_PRODUCT_FORM_DRAFT_KEY};',sandbox);
+ vm.runInNewContext(draftCore+'\nthis.api={lfSaveProductFormDraft,lfRestoreProductFormDraft,LF_PRODUCT_FORM_DRAFT_KEY};',sandbox);
  assert.equal(sandbox.api.lfSaveProductFormDraft(),true,'product draft saves without failure');
  const saved=JSON.parse(storage.get(sandbox.api.LF_PRODUCT_FORM_DRAFT_KEY));
  assert.equal(saved.productId,'product-1','draft is scoped to the edited product');
