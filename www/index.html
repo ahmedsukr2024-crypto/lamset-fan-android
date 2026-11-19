@@ -1141,7 +1141,21 @@ function lfRemoveLegacyMaterialData(data){
  return removed;
 }
 function orderStockLines(o){return Array.isArray(o?.items)&&o.items.length?o.items.map(x=>({item:x,productId:x.productId,units:Math.max(0,Number(x.stockUnits)||0)})):[{item:o,productId:o?.productId,units:Math.max(0,Number(o?.stockUnits)||((Number(o?.qty)||0)*(o?.unitType==='carton'?Math.max(1,Number(o?.productSnapshot?.unitsPerCarton)||1):1)))}]}
-function lfOrderHasShipped(o){return !!(o?.stockIssuedAt||o?.stockIssueMigrated||o?.shippedAt||['تم تسليمه لشركة الشحن','تم التسليم','تم التسليم للعميل'].includes(String(o?.status||'')))}
+function lfOrderShipmentState(o){
+ const lines=orderStockLines(o),shipments=Array.isArray(o?.shipments)?o.shipments:[],status=String(o?.status||''),total=lines.reduce((sum,line)=>sum+Math.max(0,Number(line.units)||0),0),legacyFull=!shipments.length&&(o?.stockIssueMigrated||['تم تسليمه لشركة الشحن','تم التسليم','تم التسليم للعميل'].includes(status)||(o?.stockIssuedAt&&Number(o?.stockIssuedUnits)>=total&&total>0));
+ let shipped=0,ready=0,pending=0;
+ const rows=lines.map((line,index)=>{
+  const item=line.item||{},units=Math.max(0,Number(line.units)||0),deducted=item.stockDeductedUnits===undefined?units:Math.min(units,Math.max(0,Number(item.stockDeductedUnits)||0)),fulfilled=Math.min(Math.max(0,units-deducted),Math.max(0,Number(item.productionFulfilledUnits)||0)),prepared=Math.min(units,deducted+fulfilled);
+  const itemIndex=Array.isArray(o?.items)&&o.items.length?index:null;
+  const sent=legacyFull?units:shipments.reduce((sum,shipment)=>sum+(shipment.lines||[]).filter(row=>(row.itemIndex??null)===(itemIndex??null)&&String(row.productId)===String(line.productId)).reduce((n,row)=>n+Math.max(0,Number(row.qty)||0),0),0);
+  const shippedUnits=Math.min(units,sent),available=Math.max(0,prepared-shippedUnits),remaining=Math.max(0,units-shippedUnits);
+  shipped+=shippedUnits;ready+=available;pending+=Math.max(0,Number(item.productionPendingUnits)||0);
+  const product=(db.products||[]).find(p=>String(p.id)===String(line.productId));
+  return{itemIndex,productId:line.productId,productName:item.productName||item.productSnapshot?.name||product?.name||'منتج',required:units,prepared,shipped:shippedUnits,available,remaining};
+ });
+ return{total,shipped,ready,pending,remaining:Math.max(0,total-shipped),complete:total>0&&shipped===total&&pending===0,partial:shipped>0&&shipped<total,lines:rows,legacyFull};
+}
+function lfOrderHasShipped(o){return !!(o?.shipments?.length||o?.stockIssuedAt||o?.stockIssueMigrated||o?.shippedAt||['تم تسليمه لشركة الشحن','تم التسليم','تم التسليم للعميل'].includes(String(o?.status||'')))}
 function lfOrderReservedUnits(o){if(!o||lfIsArchivedOrder(o)||o.stockReturnedOnCancel===true||lfOrderHasShipped(o))return 0;return orderStockLines(o).reduce((sum,line)=>{const item=line.item||{},deducted=item.stockDeductedUnits===undefined?line.units:Math.max(0,Number(item.stockDeductedUnits)||0),fulfilled=Math.max(0,Number(item.productionFulfilledUnits)||0);return sum+Math.min(line.units,deducted+fulfilled)},0)}
 function lfMigrateStockReservations(data){if(!data||typeof data!=='object'||Number(data.stockReservationModelVersion)>=1)return false;const totals=new Map();(data.products||[]).forEach(p=>{p.reservedStock=0});(data.orders||[]).forEach(o=>{if(!o||lfIsArchivedOrder(o)||o.stockReturnedOnCancel===true) return;if(lfOrderHasShipped(o)){o.stockIssueMigrated=true;return}orderStockLines(o).forEach(line=>{const item=line.item||{},deducted=item.stockDeductedUnits===undefined?line.units:Math.max(0,Number(item.stockDeductedUnits)||0),fulfilled=Math.max(0,Number(item.productionFulfilledUnits)||0),reserved=Math.min(line.units,deducted+fulfilled);if(reserved)totals.set(line.productId,(totals.get(line.productId)||0)+reserved)})});(data.products||[]).forEach(p=>{p.reservedStock=Math.max(0,Number(totals.get(p.id))||0)});data.stockReservationModelVersion=1;return true}
 function orderPendingProductionUnits(o){if(!o||lfIsArchivedOrder(o))return 0;return orderStockLines(o).reduce((sum,line)=>sum+Math.max(0,Number(line.item?.productionPendingUnits)||0),0)}
@@ -1509,10 +1523,10 @@ function orderWorkflowSnapshot(o){
   prepared+=Math.min(units,deducted+fulfilled);
   pending+=Math.max(0,Number(item.productionPendingUnits)||0);
  });
- const status=lfOrderStatusKey(o),closed=lfIsArchivedOrder(o),cancelled=lfIsCancelledOrder(o),delivered=lfIsDeliveredOrder(o),shipped=status==='تم تسليمه لشركة الشحن',ready=status==='جاهز للشحن';
+ const shipping=lfOrderShipmentState(o),status=lfOrderStatusKey(o),closed=lfIsArchivedOrder(o),cancelled=lfIsCancelledOrder(o),delivered=lfIsDeliveredOrder(o),shipped=status==='تم تسليمه لشركة الشحن'||shipping.complete,partiallyShipped=shipping.partial,ready=status==='جاهز للشحن';
  const percent=total?Math.min(100,Math.round(prepared/total*100)):0;
- let stage=cancelled?'ملغي':delivered?'تم التسليم':closed?'مغلق':shipped?'مع شركة الشحن':pending>0?'بانتظار التصنيع':ready?'جاهز للشحن':'جاهز للتجهيز';
- return{total,prepared,pending,percent,stage,closed,cancelled,delivered,shipped,ready,open:!closed};
+ let stage=cancelled?'ملغي':delivered?'تم التسليم':closed?'مغلق':shipped?'مع شركة الشحن':partiallyShipped?'تم شحن جزء من الطلب':pending>0?'بانتظار التصنيع':ready?'جاهز للشحن':'جاهز للتجهيز';
+ return{total,prepared,pending,percent,stage,closed,cancelled,delivered,shipped,partiallyShipped,shippedUnits:shipping.shipped,remainingToShip:shipping.remaining,readyToShip:shipping.ready,open:!closed};
 }
 function orderStageTrackerHtml(o,flow,late){
  if(flow.cancelled)return '<div class="lf-order-stage-track is-cancelled"><span>تم إلغاء الطلب</span></div>';
@@ -1520,7 +1534,7 @@ function orderStageTrackerHtml(o,flow,late){
  const status=String(o?.status||'جديد');
  const active=flow.delivered?4:flow.shipped?3:flow.ready?2:(flow.pending>0||status==='قيد التجهيز'?1:0);
  const stages=['تسجيل الطلب','التصنيع والتجهيز','جاهز','الشحن','التسليم'];
- return '<ol class="lf-order-stage-track" aria-label="مراحل الطلب">'+stages.map((label,i)=>'<li class="'+(i<active?'is-done':i===active?'is-current':'')+'"><span class="lf-order-stage-dot">'+(i<active?'✓':i+1)+'</span><small>'+label+'</small></li>').join('')+'</ol>'+(late?'<div class="lf-order-track-note is-late">تجاوز موعد التسليم المحدد</div>':flow.pending>0?'<div class="lf-order-track-note">قيد التصنيع · متبقي '+flow.pending.toLocaleString('en-US')+' قطعة</div>':'');
+ return '<ol class="lf-order-stage-track" aria-label="مراحل الطلب">'+stages.map((label,i)=>'<li class="'+(i<active?'is-done':i===active?'is-current':'')+'"><span class="lf-order-stage-dot">'+(i<active?'✓':i+1)+'</span><small>'+label+'</small></li>').join('')+'</ol>'+(flow.partiallyShipped?'<div class="lf-order-track-note">تم شحن '+flow.shippedUnits+' من '+flow.total+' قطعة · متبقي '+flow.remainingToShip+' قطعة للشحن</div>':late?'<div class="lf-order-track-note is-late">تجاوز موعد التسليم المحدد</div>':flow.pending>0?'<div class="lf-order-track-note">قيد التصنيع · متبقي '+flow.pending.toLocaleString('en-US')+' قطعة</div>':'');
 }
 let orderSectionView='open';
 function setOrderSectionView(view){
