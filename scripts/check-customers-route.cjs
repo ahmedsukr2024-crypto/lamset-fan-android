@@ -28,7 +28,6 @@ assert.match(route,/haversine/);
 assert.match(route,/lat!==null&&lat!==undefined&&lng!==null&&lng!==undefined/);
 assert.match(route,/c\.lat===null\|\|c\.lat===undefined\|\|c\.lng===null\|\|c\.lng===undefined/);
 assert.doesNotMatch(route,/in_todays_route|visited_today/);
-assert.match(route,/visited_today/);
 assert.match(css,/@media\(max-width:620px\)/);
 assert.ok(pkg.dependencies['@capacitor/geolocation']);
 assert.match(bridge,/Geolocation\.getCurrentPosition/);
