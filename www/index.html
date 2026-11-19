@@ -1759,6 +1759,7 @@ function openOrderShipmentModal(orderId){
  host.innerHTML=state.lines.map((line,index)=>'<div class="field" style="margin:10px 0;padding:10px;border:1px solid var(--line,#ddd);border-radius:12px"><label for="lfShipmentQty'+index+'">'+esc(line.productName)+' · جاهز '+line.available+' قطعة · شحن سابق '+line.shipped+'</label><input id="lfShipmentQty'+index+'" type="number" inputmode="numeric" min="0" max="'+line.available+'" step="1" value="'+line.available+'" data-lf-shipment-line="'+index+'" style="width:100%;min-height:42px"></div>').join('');
  modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('lf-modal-open');
 }
+function lfClone(value){return JSON.parse(JSON.stringify(value))}
 async function confirmOrderShipment(){
  const orderId=window.lfShipmentTargetId;if(orderId===null||orderId===undefined)return closeOrderShipmentModal();
  const order=(db.orders||[]).find(x=>String(x.id)===String(orderId));if(!order)return alert('الطلب غير موجود.');
