@@ -1452,6 +1452,28 @@ function orderDisplayLines(o){const lines=Array.isArray(o?.items)&&o.items.lengt
 function lfIsDeliveredOrder(o){return ['تم التسليم','تم التسليم للعميل'].includes(lfOrderStatusKey(o))}
 function lfIsCancelledOrder(o){return lfOrderStatusKey(o)==='ملغي'}
 function lfIsArchivedOrder(o){return ['تم التسليم','تم التسليم للعميل','ملغي','مكتمل','مكتملة','مغلق','مغلقة','مؤرشف','مؤرشفة'].includes(lfOrderStatusKey(o))}
+function lfReviewOrderBeforeDelivery(o){
+ const issues=[],lines=orderStockLines(o);
+ if(!o||!String(o.customer||'').trim())issues.push('اسم العميل غير مسجل');
+ if(!lines.length)issues.push('لا توجد أصناف مسجلة في الطلب');
+ let total=0,prepared=0,pending=0;
+ lines.forEach((line,index)=>{
+  const units=Number(line.units),item=line.item||{},product=(db.products||[]).find(p=>String(p.id)===String(line.productId));
+  if(!Number.isSafeInteger(units)||units<=0){issues.push('كمية الصنف '+(index+1)+' غير صحيحة');return}
+  total+=units;
+  if(!line.productId||!product)issues.push('المنتج المرتبط بالصنف '+(index+1)+' غير موجود');
+  if(!String(item.productName||item.productSnapshot?.name||product?.name||'').trim())issues.push('اسم الصنف '+(index+1)+' غير مكتمل');
+  const deductedRaw=item.stockDeductedUnits===undefined?units:Number(item.stockDeductedUnits),fulfilledRaw=Number(item.productionFulfilledUnits)||0,pendingRaw=Number(item.productionPendingUnits)||0;
+  if(!Number.isSafeInteger(deductedRaw)||deductedRaw<0||!Number.isSafeInteger(fulfilledRaw)||fulfilledRaw<0||!Number.isSafeInteger(pendingRaw)||pendingRaw<0||deductedRaw+fulfilledRaw>units){issues.push('توزيع المخزون والإنتاج للصنف '+(index+1)+' يحتاج مراجعة');return}
+  prepared+=Math.min(units,deductedRaw+fulfilledRaw);
+  pending+=pendingRaw;
+ });
+ if(total<=0)issues.push('إجمالي كميات الطلب غير صالح');
+ if(pending>0)issues.push('متبقي تصنيع '+pending+' قطعة');
+ if(total>0&&prepared!==total)issues.push('الكميات الجاهزة '+prepared+' من إجمالي '+total+' قطعة؛ يجب استكمال '+(total-prepared)+' قطعة');
+ if(o?.stockIssuedAt&&!o?.stockIssueMigrated&&Number(o.stockIssuedUnits)!==total)issues.push('كمية الصرف المسجلة '+(Number(o.stockIssuedUnits)||0)+' لا تطابق إجمالي الطلب '+total);
+ return{ok:issues.length===0,issues,total,prepared,pending,remaining:Math.max(0,total-prepared)};
+}
 function orderWorkflowSnapshot(o){
  const lines=orderStockLines(o),total=lines.reduce((n,line)=>n+Math.max(0,Number(line.units)||0),0);
  let prepared=0,pending=0;
@@ -1612,6 +1634,7 @@ let allowed=['جديد','قيد التجهيز','جاهز للشحن','تم تس
 if(!allowed.includes(s))return alert('الحالة غير معتمدة. اختر حالة من القائمة المعروضة.');
 let statusReason='';
 if(['جاهز للشحن','تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(s)&&orderPendingProductionUnits(o)>0)return alert('لا يمكن نقل الطلب إلى مرحلة الشحن أو التسليم قبل اكتمال التصنيع. توجد '+orderPendingProductionUnits(o)+' قطعة ناقصة في صفحة التصنيع المطلوب.');
+if(['تم التسليم','تم التسليم للعميل'].includes(s)){const review=lfReviewOrderBeforeDelivery(o);if(!review.ok)return alert('لا يمكن إغلاق الطلب قبل استكمال المراجعة:\n• '+review.issues.join('\n• '));}
 let previous=o.status;if(s===previous)return;
 if(['تم التسليم','تم التسليم للعميل'].includes(previous)||o.deliveredAt)return alert('لا يمكن تعديل حالة طلب مكتمل؛ تم الاحتفاظ بسجل التسليم والحسابات كما هو.');
 const wasShipped=lfOrderHasShipped(o);
