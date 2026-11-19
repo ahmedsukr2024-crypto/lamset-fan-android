@@ -21,9 +21,9 @@ for(const status of ['جديد','قيد التجهيز','جاهز للشحن','�
 const invoiceStart=html.indexOf('function invoiceHtml(o)');
 const invoiceEnd=html.indexOf('\nfunction ',invoiceStart);
 const invoice=html.slice(invoiceStart,invoiceEnd);
-const whatsStart=html.indexOf('function lfOpenOrderWhatsAppConfirmation(order)');
-const whatsEnd=html.indexOf('\nfunction ',whatsStart);
-const whats=html.slice(whatsStart,whatsEnd);
+const orderMessageStart=html.indexOf('function lfOpenOrderWhatsAppConfirmation(order)');
+const orderMessageEnd=html.indexOf('\nfunction ',orderMessageStart);
+const orderMessage=html.slice(orderMessageStart,orderMessageEnd);
 assert.ok(invoice&&whats,'invoice and WhatsApp customer message implementations must exist');
 for(const term of ['مرتجع','استبدال']){assert.ok(!invoice.includes(term),'sales invoice must not contain returns/exchanges: '+term);assert.ok(!whats.includes(term),'order WhatsApp message must not contain returns/exchanges: '+term);}
 
@@ -34,9 +34,9 @@ assert.ok(catalogStart>=0&&catalogEnd>catalogStart,'catalog renderer exists');
 for(const token of ['@page{size:A4','كتالوج منتجات مصنع لمسة فن','للطلب والاستفسار واتس'])assert.ok(catalog.includes(token),'catalog output requirement missing: '+token);
 for(const template of ['value="all"','value="table"','value="photo"','value="compact"'])assert.ok(html.includes(template),'catalog template option missing: '+template);
 
-const whatsStart=html.indexOf('function lfOpenOrderWhatsAppConfirmation(order)');
-const whatsEnd=html.indexOf('\nfunction ',whatsStart);
-const whats=html.slice(whatsStart,whatsEnd);
+const orderMessageStart=html.indexOf('function lfOpenOrderWhatsAppConfirmation(order)');
+const orderMessageEnd=html.indexOf('\nfunction ',orderMessageStart);
+const orderMessage=html.slice(orderMessageStart,orderMessageEnd);
 const captured={href:''};
 const sandbox={customerPhoneDigits:value=>String(value||'').replace(/\D/g,''),formatLocalBusinessPhone:value=>String(value||''),lfOrderNumber:()=> 'LF-000123',orderGrossTotal:()=>150,paidOnOrder:()=>50,orderDue:()=>100,document:{createElement:()=>({style:{},click(){captured.href=this.href},remove(){}}),body:{appendChild(){}}},console};
 vm.runInNewContext(whats+'\nthis.send=lfOpenOrderWhatsAppConfirmation;',sandbox);
