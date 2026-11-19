@@ -15,26 +15,30 @@ assert(!!helpers, 'order stock and reservation migration helpers exist');
 if (helpers) {
   const context = vm.createContext({
     window: {},
+    db: { products: [] },
     lfIsArchivedOrder: o => ['تم التسليم', 'تم التسليم للعميل', 'ملغي', 'مكتمل', 'مغلقة'].includes(String(o?.status || ''))
   });
   vm.runInContext(helpers + '\nthis.api={orderStockLines,lfOrderHasShipped,lfOrderReservedUnits,lfMigrateStockReservations};', context);
   const api = context.api;
   const data = {
-    products: [{ id: 'p1', stock: 8 }, { id: 'p2', stock: 4 }],
+    products: [{ id: 'p1', stock: 12 }, { id: 'p2', stock: 4 }],
     orders: [
       { id: 'active', status: 'قيد التجهيز', items: [{ productId: 'p1', stockUnits: 10, stockDeductedUnits: 3, productionFulfilledUnits: 2, productionPendingUnits: 5 }] },
       { id: 'shipped', status: 'تم تسليمه لشركة الشحن', shippedAt: '2026-11-17T10:00:00Z', items: [{ productId: 'p1', stockUnits: 2, stockDeductedUnits: 2 }] },
+      { id: 'partial', status: 'قيد التجهيز', stockIssuedAt: '2026-11-18T10:00:00Z', stockIssuedUnits: 2, shipments: [{ lines: [{ itemIndex: 0, productId: 'p1', qty: 2 }] }], items: [{ productId: 'p1', stockUnits: 6, stockDeductedUnits: 6 }] },
       { id: 'cancelled', status: 'ملغي', items: [{ productId: 'p2', stockUnits: 2, stockDeductedUnits: 2 }] }
     ]
   };
+  context.db = data;
   assert(api.lfMigrateStockReservations(data), 'legacy reservation migration runs once');
-  assert(data.products.find(p => p.id === 'p1').reservedStock === 5, 'active unshipped orders reserve deducted and produced quantities');
+  assert(data.products.find(p => p.id === 'p1').reservedStock === 9, 'active and partially shipped orders reserve only their remaining unshipped quantities');
   assert(data.products.find(p => p.id === 'p2').reservedStock === 0, 'cancelled orders do not retain reservations');
-  assert(data.products.find(p => p.id === 'p1').stock === 8, 'migration preserves existing available stock without inventing a stock movement');
+  assert(data.products.find(p => p.id === 'p1').stock === 12, 'migration preserves existing available stock without inventing a stock movement');
   assert(data.orders.find(o => o.id === 'shipped').stockIssueMigrated === true, 'legacy shipped orders are marked as already issued');
   assert(!api.lfMigrateStockReservations(data), 'migration is idempotent');
   assert(api.lfOrderReservedUnits(data.orders[0]) === 5, 'active order reservation helper returns the correct quantity');
-  assert(api.lfOrderReservedUnits(data.orders[1]) === 0, 'shipped order is no longer reserved');
+  assert(api.lfOrderReservedUnits(data.orders[1]) === 0, 'fully shipped order is no longer reserved');
+  assert(api.lfOrderReservedUnits(data.orders[2]) === 4, 'partially shipped order retains reservations only for its remaining unshipped units');
 }
 assert(html.includes('p.reservedStock=Math.max(0,Number(p.reservedStock)||0)+toDeduct'), 'saving an order records its stock reservation');
 assert(html.includes("movementType:'order_reserve'"), 'order reservation is written to the central stock movement ledger');
