@@ -20,6 +20,7 @@ assert.match(route,/consignmentDue\(customer\)/);
 assert.doesNotMatch(route,/customer\.balance_due\s*=(?!=)/);
 assert.doesNotMatch(route,/order\.status\s*=(?!=)/);
 assert.match(route,/haversine/);
+assert.match(route,/lat!==null&&lat!==undefined&&lng!==null&&lng!==undefined/);
 assert.match(route,/in_todays_route/);
 assert.match(route,/visited_today/);
 assert.match(css,/@media\(max-width:620px\)/);
