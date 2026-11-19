@@ -23,7 +23,7 @@
  const customerConsignments=c=>c?(db.consignments||[]).filter(x=>String(x.customerId)===String(c.id)&&x.status!=='closed'):[];
  const consignmentDue=c=>customerConsignments(c).reduce((sum,x)=>sum+Math.max(0,(Number(x.soldValue)||0)-(typeof consignmentPaid==='function'?consignmentPaid(x):(Number(x.paid)||0))),0);
  const customerHasConsignment=c=>!!c&&(c.has_consignment===true||customerConsignments(c).length>0);
- const coordinates=c=>{const lat=Number(c?.lat),lng=Number(c?.lng);return Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180?{lat,lng}:null};
+ const coordinates=c=>{if(!c||c.lat===null||c.lat===undefined||c.lng===null||c.lng===undefined||String(c.lat).trim()===''||String(c.lng).trim()==='')return null;const lat=Number(c.lat),lng=Number(c.lng);return Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180?{lat,lng}:null};
  const haversine=(a,b)=>{const r=6371000,toRad=x=>x*Math.PI/180,dLat=toRad(b.lat-a.lat),dLng=toRad(b.lng-a.lng),v=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;return 2*r*Math.asin(Math.sqrt(v))};
  const getPlan=create=>{db.customerRoutePlans=Array.isArray(db.customerRoutePlans)?db.customerRoutePlans:[];let plan=db.customerRoutePlans.find(x=>x.date===today()&&String(x.ownerId||OWNER)===OWNER);if(!plan&&create){plan={id:'route-'+today(),date:today(),ownerId:OWNER,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),stops:[]};db.customerRoutePlans.push(plan)}if(plan&&!Array.isArray(plan.stops))plan.stops=[];return plan||null};
  const stopKey=(type,sourceId,customerId)=>[type,String(sourceId||''),String(customerId||'')].join(':');
