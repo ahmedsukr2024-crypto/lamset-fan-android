@@ -1,0 +1,25 @@
+
+'use strict';
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const index = fs.readFileSync('www/index.html','utf8');
+const route = fs.readFileSync('www/customers-route/customers-route.js','utf8');
+const css = fs.readFileSync('www/customers-route/customers-route.css','utf8');
+const bridge = fs.readFileSync('www/mobile-bridge.js','utf8');
+const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
+assert.match(index,/customers-route\/customers-route\.css/);
+assert.match(index,/customers-route\/customers-route\.js/);
+assert.match(index,/data-nav-target="customers-route"/);
+assert.match(route,/customerRoutePlans/);
+assert.match(route,/orderDue\(order\)/);
+assert.match(route,/applyOrderStatusChange\(item\.order\.id,'تم التسليم'\)/);
+assert.match(route,/consignmentDue\(customer\)/);
+assert.doesNotMatch(route,/customer\.balance_due\s*=(?!=)/);
+assert.doesNotMatch(route,/order\.status\s*=(?!=)/);
+assert.match(route,/haversine/);
+assert.match(route,/in_todays_route/);
+assert.match(route,/visited_today/);
+assert.match(css,/@media\(max-width:620px\)/);
+assert.ok(pkg.dependencies['@capacitor/geolocation']);
+assert.match(bridge,/Geolocation\.getCurrentPosition/);
+console.log('Customer route static checks passed.');

@@ -135,10 +135,34 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Clipboard } from '@capacitor/clipboard';
+import { Geolocation } from '@capacitor/geolocation';
 import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
 const isNative = !!window.Capacitor?.isNativePlatform?.();
+window.lamsetGetCurrentPosition = async (options = {}) => {
+  if (!isNative) {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) return reject(new Error('خدمة تحديد الموقع غير متاحة في هذا المتصفح.'));
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: options.enableHighAccuracy !== false,
+        timeout: Number(options.timeout) || 15000,
+        maximumAge: Number(options.maximumAge) || 30000
+      });
+    });
+  }
+  const permissions = await Geolocation.checkPermissions();
+  if (permissions.location !== 'granted') {
+    const requested = await Geolocation.requestPermissions();
+    if (requested.location !== 'granted') throw new Error('لم يتم السماح للتطبيق باستخدام موقعك. فعّل إذن الموقع من إعدادات Android.');
+  }
+  return Geolocation.getCurrentPosition({
+    enableHighAccuracy: options.enableHighAccuracy !== false,
+    timeout: Number(options.timeout) || 15000,
+    maximumAge: Number(options.maximumAge) || 30000
+  });
+};
+
 
 import { LamsetLocalDB } from './lamset-local-db.js';
 window.LamsetLocalDB = LamsetLocalDB;

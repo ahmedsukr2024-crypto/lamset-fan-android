@@ -1,0 +1,230 @@
+
+(function(){
+ 'use strict';
+ const PAGE='customers-route',OWNER='primary';
+ const CATEGORIES=[['distributor','موزع'],['wholesale','تاجر جملة'],['shop','محل ومكتبة'],['online','أونلاين / قطاعي'],['prospect','عميل محتمل']];
+ const PRICE_TIERS=[['distributor','سعر الموزع'],['trader','سعر الجملة'],['shop','سعر المحلات'],['retail','سعر القطاعي']];
+ const FILTERS=[['all','الكل'],['tasks','مهام الشحن والتحصيل'],['today','جولة اليوم'],['due','عليهم تحصيل'],['consignment','بيع بالأمانة'],['distributor','موزعين'],['wholesale','تجار جملة'],['shop','محلات ومكتبات'],['online','أونلاين / قطاعي'],['followup','محتاجين متابعة']];
+ const state={view:'list',filter:'all',search:'',area:'',selectedCustomerId:'',formCustomerId:null,radarResults:[],radarSelected:[],map:null,mapPromise:null,location:null};
+ const $=id=>document.getElementById(id),clone=value=>JSON.parse(JSON.stringify(value));
+ const today=()=>typeof localDay==='function'?localDay():new Date().toISOString().slice(0,10);
+ const text=value=>String(value==null?'':value);
+ const escape=value=>typeof esc==='function'?esc(value):text(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const moneyValue=value=>typeof money==='function'?money(value):(Number(value)||0).toLocaleString('ar-EG')+' ج.م';
+ const customerById=id=>(db.customers||[]).find(c=>String(c.id)===String(id));
+ const priceTier=c=>{const value=text(c&&c.type);return value==='online'?'retail':PRICE_TIERS.some(x=>x[0]===value)?value:'trader'};
+ const categoryOf=c=>{if(CATEGORIES.some(x=>x[0]===c?.category))return c.category;const legacy=priceTier(c);return legacy==='distributor'?'distributor':legacy==='trader'?'wholesale':legacy==='shop'?'shop':legacy==='retail'?'online':'prospect'};
+ const categoryLabel=value=>CATEGORIES.find(x=>x[0]===value)?.[1]||'عميل';
+ const tierLabel=value=>PRICE_TIERS.find(x=>x[0]===value)?.[1]||'غير محدد';
+ const normalizePhone=value=>text(value).replace(/\D/g,'').replace(/^00/,'');
+ const localDate=value=>{if(!value)return '';const d=new Date(value);return Number.isFinite(d.getTime())?d.toLocaleDateString('ar-EG'):''};
+ const lastOrder=c=>(db.orders||[]).filter(o=>typeof customerOrderMatches==='function'?customerOrderMatches(o,c):o.customerId===c.id).sort((a,b)=>new Date(b.date||b.createdAt||0)-new Date(a.date||a.createdAt||0))[0]||null;
+ const customerDue=c=>(db.orders||[]).filter(o=>o.status!=='ملغي'&&(typeof customerOrderMatches==='function'?customerOrderMatches(o,c):o.customerId===c.id)).reduce((sum,o)=>sum+(typeof orderDue==='function'?orderDue(o):Math.max(0,(Number(o.total)||0)-(Number(o.paid)||0))),0);
+ const customerConsignments=c=>c?(db.consignments||[]).filter(x=>String(x.customerId)===String(c.id)&&x.status!=='closed'):[];
+ const consignmentDue=c=>customerConsignments(c).reduce((sum,x)=>sum+Math.max(0,(Number(x.soldValue)||0)-(typeof consignmentPaid==='function'?consignmentPaid(x):(Number(x.paid)||0))),0);
+ const customerHasConsignment=c=>!!c&&(c.has_consignment===true||customerConsignments(c).length>0);
+ const coordinates=c=>{const lat=Number(c?.lat),lng=Number(c?.lng);return Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180?{lat,lng}:null};
+ const haversine=(a,b)=>{const r=6371000,toRad=x=>x*Math.PI/180,dLat=toRad(b.lat-a.lat),dLng=toRad(b.lng-a.lng),v=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;return 2*r*Math.asin(Math.sqrt(v))};
+ const getPlan=create=>{db.customerRoutePlans=Array.isArray(db.customerRoutePlans)?db.customerRoutePlans:[];let plan=db.customerRoutePlans.find(x=>x.date===today()&&String(x.ownerId||OWNER)===OWNER);if(!plan&&create){plan={id:'route-'+today(),date:today(),ownerId:OWNER,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),stops:[]};db.customerRoutePlans.push(plan)}if(plan&&!Array.isArray(plan.stops))plan.stops=[];return plan||null};
+ const stopKey=(type,sourceId,customerId)=>[type,String(sourceId||''),String(customerId||'')].join(':');
+ const findStop=(type,sourceId,customerId)=>{const p=getPlan(false);return p?.stops.find(s=>stopKey(s.taskType,s.sourceId,s.customerId)===stopKey(type,sourceId,customerId))||null};
+ const saveDb=(before,message)=>{const p=getPlan(false);if(p)p.updatedAt=new Date().toISOString();if(!save()){if(before)db=before;window.LamsetUI?.toast('تعذر حفظ بيانات خط السير؛ لم يتم اعتماد التغيير.','error');return false}if(message)window.LamsetUI?.toast(message,'success');return true};
+ const allCustomers=()=>Array.isArray(db.customers)?db.customers:[];
+ const allOrders=()=>Array.isArray(db.orders)?db.orders:[];
+ const allConsignments=()=>Array.isArray(db.consignments)?db.consignments:[];
+ function orderCustomer(order){if(order?.customerId)return customerById(order.customerId);const matches=allCustomers().filter(c=>normalizePhone(c.phone)&&normalizePhone(c.phone)===normalizePhone(order?.phone));return matches.length===1?matches[0]:null}
+ function taskCandidates(){
+  const items=[];
+  allOrders().forEach(order=>{
+   if(!order||order.status==='ملغي'||order.pausedAt||typeof orderWorkflowSnapshot!=='function')return;
+   const flow=orderWorkflowSnapshot(order);if(flow.delivered||flow.cancelled||flow.closed)return;
+   const customer=orderCustomer(order);if(!customer)return;
+   if(flow.readyToShip>0||(flow.shipped&&!flow.delivered))items.push({key:stopKey('delivery',order.id,customer.id),taskType:'delivery',sourceId:order.id,customerId:customer.id,customer,order,amount:0,subtitle:'طلب '+(typeof lfOrderNumber==='function'?lfOrderNumber(order):order.id)+' · جاهز '+flow.readyToShip+' قطعة'+(flow.pending?' · ناقص تصنيع '+flow.pending:'')});
+   const due=typeof orderDue==='function'?orderDue(order):0;
+   if(due>0)items.push({key:stopKey('collection',order.id,customer.id),taskType:'collection',sourceId:order.id,customerId:customer.id,customer,order,amount:due,subtitle:'فاتورة '+(typeof lfInvoiceReference==='function'?lfInvoiceReference(order):order.id)+' · مستحق '+moneyValue(due)});
+  });
+  const byCustomer=new Map();allConsignments().filter(x=>x.status!=='closed').forEach(x=>{if(!x.customerId)return;const key=String(x.customerId);if(!byCustomer.has(key))byCustomer.set(key,[]);byCustomer.get(key).push(x)});
+  byCustomer.forEach((records,key)=>{const customer=customerById(key);if(customer)items.push({key:stopKey('consignment',key,key),taskType:'consignment',sourceId:key,customerId:key,customer,records,amount:consignmentDue(customer),subtitle:records.length+' عهدة مفتوحة · المستحق من المباع '+moneyValue(consignmentDue(customer))})});
+  return items;
+ }
+ function syncCompletedStops(){
+  const plan=getPlan(false);if(!plan)return false;let changed=false;
+  plan.stops.forEach(stop=>{if(stop.doneAt)return;
+   if(stop.taskType==='delivery'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(order&&typeof lfIsDeliveredOrder==='function'&&lfIsDeliveredOrder(order)){stop.doneAt=order.deliveredAt||new Date().toISOString();stop.completionSource='order';changed=true}}
+   if(stop.taskType==='collection'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(order&&typeof orderDue==='function'&&orderDue(order)<=0){stop.doneAt=new Date().toISOString();stop.completionSource='settled';changed=true}}
+  });return changed;
+ }
+ function routeStops(){const plan=getPlan(false);return plan?plan.stops.slice().sort((a,b)=>Number(a.sequence||0)-Number(b.sequence||0)||new Date(a.createdAt)-new Date(b.createdAt)):[]}
+ function stopsForToday(){return routeStops().map(stop=>({...stop,customer:customerById(stop.customerId)})).filter(x=>x.customer)}
+ function routeAddStop(customerId,taskType,sourceId){
+  const customer=customerById(customerId);if(!customer)return false;
+  const before=clone(db),plan=getPlan(true),type=taskType||'visit',source=sourceId||customerId;
+  const existing=plan.stops.find(s=>stopKey(s.taskType,s.sourceId,s.customerId)===stopKey(type,source,customerId));
+  if(existing){if(existing.doneAt)return window.LamsetUI?.toast('المهمة منجزة بالفعل في جولة اليوم.','info');return window.LamsetUI?.toast('المهمة موجودة بالفعل في جولة اليوم.','info')}
+  plan.stops.push({id:typeof id==='function'?id():'route-stop-'+Date.now(),customerId:String(customerId),taskType:type,sourceId:String(source),ownerId:OWNER,sequence:plan.stops.length+1,createdAt:new Date().toISOString(),doneAt:null});
+  customer.in_todays_route=true;if(!saveDb(before,'تمت إضافة المهمة إلى جولة اليوم.'))return false;render();return true;
+ }
+ function routeRemoveStop(stopId){
+  const before=clone(db),plan=getPlan(false);if(!plan)return;
+  plan.stops=plan.stops.filter(s=>String(s.id)!==String(stopId));
+  allCustomers().forEach(c=>{c.in_todays_route=plan.stops.some(s=>String(s.customerId)===String(c.id))});
+  if(saveDb(before,'تمت إزالة المهمة من الجولة.'))render();
+ }
+ function routeMarkDone(stopId){
+  const before=clone(db),plan=getPlan(false),stop=plan?.stops.find(s=>String(s.id)===String(stopId));if(!stop)return;
+  if(stop.taskType==='delivery'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(!order)return;if(typeof lfIsDeliveredOrder==='function'&&lfIsDeliveredOrder(order)){stop.doneAt=order.deliveredAt||new Date().toISOString()}else return window.LamsetUI?.toast('أكمل تأكيد التسليم من المهمة أولاً.','warning')}
+  if(stop.taskType==='collection'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(order&&typeof orderDue==='function'&&orderDue(order)>0)return window.LamsetUI?.toast('ما زال على الفاتورة مبلغ مستحق؛ سجّل التحصيل أولاً.','warning');stop.doneAt=new Date().toISOString()}
+  if(stop.taskType==='consignment'||stop.taskType==='visit')stop.doneAt=new Date().toISOString();
+  stop.completionSource='field-visit';stop.updatedAt=new Date().toISOString();
+  (db.customerRouteVisits||(db.customerRouteVisits=[])).push({id:typeof id==='function'?id():'visit-'+Date.now(),customerId:stop.customerId,routePlanId:plan.id,stopId:stop.id,taskType:stop.taskType,date:stop.doneAt,ownerId:OWNER});
+  const customer=customerById(stop.customerId);if(customer)customer.visited_today=today();
+  if(saveDb(before,'تم تسجيل إنجاز الزيارة.'))render();
+ }
+ function taskAction(item){
+  if(item.taskType==='delivery'){const flow=orderWorkflowSnapshot(item.order);if(flow.pending>0){if(typeof openOrderShipmentModal==='function')openOrderShipmentModal(item.order.id);else window.LamsetUI?.toast('مسار تسجيل الشحنة غير متاح.','error');return}
+   if(typeof applyOrderStatusChange==='function'){applyOrderStatusChange(item.order.id,'تم التسليم');syncCompletedStops();render();return}}
+  if(item.taskType==='collection'){if(typeof openOrderCollection==='function')openOrderCollection(item.order.id);return}
+  if(item.taskType==='consignment'){openConsignment(item.customerId);return}
+ }
+ function openConsignment(customerId){tab('consignment');const select=$('consAccountCustomer');if(select){select.value=String(customerId);if(select.value!==String(customerId))select.value='';if(typeof renderConsignmentAccount==='function')renderConsignmentAccount()}$('consignment')?.scrollIntoView({behavior:'smooth',block:'start'})}
+ function categoryFilter(c,filter){
+  const cat=categoryOf(c);if(filter==='due')return customerDue(c)>0;if(filter==='consignment')return customerHasConsignment(c);
+  if(filter==='followup'){const order=lastOrder(c);if(!order)return false;const date=new Date(order.date||order.createdAt||0);return Number.isFinite(date.getTime())&&(Date.now()-date.getTime())>=15*86400000}
+  if(['distributor','wholesale','shop','online'].includes(filter))return cat===filter;return true;
+ }
+ function filteredCustomers(){
+  const q=state.search.trim().toLocaleLowerCase('ar'),digits=normalizePhone(q);
+  return allCustomers().filter(c=>{const matches=!q||[c.name,c.phone,c.phone2,c.area,c.note,c.notes].some(v=>text(v).toLocaleLowerCase('ar').includes(q))||(digits&&normalizePhone(c.phone).includes(digits));return matches&&(!state.area||text(c.area)===state.area)&&(state.filter==='all'||state.filter==='tasks'||state.filter==='today'||categoryFilter(c,state.filter))}).sort((a,b)=>text(a.name).localeCompare(text(b.name),'ar'));
+ }
+ function filteredTaskCandidates(){return taskCandidates().filter(item=>{const q=state.search.trim().toLocaleLowerCase('ar');return (!q||[item.customer.name,item.customer.phone,item.customer.area,item.subtitle].some(v=>text(v).toLocaleLowerCase('ar').includes(q)))&&(!state.area||text(item.customer.area)===state.area)})}
+ function badge(label,tone){return '<span class="lf-cr-badge '+(tone||'')+'">'+escape(label)+'</span>'}
+ function customerCard(c){
+  const due=customerDue(c),cons=customerConsignments(c).length,order=lastOrder(c),category=categoryOf(c),tier=priceTier(c),inRoute=routeStops().some(s=>String(s.customerId)===String(c.id)&&!s.doneAt),hasCoords=!!coordinates(c);
+  return '<article class="lf-cr-card"><div class="lf-cr-card-head"><div class="lf-cr-avatar">'+escape(text(c.name).trim().slice(0,1)||'ع')+'</div><div style="min-width:0;flex:1"><div class="lf-cr-customer-name">'+escape(c.name)+'</div><div class="lf-cr-meta">'+escape(c.area||'المنطقة غير محددة')+(c.phone?' · '+escape(c.phone):'')+'</div></div></div><div class="lf-cr-badges">'+badge(categoryLabel(category),'blue')+badge(tierLabel(tier))+(customerHasConsignment(c)?badge('بيع بالأمانة','purple'):'')+(inRoute?badge('في جولة اليوم','green'):'')+(due>0?badge('تحصيل','orange'):'')+(hasCoords?badge('موقع محفوظ','green'):'')+'</div><div class="lf-cr-balance">'+(due>0?'مستحقات الطلبات: <b>'+moneyValue(due)+'</b>':'لا توجد مستحقات طلبات')+(cons?' · '+cons+' عهدة أمانة مفتوحة':'')+'</div><div class="lf-cr-card-actions"><a href="tel:'+escape(c.phone||'')+'">اتصال</a><button onclick="LFRoute.whatsapp('+JSON.stringify(c.id)+')">واتساب</button><button onclick="LFRoute.navigate('+JSON.stringify(c.id)+')" '+(!hasCoords?'disabled':'')+'>الملاحة</button></div><div class="lf-cr-card-actions"><button class="primary" onclick="LFRoute.openDetail('+JSON.stringify(c.id)+')">فتح الملف</button><button onclick="LFRoute.toggleVisit('+JSON.stringify(c.id)+')">'+(inRoute?'إزالة من الجولة':'＋ جولة اليوم')+'</button></div></article>';
+ }
+ function taskCard(item){
+  const stop=findStop(item.taskType,item.sourceId,item.customerId),done=!!stop?.doneAt,title=item.taskType==='delivery'?'تسليم طلب':item.taskType==='collection'?'تحصيل فاتورة':'جرد أمانة',action=item.taskType==='delivery'?'تنفيذ التسليم':item.taskType==='collection'?'فتح التحصيل':'فتح ملف الأمانة';
+  return '<div class="lf-cr-task '+(done?'lf-cr-done':'')+'"><div class="lf-cr-task-main"><div class="lf-cr-task-title">'+escape(title)+' · '+escape(item.customer.name)+'</div><div class="lf-cr-task-desc">'+escape(item.subtitle)+' · '+escape(item.customer.area||'منطقة غير محددة')+'</div></div><div class="lf-cr-task-actions">'+(done?'<span class="lf-cr-badge green">منجزة ✓</span>':(stop?'<span class="lf-cr-badge">في الجولة</span>':'<button class="ghost smallbtn" onclick="LFRoute.addTask('+JSON.stringify(item.customerId)+','+JSON.stringify(item.taskType)+','+JSON.stringify(item.sourceId)+')">＋ للجولة</button>')+'<button class="smallbtn" onclick="LFRoute.task('+JSON.stringify(item.key)+')">'+action+'</button>')+'</div></div>';
+ }
+ function renderFilters(){const host=$('lfCrFilters');if(host)host.innerHTML=FILTERS.map(([key,label])=>'<button type="button" class="lf-cr-filter '+(state.filter===key?'active':'')+'" aria-pressed="'+(state.filter===key)+'" onclick="LFRoute.setFilter('+JSON.stringify(key)+')">'+label+'</button>').join('')}
+ function renderStats(){const customers=allCustomers(),stops=routeStops(),done=stops.filter(s=>s.doneAt).length,candidates=taskCandidates(),due=customers.reduce((sum,c)=>sum+customerDue(c),0);$('lfCrStats').innerHTML=[['العملاء',customers.length],['مهام اليوم',candidates.length],['منجز الجولة',done],['متبقي الجولة',stops.length-done]].map(([label,value])=>'<div class="lf-cr-stat"><small>'+label+'</small><b>'+value+'</b></div>').join('');$('lfCrRouteSummary').textContent='جولة '+today()+' · '+done+' من '+stops.length+' مهمة منجزة · مستحقات الطلبات '+moneyValue(due)}
+ function renderTasks(){
+  const host=$('lfCrTasks');if(!host)return;const tasks=filteredTaskCandidates(),stops=stopsForToday(),done=stops.filter(s=>s.doneAt).length;
+  const routeHtml=stops.length?stops.map(stop=>{const c=stop.customer,source=stop.taskType==='delivery'?'تسليم':stop.taskType==='collection'?'تحصيل':stop.taskType==='consignment'?'أمانة':'زيارة',ref=stop.taskType==='delivery'||stop.taskType==='collection'?allOrders().find(o=>String(o.id)===String(stop.sourceId)):null,description=ref?(source+' · '+(typeof lfOrderNumber==='function'?lfOrderNumber(ref):ref.id)+' · '+(stop.taskType==='collection'?moneyValue(orderDue(ref)):'حالة '+text(ref.status))):source+' · '+text(c.area||'منطقة غير محددة');return '<div class="lf-cr-task '+(stop.doneAt?'lf-cr-done':'')+'"><div class="lf-cr-task-main"><div class="lf-cr-task-title">'+escape(c.name)+' · '+source+'</div><div class="lf-cr-task-desc">'+escape(description)+'</div></div><div class="lf-cr-task-actions">'+(stop.doneAt?'<span class="lf-cr-badge green">تم ✓</span>':'<button class="smallbtn" onclick="LFRoute.taskStop('+JSON.stringify(stop.id)+')">فتح المهمة</button><button class="ghost smallbtn" onclick="LFRoute.markDone('+JSON.stringify(stop.id)+')">تمت الزيارة ✓</button><button class="ghost smallbtn" onclick="LFRoute.removeStop('+JSON.stringify(stop.id)+')">إزالة</button>')+'</div></div>'}).join(''):'<div class="lf-cr-empty">لم تضف مهاماً إلى جولة اليوم بعد. اختر مهام الشحن والتحصيل أو أضف العملاء يدوياً.</div>';
+  const tasksHtml=tasks.length?tasks.map(taskCard).join(''):'<div class="lf-cr-empty">لا توجد مهام شحن أو تحصيل أو أمانة مطلوبة حالياً حسب السجلات المحفوظة.</div>';
+  host.innerHTML='<div class="lf-cr-card"><div class="lf-cr-section-title"><h3>صندوق مهام الشحن والتحصيل</h3><span class="lf-cr-muted">'+tasks.length+' مهمة</span></div>'+tasksHtml+'</div><div class="lf-cr-card" style="margin-top:10px"><div class="lf-cr-section-title"><h3>جولة اليوم</h3><span class="lf-cr-muted">'+done+' / '+stops.length+' منجزة</span></div><div class="lf-cr-task-actions" style="margin-bottom:8px"><button class="ghost smallbtn" onclick="LFRoute.optimize()">ترتيب الأقرب أولاً</button><button class="ghost smallbtn" onclick="LFRoute.clearDone()">إخفاء المنجز من الجولة</button></div>'+routeHtml+'</div>';
+ }
+ function renderList(){const host=$('lfCrList');if(!host)return;const customers=filteredCustomers();if(state.filter==='tasks'){host.innerHTML='<div class="lf-cr-empty">افتح صندوق المهام أعلاه لإضافة مهام الشحن والتحصيل والأمانة إلى الجولة.</div>';return}if(state.filter==='today'){const todayStops=stopsForToday();host.innerHTML=todayStops.length?todayStops.map(x=>customerCard(x.customer)).join(''):'<div class="lf-cr-empty">لا يوجد عملاء في جولة اليوم بعد.</div>';return}host.innerHTML=customers.length?'<div class="lf-cr-grid">'+customers.map(customerCard).join('')+'</div>':'<div class="lf-cr-empty">لا توجد نتائج مطابقة. جرّب تغيير البحث أو المنطقة.</div>'}
+ function ensureLeaflet(){if(window.L)return Promise.resolve(window.L);if(state.mapPromise)return state.mapPromise;state.mapPromise=new Promise((resolve,reject)=>{if(!$('lfCrLeafletCss')){const link=document.createElement('link');link.id='lfCrLeafletCss';link.rel='stylesheet';link.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(link)}const script=document.createElement('script');script.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';script.onload=()=>window.L?resolve(window.L):reject(new Error('تعذر تحميل مكتبة الخريطة.'));script.onerror=()=>reject(new Error('الخريطة تحتاج اتصالاً بالإنترنت لأول تحميل.'));document.head.appendChild(script)});return state.mapPromise}
+ async function renderMap(){
+  const host=$('lfCrMap'),note=$('lfCrMapNote');if(!host)return;let L;
+  try{L=await ensureLeaflet()}catch(error){if(note)note.textContent=error.message+' · يمكنك استخدام قائمة العملاء والملاحة الخارجية دون إنترنت.';return}
+  const customers=state.filter==='today'?stopsForToday().map(x=>x.customer):state.filter==='tasks'?taskCandidates().map(x=>x.customer):filteredCustomers(),withCoords=[...new Map(customers.filter(c=>coordinates(c)).map(c=>[String(c.id),c])).values()];
+  if(!withCoords.length){if(note)note.textContent='لا توجد إحداثيات محفوظة للعملاء الظاهرين. افتح ملف العميل والتقط موقعه الحالي أولاً.';return}
+  if(note)note.textContent='الخريطة تعرض العملاء ذوي الإحداثيات المحفوظة. طبقات الخريطة تحتاج الإنترنت؛ بيانات الدليل والجولة محفوظة محلياً.';
+  if(!state.map){state.map=L.map(host,{zoomControl:true}).setView([withCoords[0].lat,withCoords[0].lng],13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map)}
+  state.map.invalidateSize();if(state.map._lfMarkers)state.map._lfMarkers.forEach(m=>m.remove());state.map._lfMarkers=[];
+  const allStops=routeStops(),activeStops=allStops.filter(s=>!s.doneAt),routePoints=[];
+  if(state.location){const user=L.circleMarker([state.location.lat,state.location.lng],{radius:8,color:'#fff',weight:3,fillColor:'#0866FF',fillOpacity:1}).addTo(state.map).bindPopup('موقعك الحالي');state.map._lfMarkers.push(user);if(state.filter==='today')routePoints.push([state.location.lat,state.location.lng])}
+  withCoords.forEach(customer=>{const p=coordinates(customer),stop=allStops.find(s=>String(s.customerId)===String(customer.id)),number=stop?allStops.indexOf(stop)+1:null,color=stop?.doneAt?'#16A36A':!stop?'#1877F2':stop.taskType==='delivery'?'#1877F2':stop.taskType==='collection'?'#E45B36':stop.taskType==='consignment'?'#8250DF':'#16A36A';const marker=L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:2,fillColor:color,fillOpacity:1}).addTo(state.map).bindPopup('<b>'+escape(customer.name)+'</b><br>'+escape(customer.area||'')+(number?'<br>محطة '+number:'')+'<br><button onclick="LFRoute.openDetail('+JSON.stringify(customer.id)+')">فتح الملف</button>');state.map._lfMarkers.push(marker)});
+  if(state.filter==='today'){activeStops.forEach(stop=>{const p=coordinates(customerById(stop.customerId));if(p)routePoints.push([p.lat,p.lng])});if(routePoints.length>1)state.map._lfMarkers.push(L.polyline(routePoints,{color:'#1877F2',weight:4,opacity:.8}).addTo(state.map))}
+  const bounds=withCoords.map(c=>{const p=coordinates(c);return[p.lat,p.lng]});if(state.location)bounds.push([state.location.lat,state.location.lng]);if(bounds.length)state.map.fitBounds(bounds,{padding:[24,24],maxZoom:14});
+ }
+ function renderRadar(){const host=$('lfCrRadar');if(!host)return;host.innerHTML='<div class="lf-cr-card"><h3>رادار المحلات والموزعين القريبين</h3><p class="lf-cr-muted">اكتشف أماكن جديدة حول موقعك، ثم راجع بياناتها وأضف العميل يدوياً بعد التأكد من عدم تكراره.</p><div class="lf-cr-radar-note">البحث الآلي عبر Google Places يحتاج مفتاح API مملوكاً لك ومقيداً بالتطبيق وإعدادات الفوترة. لم يتم تضمين مفتاح في المشروع. يمكنك الآن فتح بحث قريب على خرائط Google، ثم إضافة العميل المحتمل يدوياً.</div><div class="lf-cr-radar-buttons"><button class="primary" onclick="LFRoute.radarSearch()">اكتشف أماكن قريبة على الخرائط</button><button class="ghost" onclick="LFRoute.requestLocation()">تحديث موقعي الحالي</button></div><p class="lf-cr-muted">نطاق البحث المقترح: 3–5 كم. نتائج الخرائط تفتح خارج التطبيق ولا تُحفظ تلقائياً؛ أضف فقط المحلات التي تحققت منها.</p></div><div class="lf-cr-card" style="margin-top:10px"><h3>إضافة عميل محتمل</h3><p class="lf-cr-muted">أدخل الاسم والهاتف والمنطقة والتقط الموقع عند الزيارة. سيمنع الدليل تكرار رقم الهاتف أو الموقع القريب المسجل.</p><button class="primary" onclick="LFRoute.newCustomer(\'prospect\')">＋ تسجيل عميل محتمل</button></div>'}
+ function renderDetail(){
+  const host=$('lfCrDetail');if(!host)return;const c=customerById(state.selectedCustomerId);if(!c){host.innerHTML='';return}
+  const orders=allOrders().filter(o=>o.status!=='ملغي'&&(typeof customerOrderMatches==='function'?customerOrderMatches(o,c):o.customerId===c.id)).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)),due=customerDue(c),cons=customerConsignments(c),last=orders[0],openCons=cons.filter(x=>x.status!=='closed');
+  const lastSummary=last?'آخر طلب '+(typeof lfOrderNumber==='function'?lfOrderNumber(last):last.id)+' · '+localDate(last.date||last.createdAt)+' · إجمالي '+moneyValue(orderNetTotal(last))+' · مدفوع '+moneyValue(paidOnOrder(last))+' · متبقي '+moneyValue(orderDue(last)):'لا توجد طلبات سابقة مسجلة';
+  host.innerHTML='<div class="lf-cr-card lf-cr-detail"><div class="lf-cr-section-title"><h3>ملف العميل · '+escape(c.name)+'</h3><button class="ghost smallbtn" onclick="LFRoute.closeDetail()">إغلاق</button></div><div class="lf-cr-badges">'+badge(categoryLabel(categoryOf(c)),'blue')+badge(tierLabel(priceTier(c)))+(customerHasConsignment(c)?badge('بيع بالأمانة','purple'):'')+'</div><div class="lf-cr-detail-grid"><div class="lf-cr-detail-item"><small>الهاتف</small><b>'+escape(c.phone||'غير مسجل')+'</b></div><div class="lf-cr-detail-item"><small>المنطقة</small><b>'+escape(c.area||'غير محددة')+'</b></div><div class="lf-cr-detail-item"><small>مستحقات الطلبات</small><b>'+moneyValue(due)+'</b></div><div class="lf-cr-detail-item"><small>عهد أمانة مفتوحة</small><b>'+openCons.length+' · مستحق '+moneyValue(consignmentDue(c))+'</b></div><div class="lf-cr-detail-item"><small>آخر طلب</small><b>'+escape(localDate(last?.date||last?.createdAt)||'لا يوجد')+'</b></div><div class="lf-cr-detail-item"><small>الموقع</small><b>'+(coordinates(c)?'محفوظ':'غير محدد')+'</b></div></div><p class="lf-cr-muted">'+escape(c.note||c.notes||'لا توجد ملاحظات')+'</p><div class="lf-cr-card-actions"><a href="tel:'+escape(c.phone||'')+'">اتصال</a><button onclick="LFRoute.whatsapp('+JSON.stringify(c.id)+')">واتساب</button><button onclick="LFRoute.navigate('+JSON.stringify(c.id)+')" '+(!coordinates(c)?'disabled':'')+'>الملاحة</button><button onclick="LFRoute.editCustomer('+JSON.stringify(c.id)+')">تعديل البيانات</button></div><div class="lf-cr-section-title"><h3>خطوات إتمام الصفقة</h3><span class="lf-cr-muted">3 خطوات</span></div><div class="lf-cr-step"><span class="lf-cr-step-num">1</span><div class="lf-cr-step-content"><h4>عرض المنتجات والأسعار</h4><p>افتح الكتالوج الحالي مع تحديد العميل وشريحة سعره.</p><button class="primary smallbtn" onclick="LFRoute.catalog('+JSON.stringify(c.id)+')">إرسال كتالوج مخصص PDF</button></div></div><div class="lf-cr-step"><span class="lf-cr-step-num">2</span><div class="lf-cr-step-content"><h4>تسجيل الطلب أو جرد الأمانة</h4><p>استخدم شاشة الطلبات أو ملف الأمانة الحالي دون إنشاء فاتورة موازية.</p><div class="lf-cr-card-actions"><button class="primary" onclick="LFRoute.newOrder('+JSON.stringify(c.id)+')">تسجيل طلب جديد</button><button onclick="LFRoute.openConsignment('+JSON.stringify(c.id)+')">إدارة الأمانة · '+openCons.length+' عهدة</button></div></div></div><div class="lf-cr-step"><span class="lf-cr-step-num">3</span><div class="lf-cr-step-content"><h4>التحصيل والمتابعة</h4><p>'+escape(lastSummary)+'</p><div class="lf-cr-card-actions"><button onclick="LFRoute.accountWhatsApp('+JSON.stringify(c.id)+')">إرسال ملخص الحساب واتساب</button><button class="primary" onclick="LFRoute.collect('+JSON.stringify(c.id)+')" '+(due<=0?'disabled':'')+'>تسجيل دفعة تحصيل · '+moneyValue(due)+'</button></div></div></div><div class="lf-cr-section-title"><h3>مهام العميل</h3></div><button class="ghost smallbtn" onclick="LFRoute.toggleVisit('+JSON.stringify(c.id)+')">＋ إضافة زيارة إلى جولة اليوم</button></div>';
+ }
+ function formMarkup(){
+  const c=customerById(state.formCustomerId),category=categoryOf(c||{}),tier=priceTier(c||{}),p=coordinates(c);
+  return '<div class="lf-cr-form"><div class="lf-cr-section-title"><h3>'+(c?'تعديل العميل':'إضافة عميل سريع')+'</h3><button class="ghost smallbtn" onclick="LFRoute.closeForm()">إغلاق</button></div><div class="lf-cr-form-grid"><div class="lf-cr-field wide"><label>اسم العميل / المحل *</label><input id="lfCrName" value="'+escape(c?.name||'')+'" maxlength="120" placeholder="اسم العميل أو المحل"></div><div class="lf-cr-field"><label>رقم الهاتف</label><input id="lfCrPhone" type="tel" value="'+escape(c?.phone||'')+'" inputmode="tel" placeholder="01xxxxxxxxx"></div><div class="lf-cr-field"><label>هاتف بديل</label><input id="lfCrPhone2" type="tel" value="'+escape(c?.phone2||'')+'" inputmode="tel" placeholder="اختياري"></div><div class="lf-cr-field"><label>فئة العميل</label><select id="lfCrCategory">'+CATEGORIES.map(x=>'<option value="'+x[0]+'" '+(x[0]===category?'selected':'')+'>'+x[1]+'</option>').join('')+'</select></div><div class="lf-cr-field"><label>شريحة السعر</label><select id="lfCrTier">'+PRICE_TIERS.map(x=>'<option value="'+x[0]+'" '+(x[0]===tier?'selected':'')+'>'+x[1]+'</option>').join('')+'</select></div><div class="lf-cr-field"><label>المنطقة / خط السير</label><input id="lfCrArea" value="'+escape(c?.area||'')+'" placeholder="مثال: مدينة نصر"></div><div class="lf-cr-field"><label>ملاحظات سريعة</label><input id="lfCrNote" value="'+escape(c?.note||c?.notes||'')+'" placeholder="ملاحظة اختيارية"></div><div class="lf-cr-field wide"><label class="lf-cr-check"><input type="checkbox" id="lfCrHasConsignment" '+(customerHasConsignment(c)||c?.has_consignment?'checked':'')+'> مرتبط بنظام البيع بالأمانة</label></div><div class="lf-cr-field wide"><input type="hidden" id="lfCrLat" value="'+(p?p.lat:'')+'"><input type="hidden" id="lfCrLng" value="'+(p?p.lng:'')+'"><button class="ghost smallbtn" onclick="LFRoute.captureLocation()">التقاط الموقع الحالي GPS</button><small class="lf-cr-muted" id="lfCrGpsStatus">'+(p?'تم حفظ إحداثيات العميل':'لم يتم تحديد الموقع')+'</small></div></div><div class="lf-cr-form-footer"><button class="primary" onclick="LFRoute.saveCustomer()">حفظ العميل</button><button class="ghost" onclick="LFRoute.closeForm()">إلغاء</button></div></div>';
+ }
+ function renderForm(){const host=$('lfCrForm');if(host)host.innerHTML=state.formCustomerId!==null?formMarkup():''}
+ function render(){
+  const page=$(PAGE);if(!page)return;
+  if(syncCompletedStops())save();
+  $('lfCrSearch').value=state.search;
+  $('lfCrArea').innerHTML='<option value="">كل المناطق</option>'+[...new Set(allCustomers().map(c=>text(c.area).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar')).map(area=>'<option value="'+escape(area)+'" '+(state.area===area?'selected':'')+'>'+escape(area)+'</option>').join('');
+  renderFilters();renderStats();renderTasks();renderList();renderRadar();renderDetail();
+  $('lfCrViewList').classList.toggle('active',state.view==='list');$('lfCrViewMap').classList.toggle('active',state.view==='map');$('lfCrViewRadar').classList.toggle('active',state.view==='radar');
+  $('lfCrMapPanel').hidden=state.view!=='map';$('lfCrRadarPanel').hidden=state.view!=='radar';$('lfCrListPanel').hidden=state.view!=='list';
+  $('lfCrTasksPanel').hidden=state.view==='radar'||(state.filter!=='tasks'&&state.filter!=='today'&&state.view==='list');
+  if(state.view==='map')renderMap();
+ }
+ function openDetail(customerId){if(!customerById(customerId))return;state.selectedCustomerId=String(customerId);renderDetail();$('lfCrDetail')?.scrollIntoView({behavior:'smooth',block:'start'})}
+ function closeDetail(){state.selectedCustomerId='';renderDetail()}
+ function newCustomer(category){state.formCustomerId='';renderForm();if(category&&$('lfCrCategory'))$('lfCrCategory').value=category;$('lfCrForm')?.scrollIntoView({behavior:'smooth',block:'center'})}
+ function editCustomer(customerId){if(!customerById(customerId))return;state.formCustomerId=String(customerId);renderForm();$('lfCrForm')?.scrollIntoView({behavior:'smooth',block:'center'})}
+ function closeForm(){state.formCustomerId=null;const host=$('lfCrForm');if(host)host.innerHTML=''}
+ function duplicateCustomer(phone,lat,lng,excludeId){
+  const phoneKey=normalizePhone(phone);if(phoneKey&&allCustomers().some(c=>String(c.id)!==String(excludeId||'')&&[c.phone,c.phone2].some(v=>normalizePhone(v)===phoneKey)))return 'رقم الهاتف مسجل بالفعل لدى عميل آخر.';
+  if(Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))&&String(lat)!==''&&String(lng)!==''){const point={lat:Number(lat),lng:Number(lng)},near=allCustomers().find(c=>String(c.id)!==String(excludeId||'')&&coordinates(c)&&haversine(point,coordinates(c))<=30);if(near)return 'الموقع قريب جداً من العميل المسجل: '+near.name+' (أقل من 30 مترًا).'}
+  return '';
+ }
+ function saveCustomer(){
+  const name=$('lfCrName')?.value.trim(),phone=$('lfCrPhone')?.value.trim(),phone2=$('lfCrPhone2')?.value.trim(),category=$('lfCrCategory')?.value,tier=$('lfCrTier')?.value,area=$('lfCrArea')?.value.trim(),note=$('lfCrNote')?.value.trim(),hasConsignment=!!$('lfCrHasConsignment')?.checked,latText=$('lfCrLat')?.value||'',lngText=$('lfCrLng')?.value||'',lat=latText===''?null:Number(latText),lng=lngText===''?null:Number(lngText);
+  if(!name)return window.LamsetUI?.toast('اسم العميل مطلوب.','warning');
+  if(phone&&normalizePhone(phone).length<7)return window.LamsetUI?.toast('رقم الهاتف غير مكتمل.','warning');
+  if(!CATEGORIES.some(x=>x[0]===category)||!PRICE_TIERS.some(x=>x[0]===tier))return window.LamsetUI?.toast('راجع فئة العميل وشريحة السعر.','warning');
+  if((lat===null)!==(lng===null)||(lat!==null&&(!Number.isFinite(lat)||Math.abs(lat)>90||!Number.isFinite(lng)||Math.abs(lng)>180)))return window.LamsetUI?.toast('إحداثيات الموقع غير صحيحة.','warning');
+  const duplicate=duplicateCustomer(phone,lat,lng,state.formCustomerId);if(duplicate)return window.LamsetUI?.toast(duplicate,'warning');
+  const before=clone(db);let c=state.formCustomerId?customerById(state.formCustomerId):null;
+  if(!c){c={id:typeof id==='function'?id():'customer-'+Date.now(),createdAt:new Date().toISOString()};db.customers.push(c)}
+  c.name=name;c.phone=phone;c.phone2=phone2;c.type=tier;c.category=category;c.area=area;c.note=note;c.notes=note;c.has_consignment=hasConsignment;
+  if(lat!==null){c.lat=lat;c.lng=lng}else{delete c.lat;delete c.lng}
+  if(!saveDb(before,'تم حفظ بيانات العميل في قاعدة العملاء الحالية.'))return;
+  state.selectedCustomerId=String(c.id);state.formCustomerId=null;render();
+ }
+ async function requestLocation(){
+  try{let position;if(typeof window.lamsetGetCurrentPosition==='function')position=await window.lamsetGetCurrentPosition({enableHighAccuracy:true,timeout:15000,maximumAge:30000});else position=await new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(new Error('خدمة تحديد الموقع غير متاحة.'));navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:30000})});state.location={lat:Number(position.coords?.latitude??position.latitude),lng:Number(position.coords?.longitude??position.longitude)};return state.location}
+  catch(error){window.LamsetUI?.toast(error.message||'تعذر تحديد موقعك. تحقق من إذن الموقع وGPS.','warning');return null}
+ }
+ async function captureLocation(){const point=await requestLocation();if(!point)return;if($('lfCrLat'))$('lfCrLat').value=point.lat;if($('lfCrLng'))$('lfCrLng').value=point.lng;if($('lfCrGpsStatus'))$('lfCrGpsStatus').textContent='تم التقاط الموقع الحالي؛ سيتم حفظه مع العميل بعد الضغط على حفظ.'}
+ function toggleVisit(customerId){const customer=customerById(customerId);if(!customer)return;const stop=routeStops().find(s=>s.taskType==='visit'&&String(s.customerId)===String(customerId)&&!s.doneAt);if(stop)routeRemoveStop(stop.id);else routeAddStop(customerId,'visit',customerId)}
+ function optimize(){
+  const point=state.location;if(!point)return requestLocation().then(p=>p?optimize():null);
+  const before=clone(db),plan=getPlan(false);if(!plan||plan.stops.length<2)return;
+  let current=point,remaining=plan.stops.filter(s=>!s.doneAt),ordered=[];
+  while(remaining.length){let bestIndex=-1,bestDistance=Infinity;remaining.forEach((stop,index)=>{const p=coordinates(customerById(stop.customerId));if(!p)return;const distance=haversine(current,p);if(distance<bestDistance){bestDistance=distance;bestIndex=index}});if(bestIndex<0)break;const next=remaining.splice(bestIndex,1)[0];ordered.push(next);current=coordinates(customerById(next.customerId))}
+  const completed=plan.stops.filter(s=>s.doneAt);plan.stops=[...completed,...ordered,...remaining];plan.stops.forEach((s,i)=>s.sequence=i+1);
+  if(saveDb(before,'تم ترتيب محطات الجولة من الأقرب إلى الأبعد حسب المسافة الجغرافية.'))render();
+ }
+ function clearDone(){const before=clone(db),plan=getPlan(false);if(!plan)return;plan.stops=plan.stops.filter(s=>!s.doneAt);allCustomers().forEach(c=>{c.in_todays_route=plan.stops.some(s=>String(s.customerId)===String(c.id))});if(saveDb(before,'تم إخفاء المهام المنجزة من جولة اليوم.'))render()}
+ function openStop(stopId){const stop=routeStops().find(s=>String(s.id)===String(stopId));if(!stop)return;const customer=customerById(stop.customerId);if(!customer)return;if(stop.taskType==='delivery'||stop.taskType==='collection'){const item=taskCandidates().find(x=>x.taskType===stop.taskType&&String(x.sourceId)===String(stop.sourceId));if(item){taskAction(item);return}}if(stop.taskType==='consignment'){openConsignment(stop.customerId);return}openDetail(stop.customerId)}
+ function taskByKey(key){return taskCandidates().find(x=>x.key===key)}
+ function task(key){const item=taskByKey(key);if(item)taskAction(item)}
+ function addTask(customerId,type,sourceId){routeAddStop(customerId,type,sourceId)}
+ function openCatalog(customerId){
+  const c=customerById(customerId);if(!c)return;tab('catalogs');
+  const select=$('catType');if(select&&!Array.from(select.options).some(o=>o.value==='shop')){const option=document.createElement('option');option.value='shop';option.textContent='المحل';select.appendChild(option)}
+  if(typeof selectCatalogCustomer==='function')selectCatalogCustomer(c.id);else window.LamsetUI?.toast('صفحة الكتالوج لم تجهز بعد.','warning');
+ }
+ function openNewOrder(customerId){const c=customerById(customerId);if(!c)return;tab('orders');if(typeof setOrdersWorkspaceTab==='function')setOrdersWorkspaceTab('new');const select=$('oCustomerSelect');if(select){select.value=String(c.id);if(typeof selectOrderCustomer==='function')selectOrderCustomer(String(c.id))}}
+ function openCollection(customerId){const c=customerById(customerId);if(!c)return;const order=allOrders().filter(o=>o.status!=='ملغي'&&orderDue(o)>0&&(typeof customerOrderMatches==='function'?customerOrderMatches(o,c):o.customerId===c.id)).sort((a,b)=>new Date(a.date||0)-new Date(b.date||0))[0];if(order&&typeof openOrderCollection==='function')openOrderCollection(order.id);else tab('collections')}
+ function accountMessage(c){const orders=allOrders().filter(o=>o.status!=='ملغي'&&(typeof customerOrderMatches==='function'?customerOrderMatches(o,c):o.customerId===c.id)).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)),o=orders[0];if(!o)return 'مرحباً '+c.name+'، يسعدنا تواصلك مع لمسة فن.';return ['ملخص حسابك لدى لمسة فن','العميل: '+c.name,'آخر فاتورة: '+(typeof lfInvoiceReference==='function'?lfInvoiceReference(o):o.id),'تاريخ الفاتورة: '+localDate(o.date||o.createdAt),'إجمالي الفاتورة: '+moneyValue(orderNetTotal(o)),'المدفوع: '+moneyValue(paidOnOrder(o)),'المتبقي: '+moneyValue(orderDue(o)),'شكراً لثقتكم في لمسة فن.'].join('\n')}
+ function accountWhatsApp(customerId){const c=customerById(customerId);if(!c)return;const phone=normalizePhone(c.phone);if(!phone)return window.LamsetUI?.toast('رقم الهاتف غير مسجل.','warning');const url='https://wa.me/'+phone+'?text='+encodeURIComponent(accountMessage(c));window.open(url,'_blank')||(location.href=url)}
+ function whatsapp(customerId){const c=customerById(customerId);if(!c)return;const phone=normalizePhone(c.phone);if(!phone)return window.LamsetUI?.toast('رقم الهاتف غير مسجل.','warning');const templates={distributor:'مرحباً '+c.name+'، يسعدنا تواصلك مع لمسة فن. لدينا منتجات جديدة وأسعار خاصة بالموزعين. هل ترغب في استلام الكتالوج؟',wholesale:'مرحباً '+c.name+'، نود تعريفك بمنتجات لمسة فن وأسعار الجملة. يسعدنا إرسال الكتالوج والتفاصيل.',shop:'مرحباً '+c.name+'، يسعدنا عرض منتجات لمسة فن المناسبة للمكتبات والمحلات. هل نرسل لك الكتالوج؟',online:'أهلاً '+c.name+'، يسعدنا عرض منتجات لمسة فن الجديدة. هل ترغب في الاطلاع على الكتالوج؟',prospect:'مرحباً، معك لمسة فن. يسعدنا تعريفك بمنتجاتنا وإرسال الكتالوج إذا رغبت.'};const url='https://wa.me/'+phone+'?text='+encodeURIComponent(templates[categoryOf(c)]||templates.prospect);window.open(url,'_blank')||(location.href=url)}
+ function navigate(customerId){const c=customerById(customerId),p=coordinates(c);if(!p)return window.LamsetUI?.toast('احفظ موقع العميل أولاً.','warning');const url='https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lng+'&travelmode=driving';window.open(url,'_blank')||(location.href=url)}
+ function radarSearch(){requestLocation().then(point=>{if(!point)return;const query=encodeURIComponent('مكتبات أدوات مكتبية ألعاب أطفال محلات هدايا موزعين');const url='https://www.google.com/maps/search/'+query+'/@'+point.lat+','+point.lng+',14z';window.open(url,'_blank')||(location.href=url)})}
+ function setView(view){state.view=['list','map','radar'].includes(view)?view:'list';if(state.view==='map'&&!state.location)requestLocation().then(()=>render());render()}
+ function setFilter(filter){state.filter=FILTERS.some(x=>x[0]===filter)?filter:'all';render()}
+ function setSearch(value){state.search=text(value);render()}
+ function setArea(value){state.area=text(value);render()}
+ function init(){
+  const customersPanel=$('customers');if(!customersPanel||$(PAGE))return;
+  const navGroup=[...document.querySelectorAll('.lf-drawer-group')].find(group=>group.querySelector('[data-nav-target="consignment"]'));
+  if(navGroup&&!document.querySelector('[data-nav-target="'+PAGE+'"]')){const link=document.createElement('button');link.type='button';link.className='lf-drawer-link';link.dataset.navTarget=PAGE;link.dataset.label='دليل العملاء وخط السير';link.innerHTML='<span data-lucide="route"></span><b>دليل العملاء وخط السير</b>';navGroup.querySelector('.lf-drawer-group-links')?.insertBefore(link,navGroup.querySelector('.lf-drawer-group-links').firstChild)}
+  const panel=document.createElement('section');panel.id=PAGE;panel.className='panel';panel.innerHTML='<div class="lf-cr"><div class="lf-cr-head"><div><h2>دليل العملاء وخط السير</h2><p>إدارة العملاء ومهام التوزيع والتحصيل والجولات اليومية</p></div><div class="lf-cr-actions"><button class="primary" onclick="LFRoute.newCustomer()">＋ إضافة عميل</button></div></div><div class="lf-cr-top"><div class="lf-cr-search"><input id="lfCrSearch" type="search" placeholder="ابحث بالاسم أو الهاتف أو المنطقة" oninput="LFRoute.setSearch(this.value)"></div><select id="lfCrArea" onchange="LFRoute.setArea(this.value)"><option value="">كل المناطق</option></select></div><div class="lf-cr-view"><button id="lfCrViewList" onclick="LFRoute.setView(\'list\')">عرض القائمة 📋</button><button id="lfCrViewMap" onclick="LFRoute.setView(\'map\')">عرض الخريطة 🗺️</button><button id="lfCrViewRadar" onclick="LFRoute.setView(\'radar\')">رادار قريب</button></div><div id="lfCrStats" class="lf-cr-stats"></div><div class="lf-cr-filters" id="lfCrFilters"></div><div id="lfCrRouteSummary" class="lf-cr-muted"></div><div id="lfCrTasksPanel"><div id="lfCrTasks"></div></div><div id="lfCrListPanel"><div id="lfCrList"></div></div><div id="lfCrMapPanel" hidden><div class="lf-cr-map-wrap"><div id="lfCrMap"></div></div><div id="lfCrMapNote" class="lf-cr-map-note">جارٍ تجهيز الخريطة…</div><div class="lf-cr-card-actions"><button class="primary" onclick="LFRoute.requestLocation()">تحديد موقعي الحالي</button><button onclick="LFRoute.optimize()">ترتيب الجولة الأقرب أولاً</button></div></div><div id="lfCrRadarPanel" hidden></div><div id="lfCrForm"></div><div id="lfCrDetail"></div></div>';
+  customersPanel.insertAdjacentElement('afterend',panel);
+  const baseRender=window.renderPage;if(typeof baseRender==='function'&&!baseRender.__lfRouteWrapped){const wrapped=function(page){baseRender.apply(this,arguments);if(page===PAGE)render()};wrapped.__lfRouteWrapped=true;window.renderPage=wrapped}
+  if(typeof window.catalogCustomerType==='function'){const original=window.catalogCustomerType;window.catalogCustomerType=function(type){if(type==='shop')return 'shop';if(type==='retail'||type==='online')return 'retail';return original(type)}}
+  const catType=$('catType');if(catType&&!Array.from(catType.options).some(o=>o.value==='shop')){const option=document.createElement('option');option.value='shop';option.textContent='المحل';catType.appendChild(option)}
+  document.addEventListener('lamset-app-resumed',()=>{if(document.querySelector('.panel.active')?.id===PAGE)render()});
+  if(window.LamsetUI?.mountIcons)window.LamsetUI.mountIcons(panel);
+ }
+ const api={render,openDetail,closeDetail,newCustomer,editCustomer,closeForm,saveCustomer,captureLocation,requestLocation,toggleVisit,addTask,removeStop:routeRemoveStop,task,taskStop:openStop,markDone:routeMarkDone,setView,setFilter,setSearch,setArea,optimize,clearDone,openCatalog,catalog:openCatalog,newOrder:openNewOrder,collect:openCollection,openConsignment,accountWhatsApp,whatsapp,navigate,radarSearch};
+ window.LFRoute=api;
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
