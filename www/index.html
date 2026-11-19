@@ -1162,7 +1162,7 @@ function lfOrderShipmentState(o){
   const product=(db.products||[]).find(p=>String(p.id)===String(line.productId));
   return{itemIndex,productId:line.productId,productName:item.productName||item.productSnapshot?.name||product?.name||'منتج',required:units,prepared,shipped:shippedUnits,available,remaining};
  });
- return{total,shipped,ready,pending,remaining:Math.max(0,total-shipped),complete:total>0&&shipped===total&&pending===0,partial:shipped>0&&shipped<total,invalid,lines:rows,legacyFull};
+ if(o?.stockIssuedAt&&!o?.stockIssueMigrated&&Number(o.stockIssuedUnits)!==shipped)invalid=true;return{total,shipped,ready,pending,remaining:Math.max(0,total-shipped),complete:total>0&&shipped===total&&pending===0,partial:shipped>0&&shipped<total,invalid,lines:rows,legacyFull};
 }
 function lfOrderShipmentHistoryHtml(o){
  const shipments=Array.isArray(o?.shipments)?o.shipments:[];
