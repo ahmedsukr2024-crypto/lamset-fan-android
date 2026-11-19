@@ -2735,12 +2735,26 @@ async function saveExpense(button){
 async function editExpense(expenseId){
  const item=(db.expenses||[]).find(x=>x.id===expenseId&&x.status!=='cancelled');if(!item)return;
  const amountText=prompt('المبلغ الجديد للمصروف (ج.م):',String(item.amount));if(amountText===null)return;const amount=Number(amountText);if(!Number.isFinite(amount)||amount<=0)return alert('المبلغ الجديد غير صحيح.');
- const reason=prompt('سبب التعديل (مطلوب):','تصحيح قيمة المصروف');if(reason===null)return;if(!reason.trim())return alert('سبب التعديل مطلوب.');
+ const date=prompt('تاريخ المصروف (YYYY-MM-DD):',String(item.date||lfExpenseToday()));if(date===null)return;const parsedDate=new Date(date+'T00:00:00');if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(parsedDate.getTime())||parsedDate.toISOString().slice(0,10)!==date)return alert('تاريخ المصروف غير صحيح.');
+ const category=prompt('نوع المصروف:',String(item.category||'أخرى'));if(category===null)return;if(!category.trim())return alert('نوع المصروف مطلوب.');
+ const methods=['نقدي','تحويل بنكي','محفظة إلكترونية','أخرى'],method=prompt('طريقة الدفع (نقدي / تحويل بنكي / محفظة إلكترونية / أخرى):',String(item.method||'نقدي'));if(method===null)return;if(!methods.includes(method.trim()))return alert('طريقة الدفع غير صحيحة.');
+ const notes=prompt('الملاحظات (اختياري):',String(item.notes||''));if(notes===null)return;
+ const reason=prompt('سبب التعديل (مطلوب):','تصحيح بيانات المصروف');if(reason===null)return;if(!reason.trim())return alert('سبب التعديل مطلوب.');
  if(!(await window.lamsetRequireOwnerPin('تعديل مصروف مسجل')))return;
- const before=JSON.parse(JSON.stringify(db)),oldAmount=item.amount;item.amount=amount;item.audit=[...(item.audit||[]),{at:new Date().toISOString(),reason:reason.trim(),oldAmount,newAmount:amount}];item.updatedAt=new Date().toISOString();lfRecordActivity('تعديل مصروف',item.category,money(oldAmount)+' ← '+money(amount)+' · '+reason.trim());
- if(!save()){db=before;return alert('تعذر حفظ تعديل المصروف.');}
- if(item.method==='نقدي'&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(item.id,'expense',amount,item.date,'مصروف نقدي · '+item.category);}catch(error){console.warn('Updated cash expense link pending:',error);alert('تم تعديل المصروف، وسيعاد ربطه بالخزينة عند فتح قسم الخزينة.');}}
- renderExpenses();
+ const before=JSON.parse(JSON.stringify(db)),oldValues={amount:Number(item.amount)||0,date:String(item.date||''),category:String(item.category||'أخرى'),method:String(item.method||'نقدي'),notes:String(item.notes||'')},newValues={amount,date,category:category.trim(),method:method.trim(),notes:notes.trim()};
+ let cashLinkRemoved=false,committed=false;
+ try{
+  if(oldValues.method==='نقدي'&&newValues.method!=='نقدي'&&window.LamsetLocalDB){await LamsetLocalDB.removeCashLink(item.id,reason.trim());cashLinkRemoved=true;}
+  Object.assign(item,newValues);item.audit=[...(item.audit||[]),{at:new Date().toISOString(),reason:reason.trim(),oldValues,newValues:{...newValues}}];item.updatedAt=new Date().toISOString();
+  lfRecordActivity('تعديل مصروف',item.category,'تعديل بيانات المصروف · '+reason.trim());
+  if(!save()){db=before;if(cashLinkRemoved&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(item.id,'expense',oldValues.amount,oldValues.date,'مصروف نقدي · '+oldValues.category)}catch(restoreError){console.warn('Previous cash expense link restoration pending:',restoreError)}}return alert('تعذر حفظ تعديل المصروف؛ تمت إعادة البيانات السابقة.')}
+  committed=true;
+  if(newValues.method==='نقدي'&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(item.id,'expense',amount,date,'مصروف نقدي · '+newValues.category)}catch(error){console.warn('Updated cash expense link pending:',error);alert('تم حفظ تعديل المصروف، وسيعاد ربطه بالخزينة عند فتح قسم الخزينة.')}}
+  renderExpenses();
+ }catch(error){
+  if(!committed){db=before;if(cashLinkRemoved&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(item.id,'expense',oldValues.amount,oldValues.date,'مصروف نقدي · '+oldValues.category)}catch(restoreError){console.warn('Previous cash expense link restoration pending:',restoreError)}}}
+  alert(error.message||'تعذر تعديل المصروف.');
+ }
 }
 async function cancelExpense(expenseId){
  const item=(db.expenses||[]).find(x=>x.id===expenseId&&x.status!=='cancelled');if(!item)return;
