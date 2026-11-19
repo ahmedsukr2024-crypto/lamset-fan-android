@@ -17,8 +17,12 @@ const statusSource = statusStart >= 0 && trackerEnd > statusStart
   : '';
 assert(!!statusSource, 'canonical order status helpers and workflow snapshot exist');
 if (statusSource) {
-  const context = vm.createContext({ orderStockLines: () => [] });
-  vm.runInContext(statusSource + '\nthis.api={lfOrderStatusKey,lfIsDeliveredOrder,lfIsCancelledOrder,lfIsArchivedOrder,orderWorkflowSnapshot,orderStageTrackerHtml};', context);
+  const shipmentStart = html.indexOf('function lfOrderShipmentState(o)');
+  const shipmentEnd = html.indexOf('function lfOrderHasShipped(o)', shipmentStart);
+  const shipmentSource = shipmentStart >= 0 && shipmentEnd > shipmentStart ? html.slice(shipmentStart, shipmentEnd) : '';
+  assert(!!shipmentSource, 'shipment state helper exists for canonical order workflow');
+  const context = vm.createContext({ orderStockLines: () => [], db: { products: [] } });
+  vm.runInContext(shipmentSource + '\n' + statusSource + '\nthis.api={lfOrderStatusKey,lfIsDeliveredOrder,lfIsCancelledOrder,lfIsArchivedOrder,orderWorkflowSnapshot,orderStageTrackerHtml};', context);
   const api = context.api;
   for (const status of ['تم التسليم', 'تم التسليم للعميل', 'ملغي', 'مكتمل', 'مكتملة', 'مغلق', 'مغلقة', 'مؤرشف', 'مؤرشفة']) {
     const order = { status };
