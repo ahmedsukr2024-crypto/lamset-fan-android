@@ -52,7 +52,7 @@ if(statementStart>=0&&statementEnd>statementStart){
   esc:value=>String(value??'')
  };
  vm.createContext(sandbox);
- vm.runInContext(statementSource+'\\nthis.statementApi={lfCustomerStatementData,lfCustomerStatementHtml};',sandbox);
+ vm.runInContext(statementSource+'\nthis.statementApi={lfCustomerStatementData,lfCustomerStatementHtml};',sandbox);
  const result=sandbox.statementApi.lfCustomerStatementData(customer.id);
  check(result.sales===50,'statement period sales include only invoices created within the selected period');
  check(result.collected===70,'statement collections exclude cancelled receipts');
@@ -65,5 +65,6 @@ if(statementStart>=0&&statementEnd>statementStart){
  const printable=sandbox.statementApi.lfCustomerStatementHtml(result);
  check(printable.includes('صرف أرصدة زائدة خلال الفترة')&&printable.includes('الرصيد الزائد حتى نهاية الفترة'),'printable statement explains settled and remaining customer credit');
 }
-\nif(process.exitCode)process.exit(process.exitCode);
+
+if(process.exitCode)process.exit(process.exitCode);
 console.log('Customer statement and financial movement report checks passed.');
