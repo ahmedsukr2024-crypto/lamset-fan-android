@@ -67,9 +67,13 @@ assert(cancelSource.includes('payment.receiptNumber||'), 'cancellation confirmat
 assert(html.includes('[p.receiptNumber,p.id,customer,invoice,o?.orderNumber,p.amount,p.method,p.note,p.cancelReason]'),'payment history search includes the receipt serial');
 assert(html.includes('previewPaymentReceipt(paymentId)')&&html.includes('onclick=\"lamsetRunButtonAction(this,()=>previewPaymentReceipt('),'receipt history offers viewing and reprinting');
 
-const runtimeSerialStart=html.indexOf('function lfNextSequenceNumber');
-const runtimeSerialEnd=html.indexOf('function renderCollections',runtimeSerialStart);
-const serialRuntime=runtimeSerialStart>=0&&runtimeSerialEnd>runtimeSerialStart?html.slice(runtimeSerialStart,runtimeSerialEnd):'';
+const sequenceStart=html.indexOf('function lfNextSequenceNumber');
+const sequenceEnd=html.indexOf('function lfNextOrderNumber',sequenceStart);
+const paymentSerialStart=html.indexOf('function lfNextPaymentReceiptNumber');
+const paymentSerialEnd=html.indexOf('function renderCollections',paymentSerialStart);
+const serialRuntime=sequenceStart>=0&&sequenceEnd>sequenceStart&&paymentSerialStart>=0&&paymentSerialEnd>paymentSerialStart
+ ? html.slice(sequenceStart,sequenceEnd)+'\\n'+html.slice(paymentSerialStart,paymentSerialEnd)
+ : '';
 assert(!!serialRuntime,'receipt serial generation and legacy repair helpers can be isolated for runtime testing');
 if(serialRuntime){
  const context={db:{payments:[
