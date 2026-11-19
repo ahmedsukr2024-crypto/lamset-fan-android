@@ -44,4 +44,8 @@ assert(html.includes('async function editExpense(expenseId)')&&html.includes('as
 assert(html.includes("applyCashLink(expense.id,'expense'"),'Cash expenses must be linked to treasury once');
 assert(html.includes('removeCashLink(item.id'),'Cancelling a cash expense must reverse its treasury link');
 assert(html.includes("lfRecordActivity('تسجيل مصروف'")&&html.includes("lfRecordActivity('تعديل مصروف'")&&html.includes("lfRecordActivity('إلغاء مصروف'"),'Expense actions must be included in the activity log');
+
+assert(db.includes("if (balance < 0) throw new Error('التعديل سيؤدي إلى رصيد خزينة سالب بتاريخ ' + date + '.' );")||db.includes("if (balance < 0) throw new Error('التعديل سيؤدي إلى رصيد خزينة سالب بتاريخ ' + date + '.');"),'ledger must reject any withdrawal or correction that makes the cash balance negative');
+assert(db.includes("if (!['deposit', 'withdrawal'].includes(type))"),'manual treasury movement type must be restricted to deposits and withdrawals');
+assert(db.includes('this.requireOwnerSession();')&&db.includes('async recordTreasuryMovement(input)'),'manual treasury movements must be owner-session protected');
 console.log('Owner PIN session, treasury date validation, and cash-link recovery checks passed.');
