@@ -1,5 +1,6 @@
 const fs=require('node:fs');
 const assert=require('node:assert/strict');
+const vm=require('node:vm');
 const html=fs.readFileSync('www/index.html','utf8');
 const css=fs.readFileSync('www/lamset-theme-polish.css','utf8');
 assert.match(html,/<select id="productSort"[\s\S]*?<option value="manual">ترتيب يدوي<\/option>/,'manual sort option must be available');
@@ -70,4 +71,5 @@ if(draftStart>=0&&draftEnd>draftStart){
  assert.equal(sandbox.api.lfSaveProductFormDraft(),true,'empty form draft cleanup succeeds');
  assert.equal(storage.has(sandbox.api.LF_PRODUCT_FORM_DRAFT_KEY),false,'empty product form removes stale draft');
 }
-\nconsole.log('Manual product ordering and product draft checks passed.');
+
+console.log('Manual product ordering and product draft checks passed.');
