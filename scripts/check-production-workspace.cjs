@@ -70,4 +70,10 @@ assert(reversalSource.includes('ownerApproved:true'),'reversal records owner app
 assert(!reversalSource.includes('db.productions=db.productions.filter'),'production correction does not delete the original batch');
 assert(reversalSource.includes('lfOrderHasShipped(order)'),'production batch reversal is blocked when any linked order has a partial or complete shipment');
 
+assert(html.includes("String(product.image||'').startsWith('data:image/')"),'production groups reuse an existing stored product image only when present');
+assert(html.includes('class="lf-production-group-image"'),'production group cards display the existing product image');
+assert(html.includes("String(p.image||'').startsWith('data:image/')"),'factory sheet reuses the existing stored product image only when present');
+assert(html.includes('class="factory-product-image"'),'factory PDF sheet displays the existing product image beside the product name');
+assert(html.includes("'<div class=\"lf-production-group-identity\">'+image+'<div><b>'+esc(group.name)"),'production group remains text-only when no product image is stored');
+
 console.log('Production workspace four-tab structure and existing production regions verified.');
