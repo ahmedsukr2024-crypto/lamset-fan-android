@@ -41,7 +41,7 @@ const stockLineEnd = html.indexOf('\n', stockLineStart);
 const stockLineSource = stockLineStart >= 0 ? html.slice(stockLineStart, stockLineEnd > stockLineStart ? stockLineEnd : stockLineStart + 2000) : '';
 assert(!!stockLineSource, 'canonical order stock-line helper exists for delivery review');
 const reviewContext = vm.createContext({ db: { products: [{ id: 'p1', name: 'منتج 1' }] } });
-vm.runInContext(stockLineSource + '\n' + html.slice(reviewStart, reviewEnd) + '\\nthis.review=lfReviewOrderBeforeDelivery;', reviewContext);
+vm.runInContext(stockLineSource + '\n' + html.slice(reviewStart, reviewEnd) + '\nthis.review=lfReviewOrderBeforeDelivery;';, reviewContext);
 const completeUnpaid = { customer: 'عميل', items: [{ productId: 'p1', productName: 'منتج 1', stockUnits: 5, stockDeductedUnits: 5, productionFulfilledUnits: 0, productionPendingUnits: 0 }] };
 assert(reviewContext.review(completeUnpaid).ok, 'fully prepared order can be delivered while payment remains outstanding');
 assert(!reviewContext.review({ ...completeUnpaid, items: [{ ...completeUnpaid.items[0], productionPendingUnits: 2, stockDeductedUnits: 3 }] }).ok, 'delivery is blocked while production remains pending');
