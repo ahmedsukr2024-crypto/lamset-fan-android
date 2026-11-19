@@ -1725,6 +1725,48 @@ if(window.lamsetBusinessAlert)window.lamsetBusinessAlert('تحديث حالة ط
 renderAll();
 }catch(err){db=before;save();console.error(err);alert('تعذر تغيير الحالة؛ تم التراجع عن جميع التغييرات.')}
 }
+function closeOrderShipmentModal(){
+ const modal=$('lfShipmentModal');if(modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
+ document.body.classList.remove('lf-modal-open');window.lfShipmentTargetId=null;
+}
+function openOrderShipmentModal(orderId){
+ const order=(db.orders||[]).find(x=>String(x.id)===String(orderId));if(!order)return alert('الطلب غير موجود.');
+ if(lfIsArchivedOrder(order)||lfIsCancelledOrder(order))return alert('لا يمكن تسجيل شحنة لطلب مغلق أو ملغي.');
+ const state=lfOrderShipmentState(order);if(!state.ready)return alert(state.pending?'لا توجد كمية جاهزة للشحن حالياً؛ المتبقي للتصنيع '+state.pending+' قطعة.':'لا توجد كمية جاهزة غير مشحونة لهذا الطلب.');
+ const host=$('lfShipmentLines'),modal=$('lfShipmentModal');if(!host||!modal)return alert('نافذة تسجيل الشحنة غير متاحة.');
+ window.lfShipmentTargetId=order.id;
+ $('lfShipmentSummary').textContent='الطلب '+lfOrderNumber(order)+' · تم شحن '+state.shipped+' من '+state.total+' قطعة · جاهز للشحن الآن '+state.ready+' قطعة';
+ host.innerHTML=state.lines.map((line,index)=>'<div class="field" style="margin:10px 0;padding:10px;border:1px solid var(--line,#ddd);border-radius:12px"><label for="lfShipmentQty'+index+'">'+esc(line.productName)+' · جاهز '+line.available+' قطعة · شحن سابق '+line.shipped+'</label><input id="lfShipmentQty'+index+'" type="number" inputmode="numeric" min="0" max="'+line.available+'" step="1" value="'+line.available+'" data-lf-shipment-line="'+index+'" style="width:100%;min-height:42px"></div>').join('');
+ modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('lf-modal-open');
+}
+async function confirmOrderShipment(){
+ const orderId=window.lfShipmentTargetId;if(orderId===null||orderId===undefined)return closeOrderShipmentModal();
+ const order=(db.orders||[]).find(x=>String(x.id)===String(orderId));if(!order)return alert('الطلب غير موجود.');
+ const state=lfOrderShipmentState(order),inputs=[...document.querySelectorAll('#lfShipmentLines [data-lf-shipment-line]')],selected=[];
+ for(const input of inputs){const index=Number(input.dataset.lfShipmentLine),line=state.lines[index],qty=Number(input.value);if(!line||!Number.isSafeInteger(qty)||qty<0||qty>line.available)return alert('راجع كمية الشحن للصنف '+(line?.productName||'')+'؛ يجب أن تكون عدداً صحيحاً لا يتجاوز الكمية الجاهزة.');if(qty)selected.push({...line,qty})}
+ const totalUnits=selected.reduce((sum,line)=>sum+line.qty,0);if(!totalUnits)return alert('أدخل كمية واحدة على الأقل لتسجيل الشحنة.');
+ const summary=selected.map(line=>line.productName+': '+line.qty+' قطعة').join('\n');
+ if(!confirm('تأكيد تسجيل الشحنة للطلب '+lfOrderNumber(order)+'؟\n'+summary+'\nإجمالي الشحنة: '+totalUnits+' قطعة'))return;
+ const before=lfClone(db),shipmentAt=new Date().toISOString(),shipmentId=id(),shipmentNo=lfNextSequenceNumber((db.orders||[]).flatMap(x=>x.shipments||[]),'shipmentNumber','SH');
+ try{
+  const live=(db.orders||[]).find(x=>String(x.id)===String(orderId));if(!live)throw new Error('الطلب لم يعد موجوداً.');
+  const liveState=lfOrderShipmentState(live),byProduct=new Map();
+  selected.forEach(line=>{const current=liveState.lines[line.itemIndex===null?0:line.itemIndex];if(!current||String(current.productId)!==String(line.productId)||current.available<line.qty)throw new Error('تغيرت الكمية الجاهزة للصنف '+line.productName+'؛ أعد فتح نافذة الشحن.');byProduct.set(line.productId,(byProduct.get(line.productId)||0)+line.qty)});
+  for(const [productId,qty] of byProduct){const product=(db.products||[]).find(x=>String(x.id)===String(productId));if(!product)throw new Error('المنتج المرتبط بالشحنة غير موجود.');if((Number(product.reservedStock)||0)<qty)throw new Error('المحجوز من المنتج '+(product.name||'')+' أقل من كمية الشحن المطلوبة.')}
+  if(!Array.isArray(db.stockMovements))db.stockMovements=[];
+  for(const [productId,qty] of byProduct){const product=db.products.find(x=>String(x.id)===String(productId)),stock=Math.max(0,Number(product.stock)||0);product.reservedStock=Math.max(0,(Number(product.reservedStock)||0)-qty);db.stockMovements.push({id:id(),productId,date:shipmentAt,before:stock,after:stock,delta:0,reservedDelta:-qty,reason:'صرف شحنة '+shipmentNo+' للطلب '+lfOrderNumber(live),orderId:live.id,orderNumber:lfOrderNumber(live),shipmentId,shipmentNumber:shipmentNo,movementType:'order_ship_partial',source:'order'})}
+  live.shipments=Array.isArray(live.shipments)?live.shipments:[];
+  live.shipments.push({id:shipmentId,shipmentNumber:shipmentNo,date:shipmentAt,totalUnits,lines:selected.map(line=>({itemIndex:line.itemIndex,productId:line.productId,productName:line.productName,qty:line.qty})),source:'manual_shipment'});
+  live.stockIssuedAt=live.stockIssuedAt||shipmentAt;live.shippedAt=live.shippedAt||shipmentAt;live.stockIssuedUnits=(Number(live.stockIssuedUnits)||0)+totalUnits;
+  const afterState=lfOrderShipmentState(live),previous=live.status||'جديد';
+  if(afterState.complete&&previous!=='تم تسليمه لشركة الشحن'){live.status='تم تسليمه لشركة الشحن';if(!Array.isArray(live.statusHistory))live.statusHistory=[];live.statusHistory.push({status:live.status,previousStatus:previous,date:shipmentAt,reason:'اكتملت شحن جميع كميات الطلب'});if(live.statusHistory.length>100)live.statusHistory=live.statusHistory.slice(-100)}
+  lfRecordActivity('تسجيل شحنة',shipmentNo,'الطلب '+lfOrderNumber(live)+' · '+totalUnits+' قطعة');
+  if(!save())throw new Error('تعذر حفظ الشحنة؛ تم التراجع عن حركة المخزون وسجل الشحنة.');
+  closeOrderShipmentModal();renderAll();window.LamsetUI?.toast('تم تسجيل الشحنة '+shipmentNo+' بنجاح.','success');
+ }catch(error){db=before;save();console.error('Order shipment failed',error);alert('لم يتم تسجيل الشحنة: '+(error.message||'خطأ غير معروف'))}
+}
+window.openOrderShipmentModal=openOrderShipmentModal;
+window.confirmOrderShipment=confirmOrderShipment;
 async function correctDeliveryConfirmation(orderId){
  const order=(db.orders||[]).find(x=>String(x.id)===String(orderId));
  if(!order||!lfIsDeliveredOrder(order)||!order.deliveredAt)return alert('لا يوجد تأكيد تسليم قابل للتصحيح لهذا الطلب.');
