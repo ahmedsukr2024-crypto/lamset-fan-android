@@ -1166,7 +1166,7 @@ function lfOrderShipmentState(o){
 }
 function lfOrderShipmentHistoryHtml(o){
  const shipments=Array.isArray(o?.shipments)?o.shipments:[];
- if(!shipments.length)return lfOrderHasShipped(o)?'<div class="lf-order-status-history"><b>سجل شحن قديم:</b> '+Math.min(Number(o.stockIssuedUnits)||0,orderStockLines(o).reduce((n,line)=>n+line.units,0))+' قطعة · '+esc(o.shippedAt||o.stockIssuedAt||'تاريخ غير مسجل')+'</div>':'';
+ if(!shipments.length)return lfOrderHasShipped(o)?'<div class="lf-order-status-history"><b>سجل شحن قديم:</b> '+lfOrderShipmentState(o).shipped+' قطعة · '+esc(o.shippedAt||o.stockIssuedAt||'تاريخ غير مسجل')+'</div>':'';
  return '<div class="lf-order-status-history"><b>سجل الشحنات</b>'+shipments.map(shipment=>'<div><b>'+esc(shipment.shipmentNumber||'شحنة')+'</b> · '+new Date(shipment.date||0).toLocaleString('ar-EG')+' · '+Math.max(0,Number(shipment.totalUnits)||0)+' قطعة'+(Array.isArray(shipment.lines)?'<small style="display:block">'+shipment.lines.map(line=>esc(line.productName||'منتج')+': '+Math.max(0,Number(line.qty)||0)+' قطعة').join('، ')+'</small>':'')+'</div>').join('')+'</div>';
 }
 function lfOrderHasShipped(o){return !!(o?.shipments?.length||o?.stockIssuedAt||o?.stockIssueMigrated||o?.shippedAt||['تم تسليمه لشركة الشحن','تم التسليم','تم التسليم للعميل'].includes(String(o?.status||'')))}
@@ -1537,7 +1537,7 @@ function orderWorkflowSnapshot(o){
   prepared+=Math.min(units,deducted+fulfilled);
   pending+=Math.max(0,Number(item.productionPendingUnits)||0);
  });
- const shipping=lfOrderShipmentState(o),status=lfOrderStatusKey(o),closed=lfIsArchivedOrder(o),cancelled=lfIsCancelledOrder(o),delivered=lfIsDeliveredOrder(o),shipped=status==='تم تسليمه لشركة الشحن'||shipping.complete,partiallyShipped=shipping.partial,ready=status==='جاهز للشحن';
+ const shipping=lfOrderShipmentState(o),status=lfOrderStatusKey(o),closed=lfIsArchivedOrder(o),cancelled=lfIsCancelledOrder(o),delivered=lfIsDeliveredOrder(o),shipped=shipping.complete,partiallyShipped=shipping.partial,ready=status==='جاهز للشحن';
  const percent=total?Math.min(100,Math.round(prepared/total*100)):0;
  let stage=cancelled?'ملغي':delivered?'تم التسليم':closed?'مغلق':shipped?'مع شركة الشحن':partiallyShipped?'تم شحن جزء من الطلب':pending>0?'بانتظار التصنيع':ready?'جاهز للشحن':'جاهز للتجهيز';
  return{total,prepared,pending,percent,stage,closed,cancelled,delivered,shipped,partiallyShipped,shippedUnits:shipping.shipped,remainingToShip:shipping.remaining,readyToShip:shipping.ready,open:!closed};
@@ -3234,7 +3234,7 @@ window.cancelProductionBatch=async function(batchId){const batch=(db.productions
   const order=(db.orders||[]).find(x=>x.id===line.orderId);
   if(!order)return alert('لا يمكن الإلغاء: أحد الطلبات المرتبطة بالدفعة غير موجود.');
   if(order.status==='ملغي'||order.stockReturnedOnCancel===true)return alert('لا يمكن إلغاء الدفعة بأمان: الطلب المرتبط '+String(order.id).slice(-8)+' أُلغي وأُعيدت القطع المنتجة إلى المخزون العام. لا يمكن تحديد ما إذا كانت هذه القطع ما زالت موجودة أم صُرفت لاحقًا؛ احتفظ بالدفعة وسجلها للمراجعة.');
-  if(/تسليم|شحن|delivered/i.test(String(order.status||'')))return alert('لا يمكن إلغاء الدفعة بأمان بعد بدء التسليم أو الشحن للطلب '+String(order.id).slice(-8)+'.');
+  if(lfOrderHasShipped(order)||/تسليم|شحن|delivered/i.test(String(order.status||'')))return alert('لا يمكن إلغاء الدفعة بأمان بعد بدء أي شحنة أو تسليم للطلب '+String(order.id).slice(-8)+'.');
   const item=line.itemIndex===null?order:order.items?.[line.itemIndex];
   if(!item)return alert('لا يمكن الإلغاء: بند الطلب المرتبط بالدفعة غير موجود.');
   const activeQty=Math.max(0,Number(line.qty||0)-Number(line.releasedToStockOnOrderEdit||0));if(Number(item.productionFulfilledUnits||0)<activeQty)return alert('بيانات تخصيص الطلب غير متطابقة؛ أوقفنا الإلغاء لحماية رصيد الطلب.');
