@@ -30,6 +30,7 @@ if(edit){
  (async()=>{
   await sandbox.api.editExpense('expense-1');
   const item=sandbox.db.expenses[0];
+  console.log('Expense edit test state:',JSON.stringify({item,removed:sandbox.removed,applied:sandbox.applied,alerts}));
   check(item.amount===125&&item.date==='2026-11-10'&&item.category==='تغليف'&&item.method==='تحويل بنكي'&&item.notes==='ملاحظة جديدة','edit updates all supported expense fields');
   check(item.audit?.length===1&&item.audit[0].oldValues.amount===100&&item.audit[0].newValues.amount===125&&item.audit[0].reason==='تصحيح بيانات','edit stores complete before/after values and mandatory reason');
   check(sandbox.removed.length===1&&sandbox.applied.length===0,'cash-to-bank edit removes the previous cash link exactly once');
