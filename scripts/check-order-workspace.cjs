@@ -43,6 +43,10 @@ vm.runInNewContext(whats+'\nthis.send=lfOpenOrderWhatsAppConfirmation;',sandbox)
 const result=sandbox.send({phone:'01012345678',customer:'عميل الاختبار',area:'القاهرة - مدينة نصر',items:[{productName:'منتج أول',qty:2,unitType:'piece',price:25},{productName:'منتج ثان',qty:1,unitType:'carton',price:100}]});
 assert.equal(result.opened,true,'order WhatsApp confirmation opens successfully');
 const message=decodeURIComponent(captured.href.split('?text=')[1]||'');
-for(const value of ['عميل الاختبار','01012345678','القاهرة - مدينة نصر','LF-000123','منتج أول','2 قطعة','25 جنيه','50 جنيه','منتج ثان','1 كرتونة','100 جنيه','150 جنيه','50 جنيه','100 جنيه'])assert.ok(message.includes(value),'order WhatsApp message missing '+value);
+for(const value of ['عميل الاختبار','01012345678','القاهرة - مدينة نصر','LF-000123','منتج أول','2 قطعة ×','منتج ثان','1 كرتونة ×','إجمالي الطلب:','المبلغ المدفوع:','المبلغ المتبقي:'])assert.ok(message.includes(value),'order WhatsApp message missing '+value);
+assert.match(message,/2 قطعة × [٠-٩0-9,٬.]+ جنيه = [٠-٩0-9,٬.]+ جنيه/,'first order line must include unit price and line total');
+assert.match(message,/1 كرتونة × [٠-٩0-9,٬.]+ جنيه = [٠-٩0-9,٬.]+ جنيه/,'second order line must include unit price and line total');
+assert.equal((message.match(/[٠-٩0-9,٬.]+ جنيه/g)||[]).length>=5,true,'order summary must include gross, paid, and remaining amounts');
 assert.ok(!message.includes('مرتجع')&&!message.includes('استبدال'),'customer WhatsApp order message must not mention returns or exchanges');
-\nconsole.log('Order workspace, archive, invoice, catalog, and WhatsApp checks passed.');
+
+console.log('Order workspace, archive, invoice, catalog, and WhatsApp checks passed.');
