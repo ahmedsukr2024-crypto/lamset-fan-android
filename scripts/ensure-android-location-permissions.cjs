@@ -16,22 +16,21 @@ const requiredPermissions = [
   'android.permission.ACCESS_COARSE_LOCATION'
 ];
 
-if (!/<manifest\b/.test(xml) || !/<application\b/.test(xml)) {
+if (!/<manifest\\b/.test(xml) || !/<application\\b/.test(xml)) {
   console.error('تعذر التحقق من بنية AndroidManifest.xml؛ لم يتم تعديل الملف.');
   process.exit(1);
 }
 
-const missing = requiredPermissions.filter(permission => {
-  const escaped = permission.replaceAll('.', '\\.');
-  const declaration = new RegExp('<uses-permission\\b[^>]*android:name=["\\']' + escaped + '["\\'][^>]*/?>');
-  return !declaration.test(xml);
-});
+const missing = requiredPermissions.filter(permission =>
+  !xml.includes('android:name="' + permission + '"') &&
+  !xml.includes("android:name='" + permission + "'")
+);
 
 if (missing.length) {
   const declarations = missing.map(permission =>
     '    <uses-permission android:name="' + permission + '" />'
-  ).join('\n');
-  xml = xml.replace(/(<application\b)/, declarations + '\n\n    $1');
+  ).join('\\n');
+  xml = xml.replace(/(<application\\b)/, declarations + '\\n\\n    $1');
   fs.writeFileSync(manifestPath, xml, 'utf8');
   console.log('تمت إضافة صلاحيات الموقع: ' + missing.join(', '));
 } else {
