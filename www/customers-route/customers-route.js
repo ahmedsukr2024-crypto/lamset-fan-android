@@ -62,12 +62,11 @@
   const existing=plan.stops.find(s=>stopKey(s.taskType,s.sourceId,s.customerId)===stopKey(type,source,customerId));
   if(existing){if(existing.doneAt)return window.LamsetUI?.toast('المهمة منجزة بالفعل في جولة اليوم.','info');return window.LamsetUI?.toast('المهمة موجودة بالفعل في جولة اليوم.','info')}
   plan.stops.push({id:typeof id==='function'?id():'route-stop-'+Date.now(),customerId:String(customerId),taskType:type,sourceId:String(source),ownerId:OWNER,sequence:plan.stops.length+1,createdAt:new Date().toISOString(),doneAt:null});
-  customer.in_todays_route=true;if(!saveDb(before,'تمت إضافة المهمة إلى جولة اليوم.'))return false;render();return true;
+  if(!saveDb(before,'تمت إضافة المهمة إلى جولة اليوم.'))return false;render();return true;
  }
  function routeRemoveStop(stopId){
   const before=clone(db),plan=getPlan(false);if(!plan)return;
   plan.stops=plan.stops.filter(s=>String(s.id)!==String(stopId));
-  allCustomers().forEach(c=>{c.in_todays_route=plan.stops.some(s=>String(s.customerId)===String(c.id))});
   if(saveDb(before,'تمت إزالة المهمة من الجولة.'))render();
  }
  function routeMarkDone(stopId){
@@ -77,7 +76,6 @@
   if(stop.taskType==='consignment'||stop.taskType==='visit')stop.doneAt=new Date().toISOString();
   stop.completionSource='field-visit';stop.updatedAt=new Date().toISOString();
   (db.customerRouteVisits||(db.customerRouteVisits=[])).push({id:typeof id==='function'?id():'visit-'+Date.now(),customerId:stop.customerId,routePlanId:plan.id,stopId:stop.id,taskType:stop.taskType,date:stop.doneAt,ownerId:OWNER});
-  const customer=customerById(stop.customerId);if(customer)customer.visited_today=today();
   if(saveDb(before,'تم تسجيل إنجاز الزيارة.'))render();
  }
  function taskAction(item){
@@ -194,7 +192,7 @@
   const completed=plan.stops.filter(s=>s.doneAt);plan.stops=[...completed,...ordered,...remaining];plan.stops.forEach((s,i)=>s.sequence=i+1);
   if(saveDb(before,'تم ترتيب محطات الجولة من الأقرب إلى الأبعد حسب المسافة الجغرافية.'))render();
  }
- function clearDone(){const before=clone(db),plan=getPlan(false);if(!plan)return;plan.stops=plan.stops.filter(s=>!s.doneAt);allCustomers().forEach(c=>{c.in_todays_route=plan.stops.some(s=>String(s.customerId)===String(c.id))});if(saveDb(before,'تم إخفاء المهام المنجزة من جولة اليوم.'))render()}
+ function clearDone(){const before=clone(db),plan=getPlan(false);if(!plan)return;plan.stops=plan.stops.filter(s=>!s.doneAt);if(saveDb(before,'تم إخفاء المهام المنجزة من جولة اليوم.'))render()}
  function openStop(stopId){const stop=routeStops().find(s=>String(s.id)===String(stopId));if(!stop)return;const customer=customerById(stop.customerId);if(!customer)return;if(stop.taskType==='delivery'||stop.taskType==='collection'){const item=taskCandidates().find(x=>x.taskType===stop.taskType&&String(x.sourceId)===String(stop.sourceId));if(item){taskAction(item);return}}if(stop.taskType==='consignment'){openConsignment(stop.customerId);return}openDetail(stop.customerId)}
  function taskByKey(key){return taskCandidates().find(x=>x.key===key)}
  function task(key){const item=taskByKey(key);if(item)taskAction(item)}
