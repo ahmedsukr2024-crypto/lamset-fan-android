@@ -21,6 +21,8 @@ assert.match(route,/if\(flow\.shipped&&!flow\.delivered&&typeof applyOrderStatus
 assert.match(route,/consignmentDue\(customer\)/);
 assert.match(route,/function startCampaign\(\)/);
 assert.match(route,/function campaignNext\(\)/);
+assert.match(route,/const whatsappPhone=value=>/);
+assert.match(route,/20'\+digits\.slice\(1\)/);
 assert.match(route,/whatsapp\(queue\[0\]\)/);
 assert.match(route,/كل رسالة تفتح منفردة/);
 assert.match(route,/if\(!order\|\|order\.status==='ملغي'\|\|typeof orderWorkflowSnapshot!=='function'\)return/);
