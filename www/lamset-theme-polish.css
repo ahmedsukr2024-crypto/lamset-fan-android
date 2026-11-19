@@ -107,3 +107,20 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #productList .product-tile[draggable="true"]{cursor:grab;touch-action:pan-y}#productList .product-tile[draggable="true"]:active{cursor:grabbing}#productList .product-tile.lf-product-dragging{opacity:.45;transform:scale(.985)}#productList .product-tile.lf-product-drop-target{outline:2px dashed var(--accent,#0866FF);outline-offset:3px}
 
 #productList .lf-product-drag-handle{display:none}#productList.lf-manual-product-order .lf-product-drag-handle{display:block;padding:4px 8px;border-radius:8px;background:var(--surface-2,#F0F2F5);color:var(--muted,#65676B);font-size:12px;font-weight:700;text-align:center;cursor:grab;user-select:none}
+
+/* Product activation status — compact, readable in light and dark themes */
+#productList .lf-product-name-line{min-width:0}
+#productList .lf-product-status-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;min-height:22px;padding:2px 8px;border:1px solid transparent;
+  border-radius:999px;font-size:11px;line-height:1.4;font-weight:800;white-space:nowrap;
+}
+#productList .lf-product-status-badge.is-active{
+  color:#187A3D;background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.28);
+}
+#productList .lf-product-status-badge.is-inactive{
+  color:#B42318;background:rgba(220,38,38,.10);border-color:rgba(220,38,38,.26);
+}
+html[data-theme="dark"] #productList .lf-product-status-badge.is-active{color:#86EFAC;background:rgba(34,197,94,.16);border-color:rgba(134,239,172,.28)}
+html[data-theme="dark"] #productList .lf-product-status-badge.is-inactive{color:#FDA29B;background:rgba(220,38,38,.16);border-color:rgba(253,162,155,.28)}
+
