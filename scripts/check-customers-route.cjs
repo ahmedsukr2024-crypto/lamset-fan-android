@@ -71,3 +71,6 @@ assert.match(route,/lamsetLocationControlsMarkup\(c,'lfCr'\)/,'Route customer fo
 assert.match(route,/GPS أو رابط Google Maps أو البحث عن المكان/,'Map empty-state must explain all supported location methods.');
 
 console.log('Customer route static checks passed.');
+
+assert.match(index,/photon\\.komoot\\.io/,'Place search must query a second geocoding directory when the first has no result.');
+assert.match(index,/r\\.jina\\.ai/,'Short Google Maps links must attempt a server-side reader fallback when browser redirects are blocked.');
