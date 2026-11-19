@@ -42,5 +42,26 @@ assert(receipt.includes('payment.receiptNumber||payment.id'), 'printed receipt u
 assert(receipt.includes("payment.status==='cancelled'") && receipt.includes('payment.cancelReason'), 'cancelled receipt remains printable with a clear cancellation stamp and reason');
 assert(receipt.includes('esc(amountWords)'), 'amount-in-words output is HTML escaped');
 assert(!receipt.includes('تكلفة') && !receipt.includes('ربح') && !receipt.includes('مرتجع'), 'receipt does not expose internal costs, profits, or returns');
+
+const serialStart=html.indexOf('function lfNextPaymentReceiptNumber');
+const serialEnd=html.indexOf('function renderCollections',serialStart);
+const serialSource=serialStart>=0&&serialEnd>serialStart?html.slice(serialStart,serialEnd):'';
+assert(serialSource.includes("lfNextSequenceNumber(db.payments||[],'receiptNumber','RCPT')"),'receipt serials use an independent RCPT sequence');
+assert(serialSource.includes("seen.has(number)"),'receipt migration detects duplicate serials');
+assert(serialSource.includes("payment.receiptNumber=lfNextPaymentReceiptNumber()"),'missing or duplicate legacy serials are repaired');
+const paymentStart=html.indexOf('async function recordPayment()');
+const paymentEnd=html.indexOf('async function cancelPayment',paymentStart);
+const paymentSource=paymentStart>=0&&paymentEnd>paymentStart?html.slice(paymentStart,paymentEnd):'';
+assert(paymentSource.includes('receiptNumber:lfNextPaymentReceiptNumber()'),'each new collection receives its own serial');
+assert(paymentSource.includes('window.__lfPaymentSaving'),'duplicate payment submission is guarded');
+assert(paymentSource.includes("payment.status='cancelled'")===false,'new collection action does not silently cancel existing receipts');
+const cancelStart=html.indexOf('async function cancelPayment');
+const cancelEnd=html.indexOf('function paymentReceiptAmountWords',cancelStart);
+const cancelSource=cancelStart>=0&&cancelEnd>cancelStart?html.slice(cancelStart,cancelEnd):'';
+assert(cancelSource.includes("payment.status='cancelled'"),'cancellation marks the existing receipt instead of deleting it');
+assert(cancelSource.includes('payment.receiptNumber||'), 'cancellation confirmation retains the original receipt number');
+assert(html.includes('[p.receiptNumber,p.id,customer,invoice,o?.orderNumber,p.amount,p.method,p.note,p.cancelReason]'),'payment history search includes the receipt serial');
+assert(html.includes('previewPaymentReceipt('+JSON.stringify(p.id)+')')||html.includes('previewPaymentReceipt('),'receipt history offers viewing and reprinting');
+
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Payment receipt design checks passed.');
