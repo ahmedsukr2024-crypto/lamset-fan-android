@@ -19,4 +19,14 @@ assert.match(html,/if\(!save\(\)\)\{db=before/,'failed persistence must roll bac
 assert.match(css,/\.lf-product-drag-handle/,'manual reorder handle styling missing');
 assert.match(css,/\.lf-product-drop-target/,'drop target feedback missing');
 assert.match(css,/\.lf-product-dragging/,'drag state feedback missing');
+
+assert.match(html,/function toggleProductActive\\(pid\\)/,'product activation toggle must exist');
+assert.match(html,/id="productStatusFilter"[\\s\\S]*?value="inactive"/,'product list must expose a filter for inactive products');
+assert.match(html,/statusFilter==='inactive'\\?p\\.active===false/,'inactive filter must show only disabled products');
+assert.match(html,/p\\.active=next/,'activation toggle must update the existing product record');
+assert.match(html,/سيختفي من اختيارات الطلبات الجديدة/,'deactivation confirmation must explain impact on new orders');
+assert.match(html,/الاحتفاظ بكل الطلبات وسجلات التصنيع السابقة/,'deactivation must preserve historical orders and production records');
+assert.match(html,/p\\.active===false\\?'<div class="muted">هذا المنتج موقوف عن الطلبات الجديدة/,'inactive product must not offer a new-order cart action');
+assert.match(html,/function filterOrderProductOptions\\(\\)[\\s\\S]{0,260}p\\.active!==false/,'inactive products must be excluded from new order choices');
+
 console.log('Manual product ordering checks passed.');
