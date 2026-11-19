@@ -634,6 +634,7 @@ html[data-theme="dark"] .lf-treasury-tabs button.active{color:#fff}
 <div class="actions"><button type="button" onclick="lamsetRunButtonAction(this,saveProduct,'جارٍ حفظ المنتج…')">حفظ المنتج</button><button class="ghost" onclick="hideProductForm()">إلغاء</button></div></div>
 <div class="product-toolbar lf-product-toolbar">
 <div class="field"><label for="productSearch">بحث سريع عن منتج</label><input id="productSearch" type="search" placeholder="الاسم أو الكود أو المحتويات..." oninput="renderProducts()"></div>
+<div class="field"><label for="productStatusFilter">حالة المنتج</label><select id="productStatusFilter" onchange="renderProducts()"><option value="active">المنتجات المفعّلة</option><option value="inactive">المنتجات الموقوفة</option><option value="all">كل المنتجات</option></select></div>
 <div class="field"><label for="productCustomerType">قائمة أسعار العميل</label><select id="productCustomerType" onchange="renderProducts()"><option value="distributor">موزع</option><option value="wholesale">تاجر جملة</option><option value="shop">مكتبة / محل</option><option value="retail">مستهلك</option></select></div>
 <div class="field"><label for="productDesignFilter">التصنيف / التصميم</label><select id="productDesignFilter" onchange="renderProducts()"><option value="">كل التصنيفات</option></select></div>
 <div class="field"><label for="productStockFilter">حالة المخزون</label><select id="productStockFilter" onchange="renderProducts()"><option value="all">كل الحالات</option><option value="available">متاح</option><option value="low">منخفض</option><option value="out">نفد</option></select></div>
@@ -928,6 +929,7 @@ let lfProductSaving=false;
 const lfSaveProductCore=saveProduct;
 window.saveProduct=async function(){if(lfProductSaving)return false;lfProductSaving=true;try{return await lfSaveProductCore.apply(this,arguments)}finally{await new Promise(resolve=>setTimeout(resolve,450));lfProductSaving=false}};
 function deleteProduct(pid){let before=JSON.parse(JSON.stringify(db)),p=db.products.find(x=>x.id===pid);if(!p)return;let linked=(db.orders||[]).some(x=>x.productId===pid||(Array.isArray(x.items)&&x.items.some(item=>item.productId===pid)))||(db.productions||[]).some(x=>x.productId===pid)||(db.consignments||[]).some(x=>x.productId===pid);if(linked)return alert('لا يمكن حذف هذا المنتج لارتباطه بطلب أو بند داخل طلب متعدد المنتجات أو سجل إنتاج أو أمانة ؛ احتفظ به في السجل، ويمكن إيقاف استخدامه بدلًا من حذفه.');if(confirm('هل تريد حذف المنتج؟ لا يمكن التراجع عن ذلك.')){db.products=db.products.filter(p=>p.id!==pid);lfRecordActivity('حذف منتج',p.name,'تم حذف المنتج من سجل المنتجات');if(!save()){db=before;return alert('تعذر حفظ حذف المنتج؛ تم الاحتفاظ بالبيانات كما كانت.')}renderAll()}}
+function toggleProductActive(pid){const p=(db.products||[]).find(x=>x.id===pid);if(!p)return;const next=p.active===false;const message=next?'تأكيد إعادة تفعيل المنتج؟ سيظهر مجددًا عند إنشاء الطلبات الجديدة.':'تأكيد إيقاف المنتج؟ سيختفي من اختيارات الطلبات الجديدة، مع الاحتفاظ بكل الطلبات وسجلات التصنيع السابقة.';if(!confirm(message))return;const before=JSON.parse(JSON.stringify(db));p.active=next;if(!save()){db=before;alert('تعذر حفظ حالة المنتج؛ لم يتم اعتماد التغيير.');return}renderAll();window.LamsetUI?.toast(next?'تمت إعادة تفعيل المنتج.':'تم إيقاف المنتج مع الاحتفاظ بسجلاته.','success')}
 function productOptions(id){return '<option value="">اختر المنتج</option>'+db.products.map(p=>`<option value="${p.id}" ${p.id===id?'selected':''}>${esc(p.name)}(${esc(p.code||'بدون كود')})</option>`).join('')}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function renderProducts(){const list=$('productList');if(!list)return;
@@ -936,7 +938,8 @@ async function renderProducts(){const list=$('productList');if(!list)return;
  const design=$('productDesignFilter')?.value||'';
  const stockFilter=$('productStockFilter')?.value||'all';
  const sort=$('productSort')?.value||'name';
- const active=(db.products||[]).filter(p=>p.active!==false);
+ const statusFilter=$('productStatusFilter')?.value||'active';
+ const active=(db.products||[]).filter(p=>statusFilter==='all'||(statusFilter==='inactive'?p.active===false:p.active!==false));
  const designSelect=$('productDesignFilter'),oldDesign=designSelect?.value||'';
  if(designSelect){
   const designs=[...new Set(active.map(p=>String(p.design||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
@@ -974,8 +977,8 @@ async function renderProducts(){const list=$('productList');if(!list)return;
     (suggestedPrice>0?'<div><small>البيع المقترح للقطعة</small><b>'+money(suggestedPrice)+' ج.م</b></div><div class="lf-product-profit '+(merchantProfit<0?'is-loss':'')+'"><small>'+(merchantProfit<0?'فرق سعر سالب للتاجر':'ربح التاجر / قطعة')+'</small><b>'+money(merchantProfit)+' ج.م</b><small>للكرتونة: '+money(merchantProfit*units)+' ج.م</small></div>':'<div class="lf-product-no-suggest"><small>سعر البيع المقترح</small><b>غير محدد</b></div>')+
    '</div>'+
    '<div class="lf-product-stock-pack"><span>المخزون بالكرتونة: <b>'+stockCartons+'</b></span><span>القطع المفردة: <b>'+looseUnits+'</b></span></div>'+
-   '<div class="lf-product-quick-add"><label>الكمية <input type="number" min="1" step="1" inputmode="numeric" value="1" data-cart-qty></label><label>الوحدة <select data-cart-unit><option value="piece">قطعة</option><option value="carton">كرتونة</option></select></label><button type="button" onclick="addProductToDraftCart('+esc(JSON.stringify(p.id))+','+index+')">＋ أضف للسلة</button></div>'+
-   '<div class="product-tile-actions"><button class="ghost" type="button" onclick="openProductDetail('+esc(JSON.stringify(p.id))+')">التفاصيل</button><button class="ghost" type="button" onclick="showProductForm(db.products.find(x=>x.id==='+esc(JSON.stringify(p.id))+'))">تعديل</button></div>'+
+   (p.active===false?'<div class="muted">هذا المنتج موقوف عن الطلبات الجديدة.</div>':'<div class="lf-product-quick-add"><label>الكمية <input type="number" min="1" step="1" inputmode="numeric" value="1" data-cart-qty></label><label>الوحدة <select data-cart-unit><option value="piece">قطعة</option><option value="carton">كرتونة</option></select></label><button type="button" onclick="addProductToDraftCart('+esc(JSON.stringify(p.id))+','+index+')">＋ أضف للسلة</button></div>')+
+   '<div class="product-tile-actions"><button class="ghost" type="button" onclick="openProductDetail('+esc(JSON.stringify(p.id))+')">التفاصيل</button><button class="ghost" type="button" onclick="showProductForm(db.products.find(x=>x.id==='+esc(JSON.stringify(p.id))+'))">تعديل</button><button class="'+(p.active===false?'':'danger ')+'" type="button" onclick="toggleProductActive('+esc(JSON.stringify(p.id))+')">'+(p.active===false?'إعادة تفعيل':'إيقاف المنتج')+'</button></div>'+
   '</article>';
  }));
  list.innerHTML=rows.join('');
