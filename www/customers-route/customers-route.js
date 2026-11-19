@@ -36,10 +36,10 @@
  function taskCandidates(){
   const items=[];
   allOrders().forEach(order=>{
-   if(!order||order.status==='ملغي'||order.pausedAt||typeof orderWorkflowSnapshot!=='function')return;
-   const flow=orderWorkflowSnapshot(order);if(flow.delivered||flow.cancelled||flow.closed)return;
+   if(!order||order.status==='ملغي'||typeof orderWorkflowSnapshot!=='function')return;
    const customer=orderCustomer(order);if(!customer)return;
-   if(flow.readyToShip>0||(flow.shipped&&!flow.delivered))items.push({key:stopKey('delivery',order.id,customer.id),taskType:'delivery',sourceId:order.id,customerId:customer.id,customer,order,amount:0,subtitle:'طلب '+(typeof lfOrderNumber==='function'?lfOrderNumber(order):order.id)+' · جاهز '+flow.readyToShip+' قطعة'+(flow.pending?' · ناقص تصنيع '+flow.pending:'')});
+   const flow=orderWorkflowSnapshot(order);
+   if(!order.pausedAt&&!flow.delivered&&!flow.cancelled&&!flow.closed&&(flow.readyToShip>0||(flow.shipped&&!flow.delivered)))items.push({key:stopKey('delivery',order.id,customer.id),taskType:'delivery',sourceId:order.id,customerId:customer.id,customer,order,amount:0,subtitle:'طلب '+(typeof lfOrderNumber==='function'?lfOrderNumber(order):order.id)+' · جاهز '+flow.readyToShip+' قطعة'+(flow.pending?' · ناقص تصنيع '+flow.pending:'')});
    const due=typeof orderDue==='function'?orderDue(order):0;
    if(due>0)items.push({key:stopKey('collection',order.id,customer.id),taskType:'collection',sourceId:order.id,customerId:customer.id,customer,order,amount:due,subtitle:'فاتورة '+(typeof lfInvoiceReference==='function'?lfInvoiceReference(order):order.id)+' · مستحق '+moneyValue(due)});
   });
@@ -51,7 +51,7 @@
   const plan=getPlan(false);if(!plan)return false;let changed=false;
   plan.stops.forEach(stop=>{if(stop.doneAt)return;
    if(stop.taskType==='delivery'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(order&&typeof lfIsDeliveredOrder==='function'&&lfIsDeliveredOrder(order)){stop.doneAt=order.deliveredAt||new Date().toISOString();stop.completionSource='order';changed=true}}
-   if(stop.taskType==='collection'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(order&&typeof orderDue==='function'&&orderDue(order)<=0){stop.doneAt=new Date().toISOString();stop.completionSource='settled';changed=true}}
+   if(stop.taskType==='collection'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(order&&order.status!=='ملغي'&&typeof orderDue==='function'&&orderDue(order)<=0){stop.doneAt=new Date().toISOString();stop.completionSource='settled';changed=true}}
   });return changed;
  }
  function routeStops(){const plan=getPlan(false);return plan?plan.stops.slice().sort((a,b)=>Number(a.sequence||0)-Number(b.sequence||0)||new Date(a.createdAt)-new Date(b.createdAt)):[]}
@@ -73,7 +73,7 @@
  function routeMarkDone(stopId){
   const before=clone(db),plan=getPlan(false),stop=plan?.stops.find(s=>String(s.id)===String(stopId));if(!stop)return;
   if(stop.taskType==='delivery'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(!order)return;if(typeof lfIsDeliveredOrder==='function'&&lfIsDeliveredOrder(order)){stop.doneAt=order.deliveredAt||new Date().toISOString()}else return window.LamsetUI?.toast('أكمل تأكيد التسليم من المهمة أولاً.','warning')}
-  if(stop.taskType==='collection'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(order&&typeof orderDue==='function'&&orderDue(order)>0)return window.LamsetUI?.toast('ما زال على الفاتورة مبلغ مستحق؛ سجّل التحصيل أولاً.','warning');stop.doneAt=new Date().toISOString()}
+  if(stop.taskType==='collection'){const order=allOrders().find(x=>String(x.id)===String(stop.sourceId));if(!order||order.status==='ملغي')return window.LamsetUI?.toast('الفاتورة غير متاحة للتحصيل؛ راجع سجل الطلب أولاً.','warning');if(typeof orderDue==='function'&&orderDue(order)>0)return window.LamsetUI?.toast('ما زال على الفاتورة مبلغ مستحق؛ سجّل التحصيل أولاً.','warning');stop.doneAt=new Date().toISOString()}
   if(stop.taskType==='consignment'||stop.taskType==='visit')stop.doneAt=new Date().toISOString();
   stop.completionSource='field-visit';stop.updatedAt=new Date().toISOString();
   (db.customerRouteVisits||(db.customerRouteVisits=[])).push({id:typeof id==='function'?id():'visit-'+Date.now(),customerId:stop.customerId,routePlanId:plan.id,stopId:stop.id,taskType:stop.taskType,date:stop.doneAt,ownerId:OWNER});
