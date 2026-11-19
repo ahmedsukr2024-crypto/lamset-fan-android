@@ -112,7 +112,7 @@ function lamsetShowSystemMessage(message,kind,technical){
  copyButton.textContent='نسخ تفاصيل الخطأ';copyButton.classList.remove('copied');
  modal.dataset.copyText=[text,details].filter(Boolean).join('\n\n');
  document.body?.classList.add('lf-modal-open');
- modal.querySelector('#lf-system-message-close').focus({preventScroll:true});
+ const closeButton=modal.querySelector('#lf-system-message-x');if(closeButton&&typeof closeButton.focus==='function')closeButton.focus({preventScroll:true});
 }
 window.alert=function(message){
  const text=String(message??'');
