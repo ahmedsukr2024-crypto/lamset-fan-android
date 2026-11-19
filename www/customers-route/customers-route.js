@@ -133,7 +133,7 @@
   const bounds=withCoords.map(c=>{const p=coordinates(c);return[p.lat,p.lng]});if(state.location)bounds.push([state.location.lat,state.location.lng]);if(bounds.length)state.map.fitBounds(bounds,{padding:[24,24],maxZoom:14});
  }
  function renderRadar(){
-  const host=$('lfCrRadar');if(!host)return;
+  const host=$('lfCrRadarPanel');if(!host)return;
   const candidates=allCustomers().filter(c=>normalizePhone(c.phone));
   const choices=candidates.map(c=>'<label class="lf-cr-campaign-choice"><input type="checkbox" '+(state.radarSelected.includes(String(c.id))?'checked':'')+' onchange="LFRoute.toggleRadarCustomer('+escape(JSON.stringify(String(c.id)))+',this.checked)"><span><b>'+escape(c.name)+'</b><small>'+escape(c.phone||'')+' · '+escape(c.area||'منطقة غير محددة')+'</small></span></label>').join('');
   const campaign=state.campaignQueue.length?'<div class="lf-cr-radar-note"><b>الحملة الحالية:</b> '+(state.campaignIndex+1)+' من '+state.campaignQueue.length+' · '+escape(customerById(state.campaignQueue[state.campaignIndex])?.name||'')+'<div class="lf-cr-radar-buttons"><button class="primary" onclick="LFRoute.campaignNext()">'+(state.campaignIndex+1>=state.campaignQueue.length?'إنهاء الحملة':'فتح العميل التالي في واتساب')+'</button><button class="ghost" onclick="LFRoute.stopCampaign()">إيقاف الحملة</button></div><small>كل رسالة تفتح منفردة؛ راجعها واضغط إرسال بنفسك من واتساب.</small></div>':'';
