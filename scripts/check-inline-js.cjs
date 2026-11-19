@@ -67,5 +67,9 @@ if (html.includes("querySelector('#lf-system-message-close')")) {
   console.error('System message modal references a missing close button id.');
   process.exit(1);
 }
+if (!html.includes("typeof file.text==='function'") || !html.includes('new FileReader()') || !html.includes("replace(/^\\uFEFF/,'')")) {
+  console.error('Backup restore must support FileReader fallback and strip a UTF-8 BOM before JSON parsing.');
+  process.exit(1);
+}
 if (failed) process.exit(1);
 console.log('Validated ' + checked.length + ' inline JavaScript block(s) and cross-script declarations in www/index.html.');
