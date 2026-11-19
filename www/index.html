@@ -1693,7 +1693,7 @@ let previous=o.status;if(s===previous)return;
 if(['تم التسليم','تم التسليم للعميل'].includes(previous)||o.deliveredAt)return alert('لا يمكن تعديل حالة طلب مكتمل؛ تم الاحتفاظ بسجل التسليم والحسابات كما هو.');
 const wasShipped=lfOrderHasShipped(o);
 if(wasShipped&&!['تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(s))return alert('بدأ شحن الطلب بالفعل؛ لا يمكن إرجاعه إلى مرحلة سابقة أو إلغاؤه. استكمل الشحنات المتبقية ثم أكد التسليم.');
-if(s==='تم تسليمه لشركة الشحن'&&(o.shipments||[]).length&&!lfOrderShipmentState(o).complete)return alert('لا يمكن اعتماد اكتمال الشحن قبل تسجيل جميع الكميات. المتبقي '+lfOrderShipmentState(o).remaining+' قطعة.');
+if(s==='تم تسليمه لشركة الشحن'&&wasShipped&&!lfOrderShipmentState(o).complete)return alert('لا يمكن اعتماد اكتمال الشحن قبل تسجيل جميع الكميات. المتبقي '+lfOrderShipmentState(o).remaining+' قطعة.');
 const cancelling=s==='ملغي'&&previous!=='ملغي',reactivating=previous==='ملغي'&&s!=='ملغي';
 if(cancelling&&['تم تسليمه لشركة الشحن','تم التسليم للعميل','تم التسليم'].includes(previous))return alert('لا يمكن إلغاء طلب بدأ شحنه أو تم تسليمه؛ حتى لا تعود كمياته إلى المخزون رغم خروجها فعليًا. راجع حركة المخزون والتسويات يدويًا قبل إلغاء الطلب.');
 
