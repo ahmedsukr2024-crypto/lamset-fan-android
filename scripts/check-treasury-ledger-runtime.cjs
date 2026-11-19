@@ -8,10 +8,17 @@ if (start < 0 || end < 0) throw new Error('Treasury ledger implementation could 
 const method = source.slice(start, end).trim().replace(/^async recomputeTreasuryLedger/, 'async function recomputeTreasuryLedger');
 const sandbox = {
   META: 'meta', MOVEMENTS: 'treasuryMovements', CASH_LINKS: 'treasuryCashLinks', CLOSEOUTS: 'treasuryCloseouts',
+  META: 'meta', MOVEMENTS: 'treasuryMovements', CASH_LINKS: 'treasuryCashLinks', CLOSEOUTS: 'treasuryCloseouts',
   requestValue: value => Promise.resolve(value),
+  transactionDone: () => Promise.resolve(true),
   fromCents: value => Number((Number(value || 0) / 100).toFixed(2))
 };
 vm.runInNewContext(method + '\nthis.runLedger = recomputeTreasuryLedger;', sandbox);
+const correctionStart = source.indexOf('  async correctOpeningBalance(');
+const correctionEnd = source.indexOf('\n  async getTreasuryBalance()', correctionStart);
+if (correctionStart < 0 || correctionEnd < 0) throw new Error('Opening balance correction implementation could not be isolated.');
+const correctionMethod = source.slice(correctionStart, correctionEnd).trim().replace(/^async correctOpeningBalance/, 'async function correctOpeningBalance');
+vm.runInNewContext(correctionMethod + '\nthis.correctOpeningBalance = correctOpeningBalance;', sandbox);
 function makeStore(records, keyField) {
   return {
     getAll: () => records.slice(),
@@ -101,6 +108,21 @@ function assert(condition, message) {
   assert(correctedCloseout.originalExpectedCents === 12000, 'historical original closeout snapshot is not overwritten');
   assert(correctedCloseout.expectedCents === 12500 && correctedCloseout.differenceCents === -1000, 'historical closeout is recalculated after a dated correction');
   assert(correctedCloseout.corrections?.length === 1 && correctedCloseout.corrections[0].reason === 'تصحيح موثق', 'closeout keeps an explicit correction audit entry');
+
+  const openingCorrection = fixture({
+    opening: 10000,
+    movements: [{ id: 'd-after-opening', type: 'deposit', amountCents: 2000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T08:00:00Z', status: 'active' }]
+  });
+  const correctionOwner = {
+    requireOwnerSession: () => true,
+    open: async () => ({ transaction: () => openingCorrection.transaction }),
+    recomputeTreasuryLedger: sandbox.runLedger
+  };
+  const correctionResult = await sandbox.correctOpeningBalance.call(correctionOwner, 120, 'تصحيح رصيد البداية');
+  const openingValue = openingCorrection.metaRecords.find(x => x.key === 'treasury.opening').value;
+  assert(correctionResult.balance === 140, 'opening balance correction recalculates the current balance');
+  assert(openingValue.originalCents === 10000 && openingValue.cents === 12000, 'opening correction preserves the first value and stores the corrected value');
+  assert(openingValue.corrections?.length === 1 && openingValue.corrections[0].reason === 'تصحيح رصيد البداية', 'opening correction records its reason and historical values');
 
   console.log('Treasury ledger runtime checks passed: ordering, idempotent source impact, negative-balance guard, closeout snapshots, and audited corrections.');
 })().catch(error => { console.error(error); process.exit(1); });
