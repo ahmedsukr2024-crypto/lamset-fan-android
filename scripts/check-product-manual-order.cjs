@@ -105,4 +105,5 @@ if(activityStart>=0&&activityEnd>activityStart){
  assert.equal(activityContext.db.activityLog[199].entity,'منتج 5','oldest retained activity must be the 200th newest');
  assert.equal(activityContext.db.activityLog[0].date.length>0,true,'activity must retain a timestamp');
 }
-\nconsole.log('Product ordering, draft recovery, duplicate guards, and activity log checks passed.');
+
+console.log('Product ordering, draft recovery, duplicate guards, and activity log checks passed.');
