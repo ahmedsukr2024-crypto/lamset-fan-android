@@ -28,6 +28,7 @@ assert(db.includes('if (previous.expenseId && previous.referenceOnly && expenseI
 assert(db.includes('previousExpenseLink?.status === \'active\' && previousExpenseLink.type === \'expense\''),'Reference removal is blocked until the original cash expense link is no longer active');
 assert(html.includes("!x.referenceOnly&&(!type||x.type===type)"),'Reference-only withdrawals must not inflate daily cash withdrawal totals');
 assert(html.includes("event.item.referenceOnly?0"),'Reference-only withdrawals must be excluded from treasury report calculations');
+assert(html.includes("withdrawals=movements.filter(x=>!x.referenceOnly&&x.type==='withdrawal')"),'Reference-only withdrawals must be excluded from report withdrawal totals and net movement');
 assert(html.includes("!x.referenceOnly&&(!type||x.type===type)"),'Reference-only withdrawals must not inflate daily withdrawal totals');
 assert(html.includes("x.referenceOnly?'مرجع مصروف (دون أثر مالي)'"),'Closeout PDF must label reference-only movements without implying a debit');
 assert(html.includes("x.referenceOnly?'مرجع مصروف (دون أثر مالي)'"),'Closeout PDF must identify reference-only withdrawals without presenting them as financial withdrawals');
