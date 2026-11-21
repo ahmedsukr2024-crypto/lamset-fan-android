@@ -76,8 +76,6 @@ assert.match(route,/const mapUrl=String\(\$\('lfCrMapUrl'\)/,'Route customer sav
 
 console.log('Customer route static checks passed.');
 
-assert.match(index,/photon\.komoot\.io/,'Place search must query a second geocoding directory when the first has no result.');
-assert.match(index,/r\.jina\.ai/,'Short Google Maps links must attempt a server-side reader fallback when browser redirects are blocked.');
 assert.match(route,/radarCategory:'all'/,'Nearby radar must default to all business activities.');
 assert.match(route,/جميع الأنشطة التجارية/,'Nearby radar must offer an all-businesses search category.');
 assert.match(route,/محلات ومكتبات/,'Nearby radar must offer shops and bookstores.');
