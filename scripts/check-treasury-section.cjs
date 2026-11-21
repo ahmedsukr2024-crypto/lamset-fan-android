@@ -19,6 +19,9 @@ assert(html.includes('x.orderNumber')&&html.includes('orderRef?\' · طلب \'')
 assert(html.includes('id="lfTreasuryMovementExpenseRef"'),'Manual withdrawals must support an optional cash-expense reference');
 assert(html.includes('lfTreasuryPopulateExpenseOptions(data.links,data.movements)'),'Expense reference options must be populated from active cash links');
 assert(html.includes('expenseId:linkedExpense?.id||null'),'Movement create and edit must persist the linked expense reference');
+assert(html.includes('function lfTreasuryLinkedExpense(movement)'),'Reference display must resolve the current source expense record');
+assert(html.includes('displayAmount=x.referenceOnly&&linkedExpense?linkedExpense.amount:x.amount'),'Reference-only movement display must stay aligned when the source expense is edited');
+assert(html.includes('amount:x.referenceOnly&&expense?expense.amount:x.amount'),'Closeout PDF must display the current linked expense amount');
 assert(html.includes('سيُحفظ السحب كمرجع فقط ولن يخصم من الرصيد'),'The UI must disclose that an expense-linked withdrawal is reference-only');
 assert(db.includes('referenceOnly: !!expenseId'),'An expense-linked withdrawal must be stored as reference-only');
 assert(db.includes('(item.referenceOnly ? 0 : (item.type === \'deposit\' ? 1 : -1))'),'Reference-only movements must not affect the treasury ledger');
