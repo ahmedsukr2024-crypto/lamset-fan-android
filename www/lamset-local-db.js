@@ -373,6 +373,13 @@ class LamsetLocalDatabase {
       if (!expenseLink || expenseLink.status !== 'active' || expenseLink.type !== 'expense') { transaction.abort(); throw new Error('المصروف غير مرتبط بالخزينة كمصروف نقدي نشط؛ لا يمكن ربطه بحركة السحب.'); }
       if (existingMovements.some(item => item.id !== id && item.status === 'active' && item.expenseId === expenseId)) { transaction.abort(); throw new Error('هذا المصروف مرتبط بالفعل بحركة خزينة نشطة؛ لا يمكن تكرار الربط.'); }
     }
+    if (previous.expenseId && previous.referenceOnly && expenseId !== previous.expenseId) {
+      const previousExpenseLink = await requestValue(cashLinks.get(previous.expenseId));
+      if (previousExpenseLink?.status === 'active' && previousExpenseLink.type === 'expense') {
+        transaction.abort();
+        throw new Error('لا يمكن إزالة أو تغيير مرجع المصروف ما دام المصروف النقدي الأصلي محسوباً بالخزينة؛ ألغِ المصروف أو غيّر طريقة دفعه أولاً لتجنب تكرار الخصم.');
+      }
+    }
     const now = new Date().toISOString();
     const next = {
       ...previous,
