@@ -10,4 +10,9 @@ assert(db.includes('applyCashLink')&&db.includes('CASH_LINKS'),'Cash links must 
 assert(db.includes("database.transaction([META, CASH_LINKS, MOVEMENTS, CLOSEOUTS], 'readwrite')"),'Cash links, movements, closeouts, and balance must update atomically');
 assert(db.includes('createTreasuryCloseout'),'Daily closeout must be persisted');
 assert(html.includes("await LamsetLocalDB.applyCashLink(payment.id,'collection'"),'Cash collection must update treasury once');
+assert(html.includes('id="lfTreasuryMovementOrderRef"'),'Manual treasury movements must support an optional order reference');
+assert(db.includes("orderId: String(input.orderId || '').trim() || null")&&db.includes("orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null"),'Manual movement order references must be persisted without changing ledger amounts');
+assert(html.includes('if(orderRef&&!linkedOrder)return alert('),'Unknown order references must be rejected before saving');
+assert(html.includes('orderId:linkedOrder?.id||null,orderNumber:linkedOrder?.orderNumber||null'),'Manual movement must persist the selected order reference');
+assert(html.includes('x.orderNumber')&&html.includes('orderRef?\' · طلب \''),'Treasury movement history must display and search by the linked order number');
 console.log('Treasury section, owner gate, atomic cash links, and closeout checks passed.');
