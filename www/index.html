@@ -2932,7 +2932,7 @@ async function renderTreasury(){
  try{
   const data=await lfTreasuryData(),today=lfTreasuryToday(),todayMoves=data.movements.filter(x=>x.effectiveDate===today&&x.status==='active'),todayLinks=data.links.filter(x=>x.effectiveDate===today&&x.status==='active');
   lfTreasuryPopulateExpenseOptions(data.links,data.movements);
-  const sum=(arr,type)=>arr.filter(x=>!type||x.type===type).reduce((v,x)=>v+(Number(x.amount)||0),0);
+  const sum=(arr,type)=>arr.filter(x=>!x.referenceOnly&&(!type||x.type===type)).reduce((v,x)=>v+(Number(x.amount)||0),0);
   const set=(id,value)=>{const el=$(id);if(el)el.textContent=value};
   const syncWarning=$('lfTreasurySyncWarning');if(syncWarning){syncWarning.hidden=!data.pendingCashLinks;syncWarning.textContent=data.pendingCashLinks?'تنبيه: يوجد '+data.pendingCashLinks+' تحصيل/مصروف نقدي محفوظ لم يكتمل ربطه بالخزينة بعد. لا تعاود تسجيل العملية؛ راجع الاتصال ثم افتح الخزينة للمحاولة مرة أخرى.':'';}
   set('lfTreasuryBalance',lfTreasuryAmount(data.balance));
@@ -3049,7 +3049,7 @@ async function renderTreasuryReport(){
   if(data.opening?.businessDate&&from<data.opening.businessDate)return alert('بداية التقرير لا يمكن أن تسبق تاريخ بدء سجل الخزينة.');
   const activeMovements=data.movements.filter(x=>x.status==='active'),activeLinks=data.links.filter(x=>x.status==='active');
   const allEvents=[...activeMovements.map(item=>({item,kind:'movement'})),...activeLinks.map(item=>({item,kind:'link'}))];
-  const impact=event=>Number(event.item.amount||0)*(event.kind==='movement'?(event.item.type==='deposit'?1:-1):(event.item.type==='collection'?1:-1));
+  const impact=event=>Number(event.item.amount||0)*(event.kind==='movement'?(event.item.referenceOnly?0:(event.item.type==='deposit'?1:-1)):(event.item.type==='collection'?1:-1));
   const priorCloseouts=data.closeouts.filter(x=>x.businessDate<from).sort((x,y)=>x.businessDate.localeCompare(y.businessDate));
   const baseline=priorCloseouts[priorCloseouts.length-1];
   let openingBalance=baseline?baseline.actual:(Number(data.opening?.cents||0)/100);
@@ -3089,7 +3089,7 @@ async function previewTreasuryCloseoutPdf(businessDate){
  try{
   const data=await lfTreasuryData(),closeout=data.closeouts.find(x=>x.businessDate===businessDate);if(!closeout)return alert('الإقفال المطلوب غير موجود.');
   const movements=data.movements.filter(x=>x.effectiveDate===businessDate),links=data.links.filter(x=>x.effectiveDate===businessDate);
-  const eventRows=[...movements.map(x=>({kind:x.type==='deposit'?'إيداع':'سحب',name:x.reason,amount:x.amount,status:x.status,ref:x.movementNo||x.id})),...links.map(x=>({kind:x.type==='collection'?'تحصيل نقدي':'مصروف نقدي',name:x.reason,amount:x.amount,status:x.status,ref:x.id}))];
+  const eventRows=[...movements.map(x=>({kind:x.referenceOnly?'مرجع مصروف (دون أثر مالي)':x.type==='deposit'?'إيداع':'سحب',name:x.reason,amount:x.amount,status:x.status,ref:x.movementNo||x.id})),...links.map(x=>({kind:x.type==='collection'?'تحصيل نقدي':'مصروف نقدي',name:x.reason,amount:x.amount,status:x.status,ref:x.id}))];
   const rows=eventRows.map(x=>'<div class="lf-treasury-row"><span>'+lfTreasuryEsc(x.kind)+' · '+lfTreasuryEsc(x.name)+'<small> '+lfTreasuryEsc(x.ref)+' · '+(x.status==='cancelled'?'ملغي':'نشط')+'</small></span><b>'+lfTreasuryAmount(x.amount)+'</b></div>').join('')||'<p>لا توجد حركات مسجلة في هذا اليوم.</p>';
   const corrections=(closeout.corrections||[]).map(x=>'<div class="lf-treasury-row"><span>'+lfTreasuryEsc(x.action)+' · '+lfTreasuryEsc(x.reason)+'<small>'+lfTreasuryEsc(x.at)+' · '+lfTreasuryEsc(x.movementId||x.referenceId||'')+'</small></span><b>'+lfTreasuryAmount(Number(x.correctedExpectedCents||0)/100)+'</b></div>').join('');
   const html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>إقفال الخزينة</title><style>body{font-family:Arial,sans-serif;color:#222;padding:20px;direction:rtl}.lf-doc{width:100%;font-size:13px}.lf-doc h1{font-size:22px}.result{border:1px solid #ddd;border-radius:10px;padding:14px}.lf-treasury-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #eee}small{display:block;color:#666;margin-top:4px}.lf-treasury-positive{color:#16834a}.lf-treasury-negative{color:#bd3434}</style></head><body><main class="lf-doc"><h1>تفاصيل إقفال الخزينة · '+lfTreasuryEsc(businessDate)+'</h1><div class="result"><div class="lf-treasury-row"><span>الرصيد المتوقع</span><b>'+lfTreasuryAmount(closeout.expected)+'</b></div><div class="lf-treasury-row"><span>النقدية الفعلية</span><b>'+lfTreasuryAmount(closeout.actual)+'</b></div><div class="lf-treasury-row"><span>العجز / الزيادة</span><b>'+lfTreasuryAmount(closeout.difference)+'</b></div><p>الملاحظات: '+lfTreasuryEsc(closeout.notes||'لا توجد')+'</p><p>تاريخ التسجيل: '+lfTreasuryEsc(closeout.createdAt)+'</p>'+(closeout.recalculatedAt?'<p>تمت مراجعة الرصيد لاحقاً. القيمة الأصلية المتوقعة: '+lfTreasuryAmount(Number(closeout.originalExpectedCents||0)/100)+'</p>':'')+'</div><h2>الحركات والتحصيلات والمصروفات</h2>'+rows+(corrections?'<h2>سجل التصحيحات</h2>'+corrections:'')+'</main></body></html>';
