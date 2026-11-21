@@ -69,7 +69,7 @@ assert.match(index,/function lamsetCaptureCustomerLocation/,'Customer form must 
 assert.match(index,/lamsetLocationControlsMarkup\(c,'c'\)/,'Main customer form must expose the location picker.');
 assert.match(index,/c\.lat=lat;c\.lng=lng/,'Main customer save must persist validated coordinates.');
 assert.match(index,/lamsetCoordsFromMapUrl/,'Google Maps coordinates must be extracted and validated.');
-assert.match(index,/maps\\.app\\.goo\\.gl/,'Google Maps short-link hosts must be recognized and rejected with a clear message when they do not expose coordinates.');
+assert.ok(index.includes("host==='maps.app.goo.gl'"),'Google Maps short-link hosts must be recognized and rejected with a clear message when they do not expose coordinates.');
 assert.match(route,/lamsetLocationControlsMarkup\(c,'lfCr'\)/,'Route customer form must expose the shared location picker.');
 assert.match(route,/GPS أو رابط Google Maps/,'Map empty-state must explain the supported location methods.');
 assert.match(route,/const mapUrl=String\(\$\('lfCrMapUrl'\)/,'Route customer save must preserve the original Google Maps link.');
