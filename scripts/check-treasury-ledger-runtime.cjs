@@ -128,5 +128,5 @@ function assert(condition, message) {
   assert(openingValue.originalCents === 10000 && openingValue.cents === 12000, 'opening correction preserves the first value and stores the corrected value');
   assert(openingValue.corrections?.length === 1 && openingValue.corrections[0].reason === 'تصحيح رصيد البداية', 'opening correction records its reason and historical values');
 
-  console.log('Treasury ledger runtime checks passed: ordering, idempotent source impact, negative-balance guard, closeout snapshots, and audited corrections.');
+  console.log('Treasury ledger runtime checks passed: ordering, idempotent source impact, reference-only withdrawals, negative-balance guard, closeout snapshots, and audited corrections.');
 })().catch(error => { console.error(error); process.exit(1); });
