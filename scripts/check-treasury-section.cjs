@@ -24,5 +24,7 @@ assert(db.includes('referenceOnly: !!expenseId'),'An expense-linked withdrawal m
 assert(db.includes('(item.referenceOnly ? 0 : (item.type === \'deposit\' ? 1 : -1))'),'Reference-only movements must not affect the treasury ledger');
 assert(db.includes("existingMovements.some(item => item.status === 'active' && item.expenseId === expenseId)"),'An expense cannot be linked to multiple active treasury movements');
 assert(db.includes("expenseLink.status !== 'active' || expenseLink.type !== 'expense'"),'Only an active cash-expense link can be referenced by a withdrawal');
+assert(db.includes('if (previous.expenseId && previous.referenceOnly && expenseId !== previous.expenseId)'),'An active expense reference cannot be removed or changed while its cash ledger link remains active');
+assert(db.includes('previousExpenseLink?.status === \'active\' && previousExpenseLink.type === \'expense\''),'Reference removal is blocked until the original cash expense link is no longer active');
 assert(db.includes("expenseId: previous.expenseId || null, expenseLabel: previous.expenseLabel || null, referenceOnly: !!previous.referenceOnly"),'Expense reference changes must be preserved in movement audit history');
 console.log('Treasury section, owner gate, atomic cash links, and closeout checks passed.');
