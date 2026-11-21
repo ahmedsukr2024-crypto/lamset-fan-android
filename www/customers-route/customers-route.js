@@ -123,7 +123,7 @@
   try{L=await ensureLeaflet()}catch(error){if(note)note.textContent=error.message+' · يمكنك استخدام قائمة العملاء والملاحة الخارجية دون إنترنت.';return}
   const customers=state.filter==='today'?stopsForToday().map(x=>x.customer):state.filter==='tasks'?taskCandidates().map(x=>x.customer):filteredCustomers(),withCoords=[...new Map(customers.filter(c=>coordinates(c)).map(c=>[String(c.id),c])).values()];
   if(state.map?._lfMarkers){state.map._lfMarkers.forEach(marker=>marker.remove());state.map._lfMarkers=[];}
-  if(!withCoords.length){if(note)note.textContent='لا توجد إحداثيات محفوظة للعملاء الظاهرين. أضف موقع العميل من GPS أو رابط Google Maps أو البحث عن المكان.';return}
+  if(!withCoords.length){if(note)note.textContent='لا توجد إحداثيات محفوظة للعملاء الظاهرين. أضف موقع العميل من GPS أو رابط Google Maps.';return}
   if(note)note.textContent='الخريطة تعرض العملاء ذوي الإحداثيات المحفوظة. طبقات الخريطة تحتاج الإنترنت؛ بيانات الدليل والجولة محفوظة محلياً.';
   if(!state.map){state.map=L.map(host,{zoomControl:true}).setView([withCoords[0].lat,withCoords[0].lng],13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(state.map)}
   state.map.invalidateSize();if(state.map._lfMarkers)state.map._lfMarkers.forEach(m=>m.remove());state.map._lfMarkers=[];
@@ -191,6 +191,7 @@
   if(!c){c={id:typeof id==='function'?id():'customer-'+Date.now(),createdAt:new Date().toISOString()};db.customers.push(c)}
   c.name=name;c.phone=phone;c.phone2=phone2;c.type=tier;c.category=category;c.area=area;c.note=note;c.notes=note;c.has_consignment=hasConsignment;
   if(lat!==null){c.lat=lat;c.lng=lng}else{delete c.lat;delete c.lng}
+  const mapUrl=String($('lfCrMapUrl')?.value||'').trim();if(lat!==null&&mapUrl)c.googleMapsUrl=mapUrl;else if(!mapUrl)delete c.googleMapsUrl;
   if(!saveDb(before,'تم حفظ بيانات العميل في قاعدة العملاء الحالية.'))return;
   state.selectedCustomerId=String(c.id);state.formCustomerId=null;render();
  }
