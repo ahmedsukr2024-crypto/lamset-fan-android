@@ -1905,14 +1905,14 @@ async function lamsetCaptureCustomerLocation(prefix){
 }
 function lamsetCoordsFromMapUrl(value){
  const source=String(value||'');
- const patterns=[/@(-?\\d{1,2}(?:\\.\\d+)?),\\s*(-?\\d{1,3}(?:\\.\\d+)?)/i,/!3d(-?\\d{1,2}(?:\\.\\d+)?)!4d(-?\\d{1,3}(?:\\.\\d+)?)/i,/[?&](?:q|query|destination|center)=(-?\\d{1,2}(?:\\.\\d+)?)(?:%2C|,|%252C)(-?\\d{1,3}(?:\\.\\d+)?)/i];
+ const patterns=[/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/i,/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/i,/[?&](?:q|query|destination|center)=(-?\d{1,2}(?:\.\d+)?)(?:%2C|,|%252C)(-?\d{1,3}(?:\.\d+)?)/i];
  for(const pattern of patterns){const match=source.match(pattern);if(match){const lat=Number(match[1]),lng=Number(match[2]);if(Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180)return{lat,lng}}}
  return null;
 }
 function lamsetSaveCustomerMapLink(prefix){
  const field=document.getElementById(prefix+'MapLink'),raw=String(field?.value||'').trim();
  if(!raw){window.LamsetUI?.toast('الصق رابط المكان من Google Maps أولاً.','warning');return false}
- let url;try{url=new URL(/^https?:\\/\\//i.test(raw)?raw:'https://'+raw)}catch(_){window.LamsetUI?.toast('رابط Google Maps غير صحيح.','warning');return false}
+ let url;try{url=new URL(/^https?:\/\//i.test(raw)?raw:'https://'+raw)}catch(_){window.LamsetUI?.toast('رابط Google Maps غير صحيح.','warning');return false}
  const host=url.hostname.toLowerCase();
  if(!(host==='google.com'||host.endsWith('.google.com')||host==='maps.app.goo.gl'||host==='goo.gl'||host==='maps.google.com')){window.LamsetUI?.toast('استخدم رابطاً من Google Maps فقط.','warning');return false}
  const coords=lamsetCoordsFromMapUrl(url.href);
