@@ -28,6 +28,8 @@ assert(db.includes('if (previous.expenseId && previous.referenceOnly && expenseI
 assert(db.includes('previousExpenseLink?.status === \'active\' && previousExpenseLink.type === \'expense\''),'Reference removal is blocked until the original cash expense link is no longer active');
 assert(html.includes("!x.referenceOnly&&(!type||x.type===type)"),'Reference-only withdrawals must not inflate daily cash withdrawal totals');
 assert(html.includes("event.item.referenceOnly?0"),'Reference-only withdrawals must be excluded from treasury report calculations');
+assert(html.includes("!x.referenceOnly&&(!type||x.type===type)"),'Reference-only withdrawals must not inflate daily withdrawal totals');
+assert(html.includes("x.referenceOnly?'مرجع مصروف (دون أثر مالي)'"),'Closeout PDF must label reference-only movements without implying a debit');
 assert(html.includes("x.referenceOnly?'مرجع مصروف (دون أثر مالي)'"),'Closeout PDF must identify reference-only withdrawals without presenting them as financial withdrawals');
 assert(db.includes("expenseId: previous.expenseId || null, expenseLabel: previous.expenseLabel || null, referenceOnly: !!previous.referenceOnly"),'Expense reference changes must be preserved in movement audit history');
 console.log('Treasury section, owner gate, atomic cash links, and closeout checks passed.');
