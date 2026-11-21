@@ -1882,60 +1882,43 @@ const customerCodes=[['20','مصر +20'],['966','السعودية +966'],['971',
 function lamsetLocationControlsMarkup(customer,prefix){
  const lat=customer&&customer.lat!==undefined?customer.lat:'',lng=customer&&customer.lng!==undefined?customer.lng:'';
  const has=lat!==''&&lng!==''&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lng));
- return '<div class="lf-location-picker"><input type="hidden" id="'+prefix+'Lat" value="'+(has?esc(String(lat)):'')+'"><input type="hidden" id="'+prefix+'Lng" value="'+(has?esc(String(lng)):'')+'"><div class="lf-location-heading"><b>موقع العميل على الخريطة</b><small id="'+prefix+'LocationStatus">'+(has?'تم حفظ إحداثيات العميل':'اختياري · لم يتم تحديد الموقع')+'</small></div><button type="button" class="ghost smallbtn" onclick="lamsetCaptureCustomerLocation(\''+prefix+'\')">التقاط الموقع الحالي GPS</button><div class="lf-location-link"><input id="'+prefix+'MapLink" type="url" inputmode="url" placeholder="الصق رابط Google Maps هنا"><button type="button" class="ghost smallbtn" onclick="lamsetResolveCustomerMapLink(\''+prefix+'\')">استخراج الموقع</button></div><div class="lf-location-search"><input id="'+prefix+'PlaceSearch" type="search" placeholder="ابحث عن اسم المكان أو العنوان"><button type="button" class="ghost smallbtn" onclick="lamsetSearchCustomerPlace(\''+prefix+'\')">بحث على الخريطة</button></div><div class="lf-location-results" id="'+prefix+'LocationResults"></div></div>';
+ const savedUrl=customer&&customer.googleMapsUrl?customer.googleMapsUrl:'';
+ return '<div class="lf-location-picker"><input type="hidden" id="'+prefix+'Lat" value="'+(has?esc(String(lat)):'')+'"><input type="hidden" id="'+prefix+'Lng" value="'+(has?esc(String(lng)):'')+'"><input type="hidden" id="'+prefix+'MapUrl" value="'+esc(savedUrl)+'"><div class="lf-location-heading"><b>موقع العميل على الخريطة</b><small id="'+prefix+'LocationStatus">'+(has?'تم حفظ إحداثيات العميل':'اختياري · لم يتم تحديد الموقع')+'</small></div><button type="button" class="ghost smallbtn" onclick="lamsetCaptureCustomerLocation(\''+prefix+'\')">التقاط الموقع الحالي GPS</button><div class="lf-location-link"><input id="'+prefix+'MapLink" type="text" inputmode="url" placeholder="الصق رابط المكان من Google Maps"><button type="button" class="ghost smallbtn" onclick="lamsetSaveCustomerMapLink(\''+prefix+'\')">حفظ موقع Google Maps</button></div><small class="customer-field-hint">انسخ رابط المكان من خرائط Google. يجب أن يحتوي الرابط على إحداثيات مباشرة.</small></div>';
 }
-function lamsetSetCustomerLocation(prefix,lat,lng,label){
+function lamsetSetCustomerLocation(prefix,lat,lng,label,mapUrl){
  lat=Number(lat);lng=Number(lng);
  if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){window.LamsetUI?.toast('تعذر اعتماد إحداثيات موقع صحيحة.','warning');return false}
  const latField=document.getElementById(prefix+'Lat'),lngField=document.getElementById(prefix+'Lng');if(!latField||!lngField)return false;
  latField.value=String(lat);lngField.value=String(lng);
+ const urlField=document.getElementById(prefix+'MapUrl');if(urlField)urlField.value=String(mapUrl||'');
  const status=document.getElementById(prefix+'LocationStatus');if(status)status.textContent='تم تحديد الموقع: '+String(label||'إحداثيات محفوظة')+' · سيتم الحفظ مع بيانات العميل';
- const results=document.getElementById(prefix+'LocationResults');if(results)results.innerHTML='';
  window.LamsetUI?.toast('تم تحديد موقع العميل؛ اضغط حفظ العميل لاعتماد البيانات.','success');return true;
 }
-function lamsetSelectCustomerLocation(button,prefix){if(button)lamsetSetCustomerLocation(prefix,button.dataset.lat,button.dataset.lng,button.dataset.label||'نتيجة البحث')}
 async function lamsetCaptureCustomerLocation(prefix){
  try{
   let position;
   if(typeof window.lamsetGetCurrentPosition==='function')position=await window.lamsetGetCurrentPosition({enableHighAccuracy:true,timeout:15000,maximumAge:30000});
   else position=await new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(new Error('خدمة تحديد الموقع غير متاحة.'));navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:15000,maximumAge:30000})});
   const lat=Number(position.coords?.latitude??position.latitude),lng=Number(position.coords?.longitude??position.longitude);
-  if(!lamsetSetCustomerLocation(prefix,lat,lng,'موقعك الحالي'))throw new Error('تعذر اعتماد إحداثيات الموقع.');
+  if(!lamsetSetCustomerLocation(prefix,lat,lng,'موقعك الحالي',''))throw new Error('تعذر اعتماد إحداثيات الموقع.');
  }catch(error){window.LamsetUI?.toast(error.message||'تعذر تحديد موقعك. تحقق من إذن الموقع وGPS.','warning')}
 }
-async function lamsetSearchCustomerPlace(prefix,queryOverride){
- const input=document.getElementById(prefix+'PlaceSearch'),results=document.getElementById(prefix+'LocationResults'),query=String(queryOverride??input?.value??'').trim();
- if(!query){window.LamsetUI?.toast('اكتب اسم المكان أو العنوان أولاً.','warning');return}
- if(results)results.innerHTML='<small>جارٍ البحث في أكثر من دليل للأماكن…</small>';
- const requests=[
-  fetch('https://photon.komoot.io/api/?limit=8&lang=ar&q='+encodeURIComponent(query),{headers:{'Accept':'application/json'}}).then(async r=>{if(!r.ok)throw new Error('Photon');const j=await r.json();return (j.features||[]).map(x=>({lat:x.geometry?.coordinates?.[1],lon:x.geometry?.coordinates?.[0],name:x.properties?.name||x.properties?.street||x.properties?.city||'مكان',display_name:[x.properties?.name,x.properties?.street,x.properties?.district,x.properties?.city,x.properties?.state].filter(Boolean).join('، ')}))}),
-  fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&addressdetails=1&countrycodes=eg&q='+encodeURIComponent(query),{headers:{'Accept-Language':'ar,en'}}).then(async r=>{if(!r.ok)throw new Error('Nominatim');return r.json()})
- ];
- const settled=await Promise.allSettled(requests),data=[],seen=new Set();
- settled.forEach(result=>{if(result.status!=='fulfilled'||!Array.isArray(result.value))return;result.value.forEach(item=>{const lat=Number(item.lat),lng=Number(item.lon);if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180)return;const key=lat.toFixed(5)+','+lng.toFixed(5);if(seen.has(key))return;seen.add(key);data.push({...item,lat,lng})})});
- if(!data.length){if(results)results.innerHTML='<small>لم نعثر على المكان في دلائل الخرائط المفتوحة. إذا كان الاسم مسجلاً على Google Maps فقط، ابحث عنه في خرائط Google وافتح بطاقة المكان ثم شارك رابط الموقع أو أرسل دبوسه.</small>';return}
- if(results)results.innerHTML=data.slice(0,12).map(item=>'<button type="button" class="lf-location-result" data-lat="'+item.lat+'" data-lng="'+item.lng+'" data-label="'+esc(String(item.display_name||item.name||'').slice(0,240))+'" onclick="lamsetSelectCustomerLocation(this,\''+prefix+'\')"><b>'+esc(String(item.name||item.display_name||'مكان').slice(0,90))+'</b><small>'+esc(String(item.display_name||'').slice(0,220))+'</small></button>').join('');
-}
 function lamsetCoordsFromMapUrl(value){
- const source=String(value||''),patterns=[/@(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)/i,/!3d(-?\d{1,2}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/i,/[?&](?:q|query|destination)=(-?\d{1,2}(?:\.\d+)?)[,%2C]+(-?\d{1,3}(?:\.\d+)?)/i];
- for(const pattern of patterns){const match=source.match(pattern);if(match){const lat=Number(match[1]),lng=Number(match[2]);if(Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180)return{lat,lng}}}return null;
+ const source=String(value||'');
+ const patterns=[/@(-?\\d{1,2}(?:\\.\\d+)?),\\s*(-?\\d{1,3}(?:\\.\\d+)?)/i,/!3d(-?\\d{1,2}(?:\\.\\d+)?)!4d(-?\\d{1,3}(?:\\.\\d+)?)/i,/[?&](?:q|query|destination|center)=(-?\\d{1,2}(?:\\.\\d+)?)(?:%2C|,|%252C)(-?\\d{1,3}(?:\\.\\d+)?)/i];
+ for(const pattern of patterns){const match=source.match(pattern);if(match){const lat=Number(match[1]),lng=Number(match[2]);if(Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180)return{lat,lng}}}
+ return null;
 }
-async function lamsetResolveCustomerMapLink(prefix){
- const field=document.getElementById(prefix+'MapLink'),raw=String(field?.value||'').trim();if(!raw){window.LamsetUI?.toast('الصق رابط Google Maps أولاً.','warning');return}
- let url;try{url=new URL(/^https?:\/\//i.test(raw)?raw:'https://'+raw)}catch(_){window.LamsetUI?.toast('الرابط غير صحيح.','warning');return}
- const direct=lamsetCoordsFromMapUrl(url.href);if(direct){lamsetSetCustomerLocation(prefix,direct.lat,direct.lng,'رابط Google Maps');return}
- const place=url.searchParams.get('query')||url.searchParams.get('q')||url.searchParams.get('destination');
- if(place&&!/^-?\d/.test(place)){await lamsetSearchCustomerPlace(prefix,place);return}
- if(/maps\.app\.goo\.gl|goo\.gl\/maps/i.test(url.hostname+url.pathname)){
-  const attempts=[
-   async()=>{const response=await fetch(url.href,{method:'GET',redirect:'follow'});const coords=lamsetCoordsFromMapUrl(response.url||'');if(coords)return coords;return lamsetCoordsFromMapUrl(await response.text())},
-   async()=>{const reader='https://r.jina.ai/http://'+url.host+url.pathname+url.search,response=await fetch(reader,{headers:{'Accept':'text/plain'}});if(!response.ok)throw new Error('resolver');const body=await response.text(),coords=lamsetCoordsFromMapUrl(body);if(coords)return coords;const links=body.match(/https?:\/\/[^\s"'<>]+/g)||[];for(const link of links){const found=lamsetCoordsFromMapUrl(link);if(found)return found}return null}
-  ];
-  for(const attempt of attempts){try{const coords=await attempt();if(coords&&lamsetSetCustomerLocation(prefix,coords.lat,coords.lng,'رابط Google Maps المختصر'))return}catch(_){}}
- }
- window.LamsetUI?.toast('لم نتمكن من قراءة إحداثيات الرابط تلقائيًا. جرّب البحث باسم المكان أو شارك رابطًا كاملًا من خرائط Google.','warning');
+function lamsetSaveCustomerMapLink(prefix){
+ const field=document.getElementById(prefix+'MapLink'),raw=String(field?.value||'').trim();
+ if(!raw){window.LamsetUI?.toast('الصق رابط المكان من Google Maps أولاً.','warning');return false}
+ let url;try{url=new URL(/^https?:\\/\\//i.test(raw)?raw:'https://'+raw)}catch(_){window.LamsetUI?.toast('رابط Google Maps غير صحيح.','warning');return false}
+ const host=url.hostname.toLowerCase();
+ if(!(host==='google.com'||host.endsWith('.google.com')||host==='maps.app.goo.gl'||host==='goo.gl'||host==='maps.google.com')){window.LamsetUI?.toast('استخدم رابطاً من Google Maps فقط.','warning');return false}
+ const coords=lamsetCoordsFromMapUrl(url.href);
+ if(!coords){window.LamsetUI?.toast('الرابط لا يحتوي إحداثيات يمكن قراءتها مباشرة. افتح المكان في Google Maps واختر مشاركة ثم انسخ رابطاً كاملاً يحتوي على الدبوس. الروابط المختصرة لا يمكن فكها بأمان من داخل التطبيق.','warning');return false}
+ return lamsetSetCustomerLocation(prefix,coords.lat,coords.lng,'رابط Google Maps',url.href);
 }
-
 function customerFormMarkup(c){
  let d=String(c&&c.phone||'').replace(/[^0-9]/g,'');
  let found=customerCodes.find(x=>d.startsWith(x[0]))||customerCodes[0];
@@ -1974,6 +1957,7 @@ function saveCustomerForm(){
   if(!c){c={id:id(),createdAt:new Date().toISOString()};db.customers.push(c)}
   c.name=name;c.type=type;c.phone=phone;c.area=$('cArea').value.trim();c.note=$('cNote').value.trim();
   if(lat!==null){c.lat=lat;c.lng=lng}else{delete c.lat;delete c.lng}
+  const mapUrl=String($('cMapUrl')?.value||'').trim();if(lat!==null&&mapUrl)c.googleMapsUrl=mapUrl;else delete c.googleMapsUrl;
   if(photo)c.photo=photo;
   linkLegacyOrdersToCustomer(c,previousPhone,previousPhoneOwner?.id===c.id);
   if(!save()){db=before;return alert('تعذر حفظ بيانات العميل؛ لم يتم اعتماد التغييرات.')}
@@ -2040,7 +2024,7 @@ function openCustomer(cid){
  }).join(''):'<p class="muted">لا توجد فواتير أو طلبات مسجلة لهذا العميل.</p>';
  let paymentRows=payments.length?payments.map(p=>'<div class="customer-history"><b>'+esc(p.receiptNumber||'إيصال قديم بلا رقم')+' · '+money(p.amount)+(p.status==='cancelled'?' · ملغي':'')+'</b><span>'+new Date(p.date||Date.now()).toLocaleString('ar-EG')+' · '+esc(p.method||'')+' · فاتورة '+esc(os.find(o=>o.id===p.orderId)?.invoiceNumber||p.orderId||'—')+'</span><span>'+esc(p.status==='cancelled'?'سبب الإلغاء: '+(p.cancelReason||'غير مسجل'):(p.note||'بدون ملاحظات'))+'</span></div>').join(''):'<p class="muted">لا توجد دفعات مسجلة منفصلة.</p>';
  let consignmentRows=consignments.length?consignments.map(x=>'<div class="customer-history"><b>'+esc(x.productName||'منتج')+' · '+esc(x.id)+'</b><span>'+new Date(x.date||Date.now()).toLocaleDateString('ar-EG')+' · '+(x.status==='closed'?'مغلقة':'مفتوحة')+'</span><span>المسلم '+(x.delivered||0)+' · المباع '+(x.sold||0)+' · المتبقي '+(x.remaining||0)+' · قيمة المباع '+money(x.soldValue||0)+' · المحصل '+money(consignmentPaid(x))+' · المستحق '+money(Math.max(0,(Number(x.soldValue)||0)-consignmentPaid(x)))+'</span></div>').join(''):'<p class="muted">لا توجد عهد أمانة مسجلة لهذا العميل.</p>';
- $('customerProfile').innerHTML='<div class="card customer-profile"><div class="sectionhead"><div class="customer-heading">'+avatar+'<div><h3>'+esc(c.name)+'</h3><small class="muted">'+esc(c.phone||'بدون هاتف')+'</small></div></div><button class="ghost smallbtn" onclick="editCustomer('+"'"+esc(String(c.id))+"'"+')">تعديل البيانات</button><button class="ghost smallbtn" onclick="closeCustomer()">إغلاق</button></div>'+contactActions+'<p class="muted">نوع العميل: '+esc(({trader:'تاجر',distributor:'موزع',online:'أونلاين'})[c.type]||'تاجر')+' · العنوان / المنطقة: '+esc(c.area||'غير مسجل')+'</p>'+(c.note?'<p class="customer-note"><b>ملاحظات العميل:</b> '+esc(c.note)+'</p>':'')+'<label class="photo-upload">'+(c.photo?'تغيير صورة العميل':'إضافة صورة العميل')+'<input type="file" accept="image/*" onchange="saveCustomerPhoto('+"'"+esc(String(c.id))+"'"+',this)" hidden></label><h4>إحصائيات العميل</h4><div class="customer-stats"><div><small>عدد الفواتير النشطة</small><b>'+financialOrders.length+'</b></div><div><small>إجمالي المبيعات</small><b>'+money(sales)+'</b></div><div><small>إجمالي المدفوع</small><b>'+money(paid)+'</b></div><div><small>المستحق عليه</small><b>'+money(due)+'</b></div><div><small>رصيد زائد من الطلبات</small><b>'+money(credits)+'</b></div><div><small>إجمالي قبل التسويات</small><b>'+money(gross)+'</b></div></div><h4>فواتير وطلبات العميل</h4>'+orderRows+'<h4>سجل التحصيلات</h4>'+paymentRows+'<section class="lf-customer-statement"><h4>كشف حساب العميل</h4><p class="muted">ملخص الفواتير والتحصيلات والرصيد حتى نهاية الفترة المحددة.</p><div class="row"><div class="field"><label for="lfCustomerStatementFrom">من تاريخ</label><input id="lfCustomerStatementFrom" type="date" onchange="renderCustomerStatement(\''+esc(String(cid))+'\')"></div><div class="field"><label for="lfCustomerStatementTo">إلى تاريخ</label><input id="lfCustomerStatementTo" type="date" onchange="renderCustomerStatement(\''+esc(String(cid))+'\')"></div></div><div class="actions"><button type="button" class="ghost" onclick="printCustomerStatement(\''+esc(String(cid))+'\')">طباعة / حفظ PDF</button><button type="button" class="ghost" onclick="shareCustomerStatement(\''+esc(String(cid))+'\')">مشاركة واتساب</button></div><div id="lfCustomerStatementSummary"></div><div id="lfCustomerStatementRows"></div></section>'+'<h4>الأمانة والتصريف</h4>'+consignmentRows+'</div>';renderCustomerStatement(cid);
+ $('customerProfile').innerHTML='<div class="card customer-profile"><div class="sectionhead"><div class="customer-heading">'+avatar+'<div><h3>'+esc(c.name)+'</h3><small class="muted">'+esc(c.phone||'بدون هاتف')+'</small></div></div><button class="ghost smallbtn" onclick="editCustomer('+"'"+esc(String(c.id))+"'"+')">تعديل البيانات</button><button class="ghost smallbtn" onclick="closeCustomer()">إغلاق</button></div>'+contactActions+(Number.isFinite(Number(c.lat))&&Number.isFinite(Number(c.lng))&&c.lat!==''&&c.lng!==''?'<div class="customer-contact"><button type="button" class="ghost smallbtn" onclick="window.open(\'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(String(c.lat)+','+String(c.lng))+'\',\'_blank\')">فتح موقع العميل على الخريطة</button></div>':'')+'<p class="muted">نوع العميل: '+esc(({trader:'تاجر',distributor:'موزع',online:'أونلاين'})[c.type]||'تاجر')+' · العنوان / المنطقة: '+esc(c.area||'غير مسجل')+'</p>'+(c.note?'<p class="customer-note"><b>ملاحظات العميل:</b> '+esc(c.note)+'</p>':'')+'<label class="photo-upload">'+(c.photo?'تغيير صورة العميل':'إضافة صورة العميل')+'<input type="file" accept="image/*" onchange="saveCustomerPhoto('+"'"+esc(String(c.id))+"'"+',this)" hidden></label><h4>إحصائيات العميل</h4><div class="customer-stats"><div><small>عدد الفواتير النشطة</small><b>'+financialOrders.length+'</b></div><div><small>إجمالي المبيعات</small><b>'+money(sales)+'</b></div><div><small>إجمالي المدفوع</small><b>'+money(paid)+'</b></div><div><small>المستحق عليه</small><b>'+money(due)+'</b></div><div><small>رصيد زائد من الطلبات</small><b>'+money(credits)+'</b></div><div><small>إجمالي قبل التسويات</small><b>'+money(gross)+'</b></div></div><h4>فواتير وطلبات العميل</h4>'+orderRows+'<h4>سجل التحصيلات</h4>'+paymentRows+'<section class="lf-customer-statement"><h4>كشف حساب العميل</h4><p class="muted">ملخص الفواتير والتحصيلات والرصيد حتى نهاية الفترة المحددة.</p><div class="row"><div class="field"><label for="lfCustomerStatementFrom">من تاريخ</label><input id="lfCustomerStatementFrom" type="date" onchange="renderCustomerStatement(\''+esc(String(cid))+'\')"></div><div class="field"><label for="lfCustomerStatementTo">إلى تاريخ</label><input id="lfCustomerStatementTo" type="date" onchange="renderCustomerStatement(\''+esc(String(cid))+'\')"></div></div><div class="actions"><button type="button" class="ghost" onclick="printCustomerStatement(\''+esc(String(cid))+'\')">طباعة / حفظ PDF</button><button type="button" class="ghost" onclick="shareCustomerStatement(\''+esc(String(cid))+'\')">مشاركة واتساب</button></div><div id="lfCustomerStatementSummary"></div><div id="lfCustomerStatementRows"></div></section>'+'<h4>الأمانة والتصريف</h4>'+consignmentRows+'</div>';renderCustomerStatement(cid);
 }
 
 function lfStatementDate(value){const date=new Date(String(value||'')+'T00:00:00');return Number.isFinite(date.getTime())?date:null}
