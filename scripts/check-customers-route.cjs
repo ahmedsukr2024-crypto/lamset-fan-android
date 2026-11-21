@@ -81,5 +81,5 @@ assert.match(route,/تجار جملة/,'Nearby radar must offer wholesalers.');
 assert.match(route,/موزعون/,'Nearby radar must offer distributors.');
 assert.match(route,/محلات هدايا وألعاب/,'Nearby radar must offer gifts and toys shops.');
 assert.match(route,/محلات أدوات مكتبية/,'Nearby radar must offer stationery shops.');
-assert.match(route,/function setRadarCategory\\(category\\)/,'Radar category selection must be explicit and validated.');
-assert.match(route,/queries\\[state\\.radarCategory\\]/,'Radar search must use the selected category instead of a fixed query.');
+assert.ok(route.includes('function setRadarCategory(category)'),'Radar category selection must be explicit and validated.');
+assert.ok(route.includes('queries[state.radarCategory]'),'Radar search must use the selected category instead of a fixed query.');
