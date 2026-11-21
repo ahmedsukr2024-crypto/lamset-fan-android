@@ -61,14 +61,18 @@ assert.match(route,/فتح ملخص الحساب في واتساب/,'Account Wha
 assert.match(css,/overflow-wrap:anywhere;line-height:1\.4;text-align:center/,'Long action labels must wrap within their buttons.');
 assert.match(route,/category=c\?categoryOf\(c\):'prospect'/,'New customers must default to prospect instead of silently becoming wholesale customers.');
 
-assert.match(index,/function lamsetResolveCustomerMapLink/,'Google Maps links must have a resolver.');
-assert.match(index,/function lamsetSearchCustomerPlace/,'Customer place search must be available.');
+assert.doesNotMatch(index,/function lamsetResolveCustomerMapLink|function lamsetSearchCustomerPlace/,'Legacy place search and map-link resolver must be removed.');
+assert.match(index,/function lamsetSaveCustomerMapLink/,'Customer form must accept a Google Maps link.');
+assert.match(index,/googleMapsUrl/,'Google Maps URL must be saved with the customer.');
+assert.match(index,/function lamsetCaptureCustomerLocation/,'Customer form must support GPS capture.');
 assert.match(index,/function lamsetCaptureCustomerLocation/,'Customer form must support GPS capture.');
 assert.match(index,/lamsetLocationControlsMarkup\(c,'c'\)/,'Main customer form must expose the location picker.');
 assert.match(index,/c\.lat=lat;c\.lng=lng/,'Main customer save must persist validated coordinates.');
 assert.match(index,/lamsetCoordsFromMapUrl/,'Google Maps coordinates must be extracted and validated.');
+assert.match(index,/maps\\.app\\.goo\\.gl/,'Google Maps short-link hosts must be recognized and rejected with a clear message when they do not expose coordinates.');
 assert.match(route,/lamsetLocationControlsMarkup\(c,'lfCr'\)/,'Route customer form must expose the shared location picker.');
-assert.match(route,/GPS أو رابط Google Maps أو البحث عن المكان/,'Map empty-state must explain all supported location methods.');
+assert.match(route,/GPS أو رابط Google Maps/,'Map empty-state must explain the supported location methods.');
+assert.match(route,/const mapUrl=String\(\$\('lfCrMapUrl'\)/,'Route customer save must preserve the original Google Maps link.');
 
 console.log('Customer route static checks passed.');
 
