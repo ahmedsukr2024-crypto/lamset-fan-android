@@ -1040,9 +1040,9 @@
 | TRY-020 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-021 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-022 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-023 | معتمد — لم ينفذ | منفذ جزئياً — فجوة موثقة في المراجعة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-023 | معتمد — لم ينفذ | منفذ — البحث يشمل رقم الطلب المرتبط، مع الاحتفاظ ببقية معايير البحث | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs (فحص ثابت) |
 | TRY-024 | معتمد — لم ينفذ | غير منفذ — فجوة فعلية مؤكدة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-025 | معتمد — قاعدة ربط | غير منفذ — فجوة فعلية مؤكدة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-025 | معتمد — قاعدة ربط | منفذ جزئياً — ربط اختياري بالطلب متاح؛ ربط المصروف لم يستكمل | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs (فحص ثابت) |
 | TRY-026 | معتمد — لم ينفذ | غير منفذ — فجوة فعلية مؤكدة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-027 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-028 | معتمد — قاعدة تحقق | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
@@ -1091,8 +1091,8 @@
 
 ## فجوات الخزينة المؤكدة
 
-- غير منفذ: TRY-024 التصنيفات القابلة للإضافة؛ TRY-025 الربط اليدوي الاختياري بحركة طلب/مصروف؛ TRY-026 مرفقات الحركة؛ TRY-038 تصحيح مستقل للإقفال؛ TRY-043 البحث في سجل الإقفالات؛ TRY-045 تنبيه الرئيسية عند انتهاء اليوم دون إقفال؛ TRY-053 حد تنبيه انخفاض الرصيد القابل للضبط.
-- جزئي: TRY-023 البحث برقم الطلب؛ TRY-032 احترام جميع فلاتر سجل الحركات في PDF؛ TRY-036 تمثيل الأيام غير المقفلة تاريخياً؛ TRY-040 حفظ لقطة كاملة للإقفال ورصيد البداية (ومنها أن openingExpectedCents يظل صفراً ولا يحدث لاحقاً)؛ TRY-046 وTRY-054 حارس شامل لكل العمليات الجارية؛ TRY-049 تعديل التحصيل/طريقة الدفع؛ TRY-050 تأكيد صريح عند تسجيل حركة نقدية بتاريخ يوم مغلق.
+- غير منفذ: TRY-024 التصنيفات القابلة للإضافة؛ TRY-026 مرفقات الحركة؛ TRY-038 تصحيح مستقل للإقفال؛ TRY-043 البحث في سجل الإقفالات؛ TRY-045 تنبيه الرئيسية عند انتهاء اليوم دون إقفال؛ TRY-053 حد تنبيه انخفاض الرصيد القابل للضبط.
+- جزئي: TRY-025 (ربط الطلب متاح، وربط المصروف لم يستكمل)؛ TRY-032 احترام جميع فلاتر سجل الحركات في PDF؛ TRY-036 تمثيل الأيام غير المقفلة تاريخياً؛ TRY-040 حفظ لقطة كاملة للإقفال ورصيد البداية (ومنها أن openingExpectedCents يظل صفراً ولا يحدث لاحقاً)؛ TRY-046 وTRY-054 حارس شامل لكل العمليات الجارية؛ TRY-049 تعديل التحصيل/طريقة الدفع؛ TRY-050 تأكيد صريح عند تسجيل حركة نقدية بتاريخ يوم مغلق.
 
 ## مراجع الاختبارات وحدودها
 
@@ -1109,3 +1109,14 @@
 - GitHub Actions: Validation run 44867209154 ناجح، وAndroid APK build run 44867209228 ناجح على Commit المراجعة المرجعي.
 - نجاح check:all (31 خطوة/أمر تحقق) وبناء APK لا يثبت سلامة كل وظيفة على جهاز Android؛ يلزم اختبار ميداني منفصل قبل ادعاء ذلك.
 - لا تغيير في الكود أو إعدادات البناء أو workflows ضمن هذا التحديث الوثائقي.
+
+
+### استكمال البحث وربط حركة الخزينة بالطلب — 2026-11-22
+- تم تطوير سجل حركات الخزينة الحالي دون إنشاء سجل أو صفحة موازية.
+- أصبح من الممكن ربط حركة الإيداع/السحب برقم طلب اختياري عند التسجيل، مع التحقق من وجود الطلب وتخزين معرفه ورقم الطلب كبيانات مرجعية فقط.
+- يمكن إضافة الربط أو تغييره أو إزالته عند تعديل الحركة، مع إدراج المرجع السابق والجديد في سجل تدقيق التعديل.
+- يظهر رقم الطلب في صف الحركة وتفاصيلها، ويشمله البحث النصي الحالي مع رقم الحركة والمبلغ والسبب والملاحظات.
+- الربط المرجعي لا ينشئ تحصيلاً أو مصروفاً ولا يغير رصيد الخزينة ولا يعيد احتساب الحركة؛ الأثر المالي يظل للحركة المسجلة مرة واحدة فقط.
+- TRY-023 أصبح منفذاً وفق مراجعة الكود؛ TRY-025 جزئي لأن ربط المصروف لم يكتمل بعد.
+- أضيفت تأكيدات بنيوية في scripts/check-treasury-section.cjs. لم تتوفر بعد نتيجة GitHub Actions جديدة لهذا Commit عند إعداد هذا السجل، ولا يعد الفحص الثابت اختبار واجهة أو Android.
+- الملفات المعدلة وظيفياً: www/index.html وwww/lamset-local-db.js وscripts/check-treasury-section.cjs.
