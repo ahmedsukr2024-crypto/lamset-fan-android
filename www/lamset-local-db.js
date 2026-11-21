@@ -248,6 +248,8 @@ class LamsetLocalDatabase {
     const movement = {
       id: movementNo, movementNo, type, amountCents, reason,
       notes: String(input.notes || ''),
+      orderId: String(input.orderId || '').trim() || null,
+      orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null,
       effectiveDate,
       createdAt: new Date().toISOString(), balanceBeforeCents: 0, balanceAfterCents: 0,
       status: 'active'
