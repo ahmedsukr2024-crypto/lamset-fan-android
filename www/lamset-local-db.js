@@ -236,11 +236,20 @@ class LamsetLocalDatabase {
     const transaction = database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], 'readwrite');
     const meta = transaction.objectStore(META);
     const movements = transaction.objectStore(MOVEMENTS);
-    const [sequenceRecord, openingRecord] = await Promise.all([
+    const cashLinks = transaction.objectStore(CASH_LINKS);
+    const expenseId = String(input.expenseId || '').trim() || null;
+    const [sequenceRecord, openingRecord, existingMovements, expenseLink] = await Promise.all([
       requestValue(meta.get('treasury.movement.sequence')),
-      requestValue(meta.get('treasury.opening'))
+      requestValue(meta.get('treasury.opening')),
+      requestValue(movements.getAll()),
+      expenseId ? requestValue(cashLinks.get(expenseId)) : Promise.resolve(null)
     ]);
     if (!openingRecord?.value) { transaction.abort(); throw new Error('سجّل الرصيد الافتتاحي أولاً قبل إضافة حركات الخزينة.'); }
+    if (expenseId) {
+      if (type !== 'withdrawal') { transaction.abort(); throw new Error('لا يمكن ربط مصروف بحركة إيداع؛ الربط متاح لحركة السحب فقط.'); }
+      if (!expenseLink || expenseLink.status !== 'active' || expenseLink.type !== 'expense') { transaction.abort(); throw new Error('المصروف غير مرتبط بالخزينة كمصروف نقدي نشط؛ لا يمكن ربطه بحركة السحب.'); }
+      if (existingMovements.some(item => item.status === 'active' && item.expenseId === expenseId)) { transaction.abort(); throw new Error('هذا المصروف مرتبط بالفعل بحركة خزينة نشطة؛ لا يمكن تكرار الربط.'); }
+    }
     const effectiveDate = normalizeBusinessDate(input.effectiveDate);
     if (effectiveDate < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ الحركة يسبق تاريخ بدء سجل الخزينة.'); }
     const sequence = Number(sequenceRecord?.value || 0) + 1;
@@ -250,6 +259,9 @@ class LamsetLocalDatabase {
       notes: String(input.notes || ''),
       orderId: String(input.orderId || '').trim() || null,
       orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null,
+      expenseId,
+      expenseLabel: String(input.expenseLabel || '').trim().slice(0, 180) || null,
+      referenceOnly: !!expenseId,
       effectiveDate,
       createdAt: new Date().toISOString(), balanceBeforeCents: 0, balanceAfterCents: 0,
       status: 'active'
@@ -291,7 +303,7 @@ class LamsetLocalDatabase {
         const before = balance;
         const signed = Number(item.amountCents || 0) * (
           event.kind === 'movement'
-            ? (item.type === 'deposit' ? 1 : -1)
+            ? (item.referenceOnly ? 0 : (item.type === 'deposit' ? 1 : -1))
             : (item.type === 'collection' ? 1 : -1)
         );
         balance += signed;
@@ -346,10 +358,21 @@ class LamsetLocalDatabase {
     const database = await this.open();
     const transaction = database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], 'readwrite');
     const store = transaction.objectStore(MOVEMENTS);
-    const previous = await requestValue(store.get(id));
+    const cashLinks = transaction.objectStore(CASH_LINKS);
+    const expenseId = String(input.expenseId || '').trim() || null;
+    const [previous, openingRecord, existingMovements, expenseLink] = await Promise.all([
+      requestValue(store.get(id)),
+      requestValue(transaction.objectStore(META).get('treasury.opening')),
+      requestValue(store.getAll()),
+      expenseId ? requestValue(cashLinks.get(expenseId)) : Promise.resolve(null)
+    ]);
     if (!previous || previous.status !== 'active') { transaction.abort(); throw new Error('الحركة غير موجودة أو سبق إلغاؤها.'); }
-    const openingRecord = await requestValue(transaction.objectStore(META).get('treasury.opening'));
     if (!openingRecord?.value || effectiveDate < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ الحركة يجب ألا يسبق تاريخ بدء الخزينة.'); }
+    if (expenseId) {
+      if (type !== 'withdrawal') { transaction.abort(); throw new Error('لا يمكن ربط مصروف بحركة إيداع؛ الربط متاح لحركة السحب فقط.'); }
+      if (!expenseLink || expenseLink.status !== 'active' || expenseLink.type !== 'expense') { transaction.abort(); throw new Error('المصروف غير مرتبط بالخزينة كمصروف نقدي نشط؛ لا يمكن ربطه بحركة السحب.'); }
+      if (existingMovements.some(item => item.id !== id && item.status === 'active' && item.expenseId === expenseId)) { transaction.abort(); throw new Error('هذا المصروف مرتبط بالفعل بحركة خزينة نشطة؛ لا يمكن تكرار الربط.'); }
+    }
     const now = new Date().toISOString();
     const next = {
       ...previous,
@@ -357,11 +380,14 @@ class LamsetLocalDatabase {
       notes: String(input.notes || ''),
       orderId: String(input.orderId || '').trim() || null,
       orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null,
+      expenseId,
+      expenseLabel: String(input.expenseLabel || '').trim().slice(0, 180) || null,
+      referenceOnly: !!expenseId,
       updatedAt: now,
       audit: [...(previous.audit || []), {
         action: 'edit', at: now, reason: reasonForChange,
-        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', orderId: previous.orderId || null, orderNumber: previous.orderNumber || null },
-        next: { type, amountCents, reason, effectiveDate, notes: String(input.notes || ''), orderId: String(input.orderId || '').trim() || null, orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null }
+        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', orderId: previous.orderId || null, orderNumber: previous.orderNumber || null, expenseId: previous.expenseId || null, expenseLabel: previous.expenseLabel || null, referenceOnly: !!previous.referenceOnly },
+        next: { type, amountCents, reason, effectiveDate, notes: String(input.notes || ''), orderId: String(input.orderId || '').trim() || null, orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null, expenseId, expenseLabel: String(input.expenseLabel || '').trim().slice(0, 180) || null, referenceOnly: !!expenseId }
       }]
     };
     store.put(next);
