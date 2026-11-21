@@ -15,4 +15,14 @@ assert(db.includes("orderId: String(input.orderId || '').trim() || null")&&db.in
 assert(html.includes('if(orderRef&&!linkedOrder)return alert('),'Unknown order references must be rejected before saving');
 assert(html.includes('orderId:linkedOrder?.id||null,orderNumber:linkedOrder?.orderNumber||null'),'Manual movement must persist the selected order reference');
 assert(html.includes('x.orderNumber')&&html.includes('orderRef?\' · طلب \''),'Treasury movement history must display and search by the linked order number');
+
+assert(html.includes('id="lfTreasuryMovementExpenseRef"'),'Manual withdrawals must support an optional cash-expense reference');
+assert(html.includes('lfTreasuryPopulateExpenseOptions(data.links,data.movements)'),'Expense reference options must be populated from active cash links');
+assert(html.includes('expenseId:linkedExpense?.id||null'),'Movement create and edit must persist the linked expense reference');
+assert(html.includes('سيُحفظ السحب كمرجع فقط ولن يخصم من الرصيد'),'The UI must disclose that an expense-linked withdrawal is reference-only');
+assert(db.includes('referenceOnly: !!expenseId'),'An expense-linked withdrawal must be stored as reference-only');
+assert(db.includes('(item.referenceOnly ? 0 : (item.type === \'deposit\' ? 1 : -1))'),'Reference-only movements must not affect the treasury ledger');
+assert(db.includes("existingMovements.some(item => item.status === 'active' && item.expenseId === expenseId)"),'An expense cannot be linked to multiple active treasury movements');
+assert(db.includes("expenseLink.status !== 'active' || expenseLink.type !== 'expense'"),'Only an active cash-expense link can be referenced by a withdrawal');
+assert(db.includes("expenseId: previous.expenseId || null, expenseLabel: previous.expenseLabel || null, referenceOnly: !!previous.referenceOnly"),'Expense reference changes must be preserved in movement audit history');
 console.log('Treasury section, owner gate, atomic cash links, and closeout checks passed.');
