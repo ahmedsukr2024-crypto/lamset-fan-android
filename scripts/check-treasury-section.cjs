@@ -23,6 +23,7 @@ assert(html.includes('سيُحفظ السحب كمرجع فقط ولن يخصم 
 assert(db.includes('referenceOnly: !!expenseId'),'An expense-linked withdrawal must be stored as reference-only');
 assert(db.includes('(item.referenceOnly ? 0 : (item.type === \'deposit\' ? 1 : -1))'),'Reference-only movements must not affect the treasury ledger');
 assert(db.includes("existingMovements.some(item => item.status === 'active' && item.expenseId === expenseId)"),'An expense cannot be linked to multiple active treasury movements');
+assert(db.includes('Number(expenseLink.amountCents) !== amountCents'),'The reference movement amount must exactly match the existing cash expense amount');
 assert(db.includes("expenseLink.status !== 'active' || expenseLink.type !== 'expense'"),'Only an active cash-expense link can be referenced by a withdrawal');
 assert(db.includes('if (previous.expenseId && previous.referenceOnly && expenseId !== previous.expenseId)'),'An active expense reference cannot be removed or changed while its cash ledger link remains active');
 assert(db.includes('previousExpenseLink?.status === \'active\' && previousExpenseLink.type === \'expense\''),'Reference removal is blocked until the original cash expense link is no longer active');
