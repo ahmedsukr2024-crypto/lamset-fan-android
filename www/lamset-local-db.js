@@ -355,11 +355,13 @@ class LamsetLocalDatabase {
       ...previous,
       type, amountCents, reason, effectiveDate,
       notes: String(input.notes || ''),
+      orderId: String(input.orderId || '').trim() || null,
+      orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null,
       updatedAt: now,
       audit: [...(previous.audit || []), {
         action: 'edit', at: now, reason: reasonForChange,
-        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '' },
-        next: { type, amountCents, reason, effectiveDate, notes: String(input.notes || '') }
+        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', orderId: previous.orderId || null, orderNumber: previous.orderNumber || null },
+        next: { type, amountCents, reason, effectiveDate, notes: String(input.notes || ''), orderId: String(input.orderId || '').trim() || null, orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null }
       }]
     };
     store.put(next);
