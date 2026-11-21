@@ -248,6 +248,7 @@ class LamsetLocalDatabase {
     if (expenseId) {
       if (type !== 'withdrawal') { transaction.abort(); throw new Error('لا يمكن ربط مصروف بحركة إيداع؛ الربط متاح لحركة السحب فقط.'); }
       if (!expenseLink || expenseLink.status !== 'active' || expenseLink.type !== 'expense') { transaction.abort(); throw new Error('المصروف غير مرتبط بالخزينة كمصروف نقدي نشط؛ لا يمكن ربطه بحركة السحب.'); }
+      if (Number(expenseLink.amountCents) !== amountCents) { transaction.abort(); throw new Error('مبلغ حركة السحب المرجعية يجب أن يطابق مبلغ المصروف النقدي المرتبط.'); }
       if (existingMovements.some(item => item.status === 'active' && item.expenseId === expenseId)) { transaction.abort(); throw new Error('هذا المصروف مرتبط بالفعل بحركة خزينة نشطة؛ لا يمكن تكرار الربط.'); }
     }
     const effectiveDate = normalizeBusinessDate(input.effectiveDate);
@@ -371,6 +372,7 @@ class LamsetLocalDatabase {
     if (expenseId) {
       if (type !== 'withdrawal') { transaction.abort(); throw new Error('لا يمكن ربط مصروف بحركة إيداع؛ الربط متاح لحركة السحب فقط.'); }
       if (!expenseLink || expenseLink.status !== 'active' || expenseLink.type !== 'expense') { transaction.abort(); throw new Error('المصروف غير مرتبط بالخزينة كمصروف نقدي نشط؛ لا يمكن ربطه بحركة السحب.'); }
+      if (Number(expenseLink.amountCents) !== amountCents) { transaction.abort(); throw new Error('مبلغ حركة السحب المرجعية يجب أن يطابق مبلغ المصروف النقدي المرتبط.'); }
       if (existingMovements.some(item => item.id !== id && item.status === 'active' && item.expenseId === expenseId)) { transaction.abort(); throw new Error('هذا المصروف مرتبط بالفعل بحركة خزينة نشطة؛ لا يمكن تكرار الربط.'); }
     }
     if (previous.expenseId && previous.referenceOnly && expenseId !== previous.expenseId) {
