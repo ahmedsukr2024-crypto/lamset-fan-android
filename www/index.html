@@ -2896,6 +2896,7 @@ async function editTreasuryMovement(movementId,button){
  const expenseIndex=Number(expenseChoice),linkedExpense=expenseIndex===0?null:Number.isInteger(expenseIndex)&&expenseIndex>0?choices[expenseIndex-1]:null;
  if(expenseChoice.trim()!==''&&!linkedExpense&&expenseIndex!==0)return alert('اختيار المصروف غير صحيح.');
  if(linkedExpense&&type!=='withdrawal')return alert('ربط المصروف متاح مع حركة السحب فقط.');
+ if(linkedExpense&&Math.round(Number(linkedExpense.amount)*100)!==Math.round(Number(amount)*100))return alert('مبلغ حركة السحب يجب أن يطابق مبلغ المصروف النقدي المرتبط.');
  const changeReason=prompt('سبب تعديل الحركة (إلزامي لحفظ سجل المراجعة)');if(changeReason===null)return;
  if(!changeReason.trim())return alert('اكتب سبب التعديل.');
  const closeouts=await LamsetLocalDB.listTreasuryCloseouts();
@@ -3010,6 +3011,7 @@ async function saveTreasuryMovement(button){
  if(linkedExpense&&type!=='withdrawal')return alert('ربط المصروف متاح مع حركة السحب فقط.');
  const cashLinks=await LamsetLocalDB.listCashLinks();
  if(linkedExpense&&!cashLinks.some(link=>String(link.id)===String(linkedExpense.id)&&link.type==='expense'&&link.status==='active'))return alert('المصروف النقدي لم يكتمل ربطه بالخزينة بعد؛ افتح قسم الخزينة للمزامنة ثم أعد المحاولة.');
+ if(linkedExpense&&Math.round(Number(linkedExpense.amount)*100)!==Math.round(Number(amount)*100))return alert('مبلغ حركة السحب يجب أن يطابق مبلغ المصروف النقدي المرتبط.');
  if(date!==lfTreasuryToday()&&!confirm('التاريخ المختار '+date+' يختلف عن تاريخ اليوم. هل تريد المتابعة؟'))return;
  const balance=await LamsetLocalDB.getTreasuryBalance(),next=balance+(type==='deposit'?1:linkedExpense?0:-1)*Number(amount);
  if(next<0)return alert('الرصيد المتاح '+lfTreasuryAmount(balance)+'، والمبلغ المطلوب '+lfTreasuryAmount(amount)+'. لا يمكن إتمام السحب.');
