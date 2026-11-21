@@ -74,3 +74,12 @@ console.log('Customer route static checks passed.');
 
 assert.match(index,/photon\\.komoot\\.io/,'Place search must query a second geocoding directory when the first has no result.');
 assert.match(index,/r\\.jina\\.ai/,'Short Google Maps links must attempt a server-side reader fallback when browser redirects are blocked.');
+assert.match(route,/radarCategory:'all'/,'Nearby radar must default to all business activities.');
+assert.match(route,/جميع الأنشطة التجارية/,'Nearby radar must offer an all-businesses search category.');
+assert.match(route,/محلات ومكتبات/,'Nearby radar must offer shops and bookstores.');
+assert.match(route,/تجار جملة/,'Nearby radar must offer wholesalers.');
+assert.match(route,/موزعون/,'Nearby radar must offer distributors.');
+assert.match(route,/محلات هدايا وألعاب/,'Nearby radar must offer gifts and toys shops.');
+assert.match(route,/محلات أدوات مكتبية/,'Nearby radar must offer stationery shops.');
+assert.match(route,/function setRadarCategory\\(category\\)/,'Radar category selection must be explicit and validated.');
+assert.match(route,/queries\\[state\\.radarCategory\\]/,'Radar search must use the selected category instead of a fixed query.');
