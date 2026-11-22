@@ -2932,7 +2932,7 @@ async function editTreasuryMovement(movementId,button){
  if(button){button.disabled=true;button.textContent='جارٍ التعديل...';}
  try{
   if(!(await window.lamsetRequireOwnerPin('تعديل حركة خزينة '+item.movementNo)))return;
-  await LamsetLocalDB.updateTreasuryMovement(movementId,{type,amount,reason,effectiveDate,notes,category,category,orderId:linkedOrder?.id||null,orderNumber:linkedOrder?.orderNumber||null,expenseId:linkedExpense?.id||null,expenseLabel:linkedExpense?(linkedExpense.category+' · '+money(linkedExpense.amount)+' · '+linkedExpense.date):null},changeReason);
+  await LamsetLocalDB.updateTreasuryMovement(movementId,{type,amount,reason,effectiveDate,notes,category,orderId:linkedOrder?.id||null,orderNumber:linkedOrder?.orderNumber||null,expenseId:linkedExpense?.id||null,expenseLabel:linkedExpense?(linkedExpense.category+' · '+money(linkedExpense.amount)+' · '+linkedExpense.date):null},changeReason);
   alert('تم تعديل الحركة وإعادة حساب الأرصدة المتأثرة مع الاحتفاظ بسجل التعديل. الربط بالمصروف مرجعي فقط ولا يضيف أثراً مالياً.');
   await renderTreasury();
  }catch(error){alert(error.message||'تعذر تعديل حركة الخزينة.');}
@@ -3048,7 +3048,7 @@ async function saveTreasuryMovement(button){
  button.disabled=true;const old=button.textContent;button.textContent='جارٍ الحفظ...';
  try{
   if(!(await window.lamsetRequireOwnerPin('تأكيد حركة '+label+' بالخزينة')))return;
-  const movement=await LamsetLocalDB.recordTreasuryMovement({type,amount,reason,effectiveDate:date,notes,orderId:linkedOrder?.id||null,orderNumber:linkedOrder?.orderNumber||null,expenseId:linkedExpense?.id||null,expenseLabel:linkedExpense?(linkedExpense.category+' · '+money(linkedExpense.amount)+' · '+linkedExpense.date):null});
+  const movement=await LamsetLocalDB.recordTreasuryMovement({type,amount,reason,effectiveDate:date,notes,category,orderId:linkedOrder?.id||null,orderNumber:linkedOrder?.orderNumber||null,expenseId:linkedExpense?.id||null,expenseLabel:linkedExpense?(linkedExpense.category+' · '+money(linkedExpense.amount)+' · '+linkedExpense.date):null});
   $('lfTreasuryMovementAmount').value='';$('lfTreasuryMovementReason').value='';$('lfTreasuryMovementNotes').value='';
   if($('lfTreasuryMovementOrderRef'))$('lfTreasuryMovementOrderRef').value='';
   if($('lfTreasuryMovementCategory'))$('lfTreasuryMovementCategory').value='';
