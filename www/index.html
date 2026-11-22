@@ -933,10 +933,12 @@ function lfCaptureNavigationSnapshot(page){
 function lfRestoreNavigationSnapshot(page){
  const panel=document.getElementById(page),snapshot=lfNavigationSnapshots.get(page);if(!panel||!snapshot)return;
  snapshot.fields.forEach(item=>{
-  let el=item.key[0]==='#'?document.getElementById(item.key.slice(1)):panel.querySelector(item.key);
+  let el=item.key[0]==='#'?document.getElementById(item.key.slice(1)):panel.querySelectorAll(item.key)[item.index||0];
   if(!el||!panel.contains(el)||el.disabled)return;
   if(item.type==='checkbox'||item.type==='radio')el.checked=item.checked;
   else if(item.type!=='file'&&item.type!=='password')el.value=item.value;
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+  el.dispatchEvent(new Event('change',{bubbles:true}));
  });
  panel.scrollTop=snapshot.panelTop||0;
  requestAnimationFrame(()=>window.scrollTo({top:snapshot.windowY||0,left:0,behavior:'auto'}));
