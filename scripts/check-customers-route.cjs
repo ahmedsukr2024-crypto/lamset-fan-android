@@ -9,7 +9,7 @@ const bridge = fs.readFileSync('www/mobile-bridge.js','utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
 assert.match(index,/customers-route\/customers-route\.css/);
 assert.ok(index.includes('<link rel="stylesheet" href="customers-route/customers-route.css">\n</head>'));
-assert.ok(index.includes('<script src="customers-route/customers-route.js"></script>\n</body>'));
+assert.match(index,/<script src="customers-route\/customers-route\.js"><\/script>[\s\S]*<\/body>/,'Customer route script must load before the closing body tag, while allowing later inline app guards.');
 assert.doesNotMatch(index,/frame\.srcdoc=['"][^'"]*customers-route\/customers-route\.js/);
 assert.match(index,/customers-route\/customers-route\.js/);
 assert.match(index,/data-nav-target="customers-route"/);
