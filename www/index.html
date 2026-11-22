@@ -1889,6 +1889,7 @@ $('analyticsCustomers').innerHTML=topCustomers.length?'<div class="analytics-tab
 
 }
 if(view==='collections'){$('analyticsCollections').innerHTML='<div class="analytics-collection-grid"><div><small>إجمالي المحصل على الفواتير</small><b>'+money(paid)+'</b></div><div><small>المتبقي على العملاء</small><b>'+money(due)+'</b></div><div><small>رصيد زائد غير مسوّى</small><b>'+money(credit)+'</b></div><div><small>نسبة التحصيل من صافي المبيعات</small><b>'+(sales?Math.min(100,paid/sales*100).toFixed(1)+'%':'—')+'</b></div></div><p class="muted">الأرصدة الزائدة المعروضة تخص الفواتير ولم تخصم منها التسويات اللاحقة خارج الفاتورة.</p>';
+}
 if(view==='stock'){const production=(db.productions||[]).filter(x=>{let d=new Date(x.date||0);return !isNaN(d)&&d>=from&&d<=to}),produced=production.reduce((v,x)=>v+(Number(x.net??x.qty)||0),0),stockUnits=(db.products||[]).reduce((v,p)=>v+(Number(p.stock)||0),0),stockValue=(db.products||[]).reduce((v,p)=>v+(Number(p.stock)||0)*(Number(p.cost)||0),0);
 $('analyticsOperations').innerHTML='<div class="analytics-collection-grid"><div><small>إنتاج خلال الفترة</small><b>'+produced+' قطعة</b></div><div><small>رصيد المخزون الحالي</small><b>'+stockUnits+' قطعة</b></div><div><small>قيمة المخزون وفق تكلفة الكتالوج الحالية</small><b>'+money(stockValue)+'</b></div></div>';
 }
