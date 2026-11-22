@@ -11,7 +11,8 @@ assert.match(html, /lfRestoreNavigationSnapshot\(t\)/, 'يجب استعادة ا
 assert.match(html, /history\.pushState\(\{\.\.\.\(history\.state\|\|\{\}\),lamsetPage:t\}/, 'يجب تسجيل كل انتقال صفحة في سجل المتصفح');
 assert.match(html, /addEventListener\('popstate',event=>[\s\S]*event\.state\?\.lamsetPage/, 'يجب الرجوع إلى الصفحة المحددة في سجل التنقل');
 assert.match(html, /popstate',event=>\{const drawer=document\.getElementById\('lfSideDrawer'\);if\(drawer\?\.classList\.contains\('is-open'\)\)[\s\S]*closeLamsetDrawer\(true\)/, 'يجب إغلاق القائمة عند الرجوع دون استهلاك خطوة صفحة');
-assert.match(html, /history\.pushState\(\{lamsetOverlay:'drawer',lamsetPage:/, 'يجب تمييز خطوة القائمة الجانبية في سجل التنقل');
+assert.doesNotMatch(html, /history\.pushState\(\{lamsetOverlay:'drawer'/, 'يجب ألا تضيف القائمة الجانبية خطوة زائفة إلى سجل الصفحات');
+assert.match(html, /popstate',event=>\{const drawer=document\.getElementById\('lfSideDrawer'\);if\(drawer\?\.classList\.contains\('is-open'\)[\s\S]*closeLamsetDrawer\(true\);window\.__lamsetNavigationDepth/, 'يجب إغلاق القائمة ثم متابعة الرجوع إلى الصفحة السابقة دون فقدان خطوة');
 assert.match(html, /window\.lamsetHandleBack=function\(\)\{if\(closeDrawer\(\)\)return true;[\s\S]*previousBack\(\)/, 'يجب إغلاق القائمة الجانبية قبل تمرير الرجوع إلى سجل الصفحات');
 assert.match(html, /closeTopmostModal\(\)/, 'يجب إغلاق النافذة المنبثقة قبل مغادرة الصفحة');
 assert.match(bridge, /App\.addListener\('backButton'[\s\S]*window\.lamsetHandleBack\(\)/, 'يجب ربط زر الرجوع الفعلي في Android بالنظام الموحد');
