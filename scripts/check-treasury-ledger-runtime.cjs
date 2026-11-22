@@ -176,5 +176,46 @@ function assert(condition, message) {
   assert(openingValue.originalCents === 10000 && openingValue.cents === 12000, 'opening correction preserves the first value and stores the corrected value');
   assert(openingValue.corrections?.length === 1 && openingValue.corrections[0].reason === 'تصحيح رصيد البداية', 'opening correction records its reason and historical values');
 
+  const dateStart = source.indexOf('function normalizeBusinessDate(');
+  const dateEnd = source.indexOf('\nfunction fromCents', dateStart);
+  if (dateStart < 0 || dateEnd < 0) throw new Error('Business date normalization could not be isolated.');
+  const dateSandbox = {};
+  vm.runInNewContext(source.slice(dateStart, dateEnd) + '\nthis.normalizeDate = normalizeBusinessDate;', dateSandbox);
+  const closeoutStart = source.indexOf('  async correctTreasuryCloseout(');
+  const closeoutEnd = source.indexOf('\n  async listTreasuryCloseouts()', closeoutStart);
+  if (closeoutStart < 0 || closeoutEnd < 0) throw new Error('Prior closeout correction implementation could not be isolated.');
+  const closeoutMethod = source.slice(closeoutStart, closeoutEnd).trim().replace(/^async correctTreasuryCloseout/, 'async function correctTreasuryCloseout');
+  const closeoutSandbox = {
+    META: 'meta', MOVEMENTS: 'treasuryMovements', CASH_LINKS: 'treasuryCashLinks', CLOSEOUTS: 'treasuryCloseouts',
+    normalizeBusinessDate: dateSandbox.normalizeDate,
+    requestValue: value => Promise.resolve(value),
+    transactionDone: () => Promise.resolve(true),
+    fromCents: value => Number((Number(value || 0) / 100).toFixed(2))
+  };
+  vm.runInNewContext(closeoutMethod + '\nthis.correctCloseout = correctTreasuryCloseout;', closeoutSandbox);
+  const closeoutCorrection = fixture({
+    opening: 10000,
+    movements: [
+      { id: 'closeout-day-one', type: 'deposit', amountCents: 2000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T08:00:00Z', status: 'active' },
+      { id: 'closeout-day-two', type: 'deposit', amountCents: 1000, effectiveDate: '2026-11-02', createdAt: '2026-11-02T08:00:00Z', status: 'active' }
+    ],
+    closeouts: [
+      { id: 'CLOSE-2026-11-01', businessDate: '2026-11-01', actualCents: 11500, expectedCents: 12000, differenceCents: -500, originalExpectedCents: 12000, originalDifferenceCents: -500, status: 'closed' },
+      { id: 'CLOSE-2026-11-02', businessDate: '2026-11-02', actualCents: 12000, expectedCents: 12500, differenceCents: -500, originalExpectedCents: 12500, originalDifferenceCents: -500, status: 'closed' }
+    ]
+  });
+  const closeoutOwner = {
+    requireOwnerSession: () => true,
+    open: async () => ({ transaction: () => closeoutCorrection.transaction }),
+    recomputeTreasuryLedger: sandbox.runLedger
+  };
+  const closeoutResult = await closeoutSandbox.correctCloseout.call(closeoutOwner, '2026-11-01', 11200, 'تصحيح النقدية الفعلية');
+  const firstCloseout = closeoutCorrection.closeouts.find(x => x.businessDate === '2026-11-01');
+  const nextCloseout = closeoutCorrection.closeouts.find(x => x.businessDate === '2026-11-02');
+  assert(firstCloseout.originalActualCents === 11500 && firstCloseout.actualCents === 11200, 'manual correction preserves original actual cash and stores the corrected value');
+  assert(firstCloseout.corrections?.some(x => x.action === 'manual-closeout-correction' && x.previousActualCents === 11500 && x.correctedActualCents === 11200 && x.reason === 'تصحيح النقدية الفعلية'), 'manual closeout correction keeps the exact previous and next actual values with its reason');
+  assert(nextCloseout.expectedCents === 12200 && nextCloseout.originalExpectedCents === 12500, 'correcting a prior actual closeout recalculates later expected balances without overwriting the original snapshot');
+  assert(closeoutResult.balance === 120 && nextCloseout.actualCents === 12000, 'later actual closeouts remain unchanged and determine the final cash balance');
+
   console.log('Treasury ledger runtime checks passed: ordering, idempotent source impact, reference-only withdrawals, negative-balance guard, closeout snapshots, and audited corrections.');
 })().catch(error => { console.error(error); process.exit(1); });
