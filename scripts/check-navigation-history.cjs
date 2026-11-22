@@ -13,4 +13,5 @@ assert.match(html, /addEventListener\('popstate',event=>[\s\S]*event\.state\?\.l
 assert.match(html, /window\.lamsetHandleBack=function\(\)[\s\S]*history\.back\(\)/, 'يجب أن يستخدم زر الرجوع سجل الصفحات');
 assert.match(html, /closeTopmostModal\(\)/, 'يجب إغلاق النافذة المنبثقة قبل مغادرة الصفحة');
 assert.match(bridge, /window\.lamsetHandleBack\(\)/, 'يجب توصيل زر رجوع Android بالنظام الموحد');
+assert.match(html, /dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/, 'يجب تحديث العروض التابعة بعد استعادة قيم الحقول');
 console.log('Smart navigation checks passed.');
