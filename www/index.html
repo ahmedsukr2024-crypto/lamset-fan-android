@@ -597,6 +597,13 @@ html[data-theme="dark"] .lf-treasury-tabs button.active{color:#fff}
    <div class="card metric"><small>المصروفات النقدية اليوم</small><strong id="lfTreasuryExpenses">—</strong></div>
    <div class="card metric"><small>حالة إقفال اليوم</small><strong id="lfTreasuryCloseoutState">—</strong></div>
   </div>
+  <div class="card" id="lfTreasuryLowBalanceCard">
+   <div class="sectionhead"><h3>تنبيه انخفاض رصيد الخزينة</h3><small class="muted">إعداد اختياري لصاحب التطبيق</small></div>
+   <div class="row"><div class="field"><label for="lfTreasuryLowBalanceThreshold">الحد الأدنى للتنبيه (ج.م)</label><input id="lfTreasuryLowBalanceThreshold" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="مثال: 1000"></div><label class="row" style="align-items:center;gap:8px"><input id="lfTreasuryLowBalanceEnabled" type="checkbox"> تفعيل التنبيه</label></div>
+   <button type="button" class="ghost" id="lfTreasuryLowBalanceSave" onclick="lfTreasurySaveLowBalanceAlert(this)">حفظ إعداد التنبيه</button>
+   <small class="muted" id="lfTreasuryLowBalanceStatus">التنبيه معطل حتى يحدد المالك الحد الأدنى ويفعّله.</small>
+   <div class="result" id="lfTreasuryLowBalanceWarning" role="alert" hidden></div>
+  </div>
   <div class="card"><div class="sectionhead"><h3>آخر خمس حركات</h3><button type="button" class="textbtn" onclick="setTreasuryTab('movements')">عرض السجل</button></div><div id="lfTreasuryLatest"></div></div>
   <div class="card"><h3>ملخص وسائل الدفع</h3><p class="muted">النقدية الفعلية منفصلة عن التحويلات البنكية والمحافظ الإلكترونية.</p><div id="lfTreasuryPaymentMethods"></div></div>
  </div>
@@ -2866,10 +2873,10 @@ async function lfTreasuryReconcileCashPayments(){
 async function lfTreasuryData(){
  if(!window.LamsetLocalDB)throw new Error('قاعدة بيانات الخزينة غير متاحة.');
  const pendingCashLinks=await lfTreasuryReconcileCashPayments();
- const [balance,movements,links,closeouts,opening]=await Promise.all([
-  LamsetLocalDB.getTreasuryBalance(),LamsetLocalDB.listTreasuryMovements(),LamsetLocalDB.listCashLinks(),LamsetLocalDB.listTreasuryCloseouts(),LamsetLocalDB.getMeta('treasury.opening')
+ const [balance,movements,links,closeouts,opening,lowBalanceAlert]=await Promise.all([
+  LamsetLocalDB.getTreasuryBalance(),LamsetLocalDB.listTreasuryMovements(),LamsetLocalDB.listCashLinks(),LamsetLocalDB.listTreasuryCloseouts(),LamsetLocalDB.getMeta('treasury.opening'),LamsetLocalDB.getMeta('treasury.lowBalanceAlert')
  ]);
- return {balance,movements,links,closeouts,opening,pendingCashLinks};
+ return {balance,movements,links,closeouts,opening,lowBalanceAlert,pendingCashLinks};
 }
 function lfTreasuryPopulateExpenseOptions(links,movements){
  const select=$('lfTreasuryMovementExpenseRef');if(!select)return;
@@ -2895,6 +2902,19 @@ async function lfTreasuryAddCategory(){
   await lfTreasuryRefreshCategoryOptions(name.trim().replace(/\s+/g,' '));
   alert('تمت إضافة التصنيف بنجاح.');
  }catch(error){alert(error.message||'تعذرت إضافة التصنيف.');}
+}
+async function lfTreasurySaveLowBalanceAlert(button){
+ if(button?.disabled)return;
+ const enabled=!!$('lfTreasuryLowBalanceEnabled')?.checked,raw=Number($('lfTreasuryLowBalanceThreshold')?.value),thresholdCents=Math.round(raw*100);
+ if(enabled&&(!Number.isFinite(raw)||raw<=0||!Number.isSafeInteger(thresholdCents)||thresholdCents<=0))return alert('أدخل حداً أدنى صحيحاً أكبر من صفر، أو عطّل التنبيه.');
+ if(button){button.disabled=true;button.textContent='جارٍ الحفظ...';}
+ try{
+  if(!(await window.lamsetRequireOwnerPin('تعديل تنبيه انخفاض رصيد الخزينة')))return;
+  await LamsetLocalDB.setMeta('treasury.lowBalanceAlert',{enabled,thresholdCents:enabled?thresholdCents:0,updatedAt:new Date().toISOString()});
+  alert(enabled?'تم حفظ حد تنبيه انخفاض الرصيد.':'تم تعطيل تنبيه انخفاض رصيد الخزينة.');
+  await renderTreasury();
+ }catch(error){alert(error.message||'تعذر حفظ إعداد التنبيه.');}
+ finally{if(button){button.disabled=false;button.textContent='حفظ إعداد التنبيه';}}
 }
 function lfTreasuryLinkedExpense(movement){
  return movement?.expenseId?(db.expenses||[]).find(x=>String(x.id)===String(movement.expenseId))||null:null;
@@ -3026,6 +3046,11 @@ async function renderTreasury(){
   const sum=(arr,type)=>arr.filter(x=>!x.referenceOnly&&(!type||x.type===type)).reduce((v,x)=>v+(Number(x.amount)||0),0);
   const set=(id,value)=>{const el=$(id);if(el)el.textContent=value};
   const syncWarning=$('lfTreasurySyncWarning');if(syncWarning){syncWarning.hidden=!data.pendingCashLinks;syncWarning.textContent=data.pendingCashLinks?'تنبيه: يوجد '+data.pendingCashLinks+' تحصيل/مصروف نقدي محفوظ لم يكتمل ربطه بالخزينة بعد. لا تعاود تسجيل العملية؛ راجع الاتصال ثم افتح الخزينة للمحاولة مرة أخرى.':'';}
+  const lowBalanceEnabled=!!data.lowBalanceAlert?.enabled,lowBalanceCents=Number(data.lowBalanceAlert?.thresholdCents)||0,thresholdInput=$('lfTreasuryLowBalanceThreshold'),enabledInput=$('lfTreasuryLowBalanceEnabled'),lowBalanceStatus=$('lfTreasuryLowBalanceStatus'),lowBalanceWarning=$('lfTreasuryLowBalanceWarning');
+  if(thresholdInput&&document.activeElement!==thresholdInput)thresholdInput.value=lowBalanceEnabled?(lowBalanceCents/100).toFixed(2):'';
+  if(enabledInput)enabledInput.checked=lowBalanceEnabled;
+  if(lowBalanceStatus)lowBalanceStatus.textContent=lowBalanceEnabled?'التنبيه مفعّل عند '+lfTreasuryAmount(lowBalanceCents/100)+'. يمكنك تعطيله في أي وقت.':'التنبيه معطل؛ لن يظهر تحذير حتى تفعّله.';
+  if(lowBalanceWarning){const isLow=lowBalanceEnabled&&lowBalanceCents>0&&Math.round(Number(data.balance||0)*100)<=lowBalanceCents;lowBalanceWarning.hidden=!isLow;lowBalanceWarning.textContent=isLow?'تنبيه: رصيد الخزينة الحالي '+lfTreasuryAmount(data.balance)+' وصل إلى الحد الأدنى المحدد ('+lfTreasuryAmount(lowBalanceCents/100)+'). راجع الرصيد قبل متابعة العمل.':'';}
   set('lfTreasuryBalance',lfTreasuryAmount(data.balance));
   set('lfTreasuryDeposits',lfTreasuryAmount(sum(todayMoves,'deposit')));
   set('lfTreasuryWithdrawals',lfTreasuryAmount(sum(todayMoves,'withdrawal')));
