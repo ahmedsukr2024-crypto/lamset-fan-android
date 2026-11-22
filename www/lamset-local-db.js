@@ -48,6 +48,16 @@ function normalizeTreasuryCategory(value) {
   return category;
 }
 
+function normalizeTreasuryAttachment(value) {
+  if (value == null || value === '') return null;
+  const dataUrl = String(value.dataUrl || '');
+  if (!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(dataUrl)) throw new Error('مرفق حركة الخزينة يجب أن يكون صورة JPEG معالجة من التطبيق.');
+  if (dataUrl.length > 1200000) throw new Error('حجم صورة الإيصال بعد المعالجة أكبر من الحد المسموح.');
+  const name = String(value.name || 'إيصال الحركة').replace(/[\\/\u0000-\u001f]/g, '_').trim().slice(0, 120);
+  const sizeBytes = Number(value.sizeBytes);
+  return { dataUrl, name: name || 'إيصال الحركة', mimeType: 'image/jpeg', sizeBytes: Number.isSafeInteger(sizeBytes) && sizeBytes > 0 ? sizeBytes : null, addedAt: String(value.addedAt || new Date().toISOString()) };
+}
+
 function bytesToBase64(bytes) {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -308,6 +318,7 @@ class LamsetLocalDatabase {
       expenseId,
       expenseLabel: String(input.expenseLabel || '').trim().slice(0, 180) || null,
       referenceOnly: !!expenseId,
+      attachment: normalizeTreasuryAttachment(input.attachment),
       effectiveDate,
       createdAt: new Date().toISOString(), balanceBeforeCents: 0, balanceAfterCents: 0,
       status: 'active'
@@ -432,6 +443,7 @@ class LamsetLocalDatabase {
     const category = normalizeTreasuryCategory(input.category);
     const categoryList = Array.isArray(categoryRecord?.value?.[type]) ? categoryRecord.value[type] : [];
     if (category && !categoryList.includes(category)) { transaction.abort(); throw new Error('تصنيف الحركة غير موجود ضمن تصنيفات هذا النوع.'); }
+    const attachment = Object.prototype.hasOwnProperty.call(input, 'attachment') ? normalizeTreasuryAttachment(input.attachment) : (previous.attachment || null);
     const now = new Date().toISOString();
     const next = {
       ...previous,
@@ -443,11 +455,12 @@ class LamsetLocalDatabase {
       expenseId,
       expenseLabel: String(input.expenseLabel || '').trim().slice(0, 180) || null,
       referenceOnly: !!expenseId,
+      attachment,
       updatedAt: now,
       audit: [...(previous.audit || []), {
         action: 'edit', at: now, reason: reasonForChange,
-        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', category: previous.category || null, orderId: previous.orderId || null, orderNumber: previous.orderNumber || null, expenseId: previous.expenseId || null, expenseLabel: previous.expenseLabel || null, referenceOnly: !!previous.referenceOnly },
-        next: { type, amountCents, reason, effectiveDate, notes: String(input.notes || ''), category: category || null, orderId: String(input.orderId || '').trim() || null, orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null, expenseId, expenseLabel: String(input.expenseLabel || '').trim().slice(0, 180) || null, referenceOnly: !!expenseId }
+        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', category: previous.category || null, orderId: previous.orderId || null, orderNumber: previous.orderNumber || null, expenseId: previous.expenseId || null, expenseLabel: previous.expenseLabel || null, referenceOnly: !!previous.referenceOnly, attachment: previous.attachment ? { name: previous.attachment.name, mimeType: previous.attachment.mimeType, sizeBytes: previous.attachment.sizeBytes || null } : null },
+        next: { type, amountCents, reason, effectiveDate, notes: String(input.notes || ''), category: category || null, orderId: String(input.orderId || '').trim() || null, orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null, expenseId, expenseLabel: String(input.expenseLabel || '').trim().slice(0, 180) || null, referenceOnly: !!expenseId, attachment: attachment ? { name: attachment.name, mimeType: attachment.mimeType, sizeBytes: attachment.sizeBytes || null } : null }
       }]
     };
     store.put(next);
@@ -472,7 +485,7 @@ class LamsetLocalDatabase {
       ...previous, status: 'cancelled', cancelledAt: now, cancellationReason: reason,
       audit: [...(previous.audit || []), {
         action: 'cancel', at: now, reason,
-        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', category: previous.category || null }
+        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', category: previous.category || null, attachment: previous.attachment ? { name: previous.attachment.name, mimeType: previous.attachment.mimeType, sizeBytes: previous.attachment.sizeBytes || null } : null }
       }]
     };
     store.put(next);
