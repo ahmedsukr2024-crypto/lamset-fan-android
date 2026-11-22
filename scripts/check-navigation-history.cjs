@@ -12,7 +12,7 @@ assert.match(html, /history\.pushState\(\{\.\.\.\(history\.state\|\|\{\}\),lamse
 assert.match(html, /addEventListener\('popstate',event=>[\s\S]*event\.state\?\.lamsetPage/, 'يجب الرجوع إلى الصفحة المحددة في سجل التنقل');
 assert.match(html, /popstate',event=>\{const drawer=document\.getElementById\('lfSideDrawer'\);if\(drawer\?\.classList\.contains\('is-open'\)\)[\s\S]*closeLamsetDrawer\(true\)/, 'يجب إغلاق القائمة عند الرجوع دون استهلاك خطوة صفحة');
 assert.match(html, /history\.pushState\(\{lamsetOverlay:'drawer',lamsetPage:/, 'يجب تمييز خطوة القائمة الجانبية في سجل التنقل');
-assert.match(html, /window\.lamsetHandleBack=function\(\)\{if\(closeDrawer\(\)\)return true;[\s\S]*history\.back\(\)/, 'يجب إغلاق القائمة وتنظيف خطوة العرض قبل الرجوع بين الصفحات');
+assert.match(html, /window\.lamsetHandleBack=function\(\)\{if\(closeDrawer\(\)\)return true;[\s\S]*previousBack\(\)/, 'يجب إغلاق القائمة الجانبية قبل تمرير الرجوع إلى سجل الصفحات');
 assert.match(html, /closeTopmostModal\(\)/, 'يجب إغلاق النافذة المنبثقة قبل مغادرة الصفحة');
 assert.match(bridge, /App\.addListener\('backButton'[\s\S]*window\.lamsetHandleBack\(\)/, 'يجب ربط زر الرجوع الفعلي في Android بالنظام الموحد');
 assert.match(html, /lf-header-actions[\s\S]*lf-app-brand/, 'يجب وجود مجموعة الأزرار والشعار في الهيدر');
