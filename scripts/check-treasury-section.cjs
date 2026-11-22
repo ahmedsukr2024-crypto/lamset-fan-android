@@ -125,4 +125,6 @@ assert(html.includes('lfTreasuryPaymentMethods')&&html.includes("methods.innerHT
 assert(db.includes('balance = Number(closeout.actualCents || 0);'),'The next day ledger must carry forward the actual saved closeout cash, not the expected balance');
 assert(html.includes('if(Math.abs(difference)>=0.01&&!notes)return alert('),'A nonzero closeout discrepancy must require a note and must not be posted as income or expense');
 assert(html.includes('function previewTreasuryCloseoutPdf')&&html.includes('showDocumentPreview')&&html.includes('lastTreasuryPdfHtml'),'Closeout details must provide a PDF preview/share path');
+assert(html.includes('async function lfTreasuryConfirmMovementDateImpact(date)')&&html.includes("if(closed)return confirm('تنبيه: تاريخ حركة الخزينة ")&&html.includes("if(businessDate!==today)return confirm('التاريخ المختار '"),'Manual treasury movement must confirm both already-closed dates and other past dates with the appropriate warning');
+assert(html.includes('if(!(await lfTreasuryConfirmMovementDateImpact(date)))return;'),'Manual movement save must run the date confirmation before committing');
 console.log('Treasury section, owner gate, cash links, attachments, audited closeout correction, and date search checks passed.');
