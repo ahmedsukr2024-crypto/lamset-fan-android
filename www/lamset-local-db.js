@@ -598,6 +598,47 @@ class LamsetLocalDatabase {
     return { ...saved, expected: fromCents(saved.expectedCents), actual: fromCents(saved.actualCents), difference: fromCents(saved.differenceCents) };
   }
 
+  async correctTreasuryCloseout(businessDate, actualCents, correctionReason) {
+    this.requireOwnerSession();
+    const date = normalizeBusinessDate(businessDate);
+    const cents = Number(actualCents);
+    const reason = String(correctionReason || '').trim();
+    if (!Number.isSafeInteger(cents) || cents < 0) throw new Error('قيمة النقدية الفعلية يجب أن تكون صحيحة وغير سالبة.');
+    if (!reason) throw new Error('سبب تصحيح الإقفال مطلوب.');
+    const database = await this.open();
+    const transaction = database.transaction([META, MOVEMENTS, CASH_LINKS, CLOSEOUTS], 'readwrite');
+    const closeouts = transaction.objectStore(CLOSEOUTS);
+    const id = 'CLOSE-' + date;
+    const previous = await requestValue(closeouts.get(id));
+    if (!previous || previous.status !== 'closed') { transaction.abort(); throw new Error('الإقفال المطلوب غير موجود أو غير معتمد.'); }
+    const now = new Date().toISOString();
+    const next = {
+      ...previous,
+      originalActualCents: previous.originalActualCents ?? Number(previous.actualCents || 0),
+      actualCents: cents,
+      updatedAt: now
+    };
+    closeouts.put(next);
+    const balance = await this.recomputeTreasuryLedger(transaction, {
+      action: 'manual-closeout-correction',
+      referenceId: id,
+      reason,
+      effectiveDate: date,
+      at: now,
+      previousActualCents: Number(previous.actualCents || 0),
+      correctedActualCents: cents
+    });
+    const saved = await requestValue(closeouts.get(id));
+    await transactionDone(transaction);
+    return {
+      ...saved,
+      expected: fromCents(saved.expectedCents),
+      actual: fromCents(saved.actualCents),
+      difference: fromCents(saved.differenceCents),
+      balance
+    };
+  }
+
   async listTreasuryCloseouts() {
     const database = await this.open();
     const transaction = database.transaction(CLOSEOUTS, 'readonly');
