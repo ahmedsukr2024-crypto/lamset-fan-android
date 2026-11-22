@@ -45,7 +45,7 @@ const sandbox = {
 };
 vm.runInNewContext(method + '\nthis.runLedger = recomputeTreasuryLedger;', sandbox);
 const openingStart = source.indexOf('  async setOpeningBalance(amount, businessDate)');
-const openingEnd = source.indexOf('\\n  async correctOpeningBalance(', openingStart);
+const openingEnd = source.indexOf('\n  async correctOpeningBalance(', openingStart);
 if (openingStart < 0 || openingEnd < 0) throw new Error('Opening balance registration implementation could not be isolated.');
 const openingMethod = source.slice(openingStart, openingEnd).trim().replace(/^async setOpeningBalance/, 'async function setOpeningBalance');
 const openingSandbox = {
@@ -56,7 +56,7 @@ const openingSandbox = {
   transactionDone: () => Promise.resolve(true),
   fromCents: value => Number((Number(value || 0) / 100).toFixed(2))
 };
-vm.runInNewContext(openingMethod + '\\nthis.setOpeningBalance = setOpeningBalance;', openingSandbox);
+vm.runInNewContext(openingMethod + '\nthis.setOpeningBalance = setOpeningBalance;', openingSandbox);
 const correctionStart = source.indexOf('  async correctOpeningBalance(');
 const correctionEnd = source.indexOf('\n  async getTreasuryBalance()', correctionStart);
 if (correctionStart < 0 || correctionEnd < 0) throw new Error('Opening balance correction implementation could not be isolated.');
