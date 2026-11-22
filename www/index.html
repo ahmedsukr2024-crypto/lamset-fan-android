@@ -30,24 +30,7 @@ function closeDocumentPreview(){
  window.lfCurrentDocumentKind='';
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
  if(modal)modal.classList.remove('open');
- if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body><script id="lf-treasury-pending-action-guard">
-(function(){
- 'use strict';
- const actions=['saveOrder','recordPayment','editPayment','cancelPayment','saveExpense','editExpense','cancelExpense','saveTreasuryMovement','editTreasuryMovement','cancelTreasuryMovement','saveTreasuryOpening','correctTreasuryOpening','correctTreasuryCloseout'];
- actions.forEach(name=>{
-  const core=window[name];
-  if(typeof core!=='function'||core.__lfTreasuryPendingGuard)return;
-  const wrapped=async function(){
-   if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.');
-   window.__lfTreasuryPendingWriteCount=(Number(window.__lfTreasuryPendingWriteCount)||0)+1;
-   try{return await core.apply(this,arguments)}
-   finally{window.__lfTreasuryPendingWriteCount=Math.max(0,(Number(window.__lfTreasuryPendingWriteCount)||1)-1)}
-  };
-  wrapped.__lfTreasuryPendingGuard=true;
-  window[name]=wrapped;
- });
-})();
-</script>
+ if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body>
 </body></html>';}
  document.body.classList.remove('lf-modal-open');
 }
@@ -3963,6 +3946,24 @@ window.renderProductionBatchHistory();
 </script>
 <style id="lf-product-manual-touch-controls">.lf-product-manual-controls{display:flex;gap:6px;justify-content:flex-start;margin:5px 0 8px}.lf-product-manual-controls button{min-width:42px;min-height:38px;padding:6px 12px;font-size:18px}.lf-product-manual-order .lf-product-drag-handle{touch-action:pan-y;user-select:none}</style>
 <script src="customers-route/customers-route.js"></script>
+<script id="lf-treasury-pending-action-guard">
+(function(){
+ 'use strict';
+ const actions=['saveOrder','recordPayment','editPayment','cancelPayment','saveExpense','editExpense','cancelExpense','saveTreasuryMovement','editTreasuryMovement','cancelTreasuryMovement','saveTreasuryOpening','correctTreasuryOpening','correctTreasuryCloseout'];
+ actions.forEach(name=>{
+  const core=window[name];
+  if(typeof core!=='function'||core.__lfTreasuryPendingGuard)return;
+  const wrapped=async function(){
+   if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.');
+   window.__lfTreasuryPendingWriteCount=(Number(window.__lfTreasuryPendingWriteCount)||0)+1;
+   try{return await core.apply(this,arguments)}
+   finally{window.__lfTreasuryPendingWriteCount=Math.max(0,(Number(window.__lfTreasuryPendingWriteCount)||1)-1)}
+  };
+  wrapped.__lfTreasuryPendingGuard=true;
+  window[name]=wrapped;
+ });
+})();
+</script>
 </body></html>
 
 <!-- Lamset Fan: delivery test commit -->
