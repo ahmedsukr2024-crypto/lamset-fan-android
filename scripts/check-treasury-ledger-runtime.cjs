@@ -139,7 +139,26 @@ function assert(condition, message) {
   assert(savedCloseout.originalExpectedCents === 12000, 'first closeout captures its original expected balance');
   assert(savedCloseout.originalDifferenceCents === -500, 'first closeout captures the original discrepancy');
   assert(savedCloseout.expectedCents === 12000 && savedCloseout.differenceCents === -500, 'closeout stores expected and actual difference');
+  assert(savedCloseout.openingExpectedCents === 10000, 'closeout captures the actual opening balance instead of leaving it at zero');
+  assert(savedCloseout.initialSnapshot?.openingExpectedCents === 10000 && savedCloseout.initialSnapshot?.expectedCents === 12000 && savedCloseout.initialSnapshot?.actualCents === 11500 && savedCloseout.initialSnapshot?.differenceCents === -500, 'closeout captures an immutable opening, expected, actual, and difference snapshot');
   assert(closedBalance === 125, 'next-day ledger starts from the actual closeout amount');
+
+  const dailySnapshot = fixture({
+    movements: [
+      { id: 'snap-deposit', type: 'deposit', amountCents: 5000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T08:00:00Z', status: 'active' },
+      { id: 'snap-withdrawal', type: 'withdrawal', amountCents: 2000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T09:00:00Z', status: 'active' },
+      { id: 'snap-reference', type: 'withdrawal', amountCents: 3000, referenceOnly: true, effectiveDate: '2026-11-01', createdAt: '2026-11-01T11:30:00Z', status: 'active' }
+    ],
+    links: [
+      { id: 'snap-collection', type: 'collection', amountCents: 1000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T10:00:00Z', status: 'active' },
+      { id: 'snap-expense', type: 'expense', amountCents: 3000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T11:00:00Z', status: 'active' }
+    ],
+    closeouts: [{ id: 'CLOSE-2026-11-01', businessDate: '2026-11-01', actualCents: 11000, expectedCents: 0, differenceCents: 0, pendingInitialSnapshot: true }]
+  });
+  await sandbox.runLedger(dailySnapshot.transaction);
+  const dailyCloseoutSnapshot = dailySnapshot.closeouts[0].initialSnapshot;
+  assert(dailyCloseoutSnapshot.depositsCents === 5000 && dailyCloseoutSnapshot.withdrawalsCents === 2000, 'daily snapshot captures deposits and withdrawals without counting reference-only withdrawals');
+  assert(dailyCloseoutSnapshot.collectionsCents === 1000 && dailyCloseoutSnapshot.expensesCents === 3000, 'daily snapshot captures cash collections and expenses separately');
 
   const corrected = fixture({
     movements: [
@@ -149,7 +168,9 @@ function assert(condition, message) {
     closeouts: [{
       id: 'CLOSE-2026-11-01', businessDate: '2026-11-01', actualCents: 11500,
       expectedCents: 12000, differenceCents: -500,
-      originalExpectedCents: 12000, originalDifferenceCents: -500
+      originalExpectedCents: 12000, originalDifferenceCents: -500,
+      openingExpectedCents: 10000,
+      initialSnapshot: { openingExpectedCents: 10000, depositsCents: 2500, withdrawalsCents: 0, collectionsCents: 0, expensesCents: 0, expectedCents: 12500, actualCents: 11500, differenceCents: -1000, capturedAt: '2026-11-01T20:00:00Z' }
     }]
   });
   await sandbox.runLedger(corrected.transaction, {
@@ -158,7 +179,8 @@ function assert(condition, message) {
   });
   const correctedCloseout = corrected.closeouts[0];
   assert(correctedCloseout.originalExpectedCents === 12000, 'historical original closeout snapshot is not overwritten');
-  assert(correctedCloseout.expectedCents === 12500 && correctedCloseout.differenceCents === -1000, 'historical closeout is recalculated after a dated correction');
+  assert(correctedCloseout.initialSnapshot?.expectedCents === 12500 && correctedCloseout.initialSnapshot?.capturedAt === '2026-11-01T20:00:00Z', 'later ledger recalculation preserves the original detailed closeout snapshot and capture time');
+  assert(correctedCloseout.expectedCents === 12500 && correctedCloseout.differenceCents === -1000, 'historical closeout is recalculated after a dated correction while the initial snapshot remains immutable');
   assert(correctedCloseout.corrections?.length === 1 && correctedCloseout.corrections[0].reason === 'تصحيح موثق', 'closeout keeps an explicit correction audit entry');
 
   const openingCorrection = fixture({
