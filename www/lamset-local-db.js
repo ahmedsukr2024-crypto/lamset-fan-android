@@ -619,15 +619,21 @@ class LamsetLocalDatabase {
       updatedAt: now
     };
     closeouts.put(next);
-    const balance = await this.recomputeTreasuryLedger(transaction, {
-      action: 'manual-closeout-correction',
-      referenceId: id,
-      reason,
-      effectiveDate: date,
-      at: now,
-      previousActualCents: Number(previous.actualCents || 0),
-      correctedActualCents: cents
-    });
+    let balance;
+    try {
+      balance = await this.recomputeTreasuryLedger(transaction, {
+        action: 'manual-closeout-correction',
+        referenceId: id,
+        reason,
+        effectiveDate: date,
+        at: now,
+        previousActualCents: Number(previous.actualCents || 0),
+        correctedActualCents: cents
+      });
+    } catch (error) {
+      try { transaction.abort(); } catch (_) {}
+      throw error;
+    }
     const saved = await requestValue(closeouts.get(id));
     await transactionDone(transaction);
     return {
