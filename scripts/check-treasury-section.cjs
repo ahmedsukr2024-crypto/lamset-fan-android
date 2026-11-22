@@ -91,4 +91,11 @@ assert(html.includes('lowBalanceWarning.hidden=!isLow'),'The warning must appear
 assert(html.includes('التنبيه معطل؛ لن يظهر تحذير حتى تفعّله.')&&html.includes('تم تعطيل تنبيه انخفاض رصيد الخزينة.'),'The owner must be able to disable the low-balance alert explicitly');
 assert(html.includes("تنبيه: رصيد الخزينة الحالي")&&html.includes('راجع الرصيد قبل متابعة العمل.'),'The low-balance warning must explain the current balance and configured minimum');
 assert(html.includes("LamsetLocalDB.setMeta('treasury.lowBalanceAlert'")&&!html.includes("setTreasuryBalance("),'The alert setting must remain metadata-only and must not write or change the treasury balance');
+assert(html.includes('function lfTreasuryHasPendingOperations()')&&html.includes('window.__lfPaymentSaving||window.__lfOrderSaving||window.__lfExpenseSaving||window.__lfTreasuryMovementSaving'),'Closeout guard must cover pending order, collection, expense, and treasury-movement saves');
+assert(html.includes("if(lfTreasuryHasPendingOperations())return alert('لا يمكن إقفال الخزينة الآن؛ توجد عملية طلب أو تحصيل أو مصروف أو حركة خزينة ما زالت قيد الحفظ.") ,'Closeout must stop when any tracked financial save is pending');
+assert(html.includes('window.__lfExpenseSaving=true')&&html.includes('window.__lfExpenseSaving=false'),'Expense save must expose and always clear its pending state');
+assert(html.includes('window.__lfTreasuryMovementSaving=true')&&html.includes('window.__lfTreasuryMovementSaving=false'),'Treasury movement save must expose and always clear its pending state');
+assert(html.includes('window.__lfTreasuryCloseoutSaving=true')&&html.includes('window.__lfTreasuryCloseoutSaving=false'),'Closeout must hold and release its exclusive save lock');
+assert(html.includes("if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.')"),'New order, collection, expense, and movement saves must be blocked while closeout is being persisted');
+assert(html.includes('بدأ إقفال الخزينة أثناء مراجعة الحركة؛ أعد المحاولة بعد انتهائه.'),'A movement waiting on treasury reads must recheck the closeout lock before committing');
 console.log('Treasury section, owner gate, cash links, attachments, audited closeout correction, and date search checks passed.');
