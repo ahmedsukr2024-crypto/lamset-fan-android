@@ -124,7 +124,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.ge
 
 (function(){
   function report(kind,message,source,line,column){
-    var technical='النوع: '+String(kind||'غير محدد')+'\nالرسالة: '+String(message||'غير معروفة')+'\nالمصدر: '+String(source||'غير متاح')+'\nالسطر: '+String(line||'-')+' ، العمود: '+String(column||'-');
+    var tap=window.__lamsetLastTap;var tapInfo=tap&&tap.text?'آخر زر تم الضغط عليه: '+String(tap.text)+'\n':'';var technical=tapInfo+'النوع: '+String(kind||'غير محدد')+'\nالرسالة: '+String(message||'غير معروفة')+'\nالمصدر: '+String(source||'غير متاح')+'\nالسطر: '+String(line||'-')+' ، العمود: '+String(column||'-');
     var friendly=kind==='تحميل مورد'?'تعذر تحميل أحد الموارد المطلوبة داخل التطبيق. تحقق من الاتصال ثم أعد المحاولة.':'حدث خطأ تقني أثناء تشغيل جزء من التطبيق. أغلق الرسالة، وإذا تكرر الخطأ انسخ التفاصيل وأرسلها للدعم.';
     lamsetShowSystemMessage(friendly,'error',technical);
   }
