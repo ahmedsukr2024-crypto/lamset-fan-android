@@ -10,7 +10,7 @@ assert(db.includes('applyCashLink')&&db.includes('CASH_LINKS'),'Cash links must 
 assert(db.includes("database.transaction([META, CASH_LINKS, MOVEMENTS, CLOSEOUTS], 'readwrite')"),'Cash links, movements, closeouts, and balance must update atomically');
 assert(db.includes('createTreasuryCloseout'),'Daily closeout must be persisted');
 assert(db.includes("async listTreasuryCategories()")&&db.includes("async addTreasuryCategory(type, value)"),'Treasury categories must be stored and managed through the existing local database');
-assert(db.includes("this.requireOwnerSession();\\n    if (!['deposit', 'withdrawal'].includes(type))"),'Only the owner may add a category and each category must belong to a movement type');
+assert(db.includes("async addTreasuryCategory(type, value)")&&db.includes("this.requireOwnerSession();")&&db.includes("if (!['deposit', 'withdrawal'].includes(type))"),'Only the owner may add a category and each category must belong to a movement type');
 assert(db.includes("meta.get('treasury.categories')")&&db.includes("store.put({ key: 'treasury.categories', value: categories })"),'Separate deposit and withdrawal category lists must persist in the existing metadata store');
 assert(db.includes("categories[type].some(item => String(item).toLocaleLowerCase('ar') === category.toLocaleLowerCase('ar'))"),'Duplicate categories must be rejected within the same movement type');
 assert(html.includes('id="lfTreasuryMovementCategory"')&&html.includes('onclick="lfTreasuryAddCategory()"'),'The existing movement form must let the owner select or add a category');
