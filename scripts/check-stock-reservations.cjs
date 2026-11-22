@@ -55,7 +55,7 @@ assert(html.includes('releaseByProduct.set(line.productId'), 'order cancellation
 assert(html.includes('deleteReleaseByProduct.set(line.productId'), 'order deletion validates aggregate reservations before releasing stock');
 
 const homeAlertStart = html.indexOf('function renderHomeStockAlert(alerts)');
-const homeAlertEnd = html.indexOf('\\nfunction renderDash', homeAlertStart);
+const homeAlertEnd = html.indexOf('function renderDash', homeAlertStart);
 const homeAlertSource = homeAlertStart >= 0 && homeAlertEnd > homeAlertStart ? html.slice(homeAlertStart, homeAlertEnd) : '';
 assert(!!homeAlertSource, 'home stock alert renderer can be isolated for behavior checks');
 if (homeAlertSource) {
