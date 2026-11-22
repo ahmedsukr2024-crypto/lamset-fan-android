@@ -69,7 +69,7 @@ if (homeAlertSource) {
     esc: value => String(value ?? ''),
     window: {}
   });
-  vm.runInContext(homeAlertSource + '\\nthis.renderHomeStockAlert=renderHomeStockAlert;', context);
+  vm.runInContext(homeAlertSource + '\nthis.renderHomeStockAlert=renderHomeStockAlert;', context);
   context.renderHomeStockAlert([
     { category: 'المخزون', title: 'نفاد المخزون', level: 'danger', body: 'منتج صفر — المتاح صفر قطعة' },
     { category: 'المخزون', title: 'مخزون منخفض', level: 'warning', body: 'منتج قليل — المتاح 2 قطعة · حد التنبيه 3' },
