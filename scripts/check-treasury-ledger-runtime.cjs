@@ -11,9 +11,6 @@ const categoryEnd = source.indexOf('\nfunction bytesToBase64', categoryStart);
 if (categoryStart < 0 || categoryEnd < 0) throw new Error('Treasury category normalization could not be isolated.');
 const categorySandbox = {};
 vm.runInNewContext(source.slice(categoryStart, categoryEnd) + '\nthis.normalizeCategory = normalizeTreasuryCategory;', categorySandbox);
-function assert(condition, message) {
-  if (!condition) throw new Error('Treasury ledger runtime check failed: ' + message);
-}
 assert(categorySandbox.normalizeCategory('  سحب   مشتريات  ') === 'سحب مشتريات', 'category names are trimmed and repeated whitespace is normalized');
 let longCategoryRejected = false;
 try { categorySandbox.normalizeCategory('x'.repeat(41)); } catch (error) { longCategoryRejected = /40/.test(error.message); }
