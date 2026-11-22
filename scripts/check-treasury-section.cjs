@@ -49,4 +49,12 @@ assert(html.includes("!x.referenceOnly&&(!type||x.type===type)"),'Reference-only
 assert(html.includes("x.referenceOnly?'مرجع مصروف (دون أثر مالي)'"),'Closeout PDF must label reference-only movements without implying a debit');
 assert(html.includes("x.referenceOnly?'مرجع مصروف (دون أثر مالي)'"),'Closeout PDF must identify reference-only withdrawals without presenting them as financial withdrawals');
 assert(db.includes("expenseId: previous.expenseId || null, expenseLabel: previous.expenseLabel || null, referenceOnly: !!previous.referenceOnly"),'Expense reference changes must be preserved in movement audit history');
-console.log('Treasury section, owner gate, atomic cash links, and closeout checks passed.');
+assert(html.includes('id="lfTreasuryMovementAttachment"')&&html.includes('accept="image/jpeg,image/png,image/webp"'),'Treasury movement form must accept optional receipt images');
+assert(html.includes('previewTreasuryMovementAttachment(this)')&&html.includes('lfTreasuryMovementAttachmentPreview'),'New movement receipt selection must provide feedback');
+assert(html.includes('lfTreasuryChooseAttachment')&&html.includes('lfTreasuryViewAttachment')&&html.includes('lfTreasuryRemoveAttachment'),'Existing movements must support viewing, replacing, and removing attachments');
+assert(db.includes('function normalizeTreasuryAttachment(value)')&&db.includes('dataUrl.length > 1200000'),'Treasury attachments must be validated and size-limited before persistence');
+assert(db.includes('attachment: normalizeTreasuryAttachment(input.attachment)'),'New movement attachments must persist in the existing movement record');
+assert(db.includes("Object.prototype.hasOwnProperty.call(input, 'attachment')")&&db.includes('attachment,\n      updatedAt: now'),'Movement edits must preserve attachments unless explicitly replaced or removed');
+assert(html.includes('attachment:{dataUrl,name:file.name,sizeBytes:file.size}'),'Attachment changes must pass the processed image and original filename to the existing movement update');
+assert(html.includes('سيظل سجل الحركة محفوظاً')&&html.includes('دون تغيير المبلغ أو الرصيد'),'Attachment operations must not alter the movement financial effect');
+console.log('Treasury section, owner gate, cash links, and optional receipt attachment checks passed.');
