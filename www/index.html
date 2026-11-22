@@ -922,10 +922,30 @@ function lfRecordActivity(action,entity,details){if(!Array.isArray(db.activityLo
 const lfNavigationSnapshots=new Map();
 function lfCaptureNavigationSnapshot(page){
  const panel=document.getElementById(page);if(!panel)return;
- const fields=[];
+ const fields=[],named=Array.from(panel.querySelectorAll('input[name],select[name],textarea[name]'));
  panel.querySelectorAll('input[id],select[id],textarea[id],input[name],select[name],textarea[name]').forEach(el=>{
   if(el.disabled||el.type==='file'||el.type==='password'||el.dataset.navigationPersist==='false')return;
-  const key=el.id?'#'+el.id:'[name="'+String(el.name).replace(/["\\]/g,'\\function tab(t,options={})')+'"]';
+  const idValue=el.id||'',nameValue=el.name||'';
+  const index=idValue?0:named.filter(x=>x.name===nameValue).indexOf(el);
+  fields.push({id:idValue,name:nameValue,index,type:el.type||el.tagName.toLowerCase(),value:el.value,checked:!!el.checked});
+ });
+ lfNavigationSnapshots.set(page,{fields,windowY:window.scrollY||0,panelTop:panel.scrollTop||0});
+}
+function lfRestoreNavigationSnapshot(page){
+ const panel=document.getElementById(page),snapshot=lfNavigationSnapshots.get(page);if(!panel||!snapshot)return;
+ const named=Array.from(panel.querySelectorAll('input[name],select[name],textarea[name]'));
+ snapshot.fields.forEach(item=>{
+  const el=item.id?document.getElementById(item.id):named.filter(x=>x.name===item.name)[item.index||0];
+  if(!el||!panel.contains(el)||el.disabled)return;
+  if(item.type==='checkbox'||item.type==='radio')el.checked=item.checked;
+  else if(item.type!=='file'&&item.type!=='password')el.value=item.value;
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+  el.dispatchEvent(new Event('change',{bubbles:true}));
+ });
+ panel.scrollTop=snapshot.panelTop||0;
+ requestAnimationFrame(()=>window.scrollTo({top:snapshot.windowY||0,left:0,behavior:'auto'}));
+}
+function tab(t,options={})')+'"]';
   fields.push({key,type:el.type||el.tagName.toLowerCase(),value:el.value,checked:!!el.checked});
  });
  lfNavigationSnapshots.set(page,{fields,windowY:window.scrollY||0,panelTop:panel.scrollTop||0});
