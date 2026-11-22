@@ -59,8 +59,8 @@ function assert(condition, message) {
 (async () => {
   const normal = fixture({
     movements: [
-      { id: 'd1', type: 'deposit', amountCents: 5000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T08:00:00Z', status: 'active' },
-      { id: 'w1', type: 'withdrawal', amountCents: 2000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T09:00:00Z', status: 'active' },
+      { id: 'd1', type: 'deposit', category: 'إيداع نقدي', amountCents: 5000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T08:00:00Z', status: 'active' },
+      { id: 'w1', type: 'withdrawal', category: 'سحب تشغيلي', amountCents: 2000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T09:00:00Z', status: 'active' },
       { id: 'w-expense-reference', type: 'withdrawal', amountCents: 3000, expenseId: 'e1', referenceOnly: true, effectiveDate: '2026-11-01', createdAt: '2026-11-01T11:30:00Z', status: 'active' },
       { id: 'w-cancelled', type: 'withdrawal', amountCents: 9000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T09:30:00Z', status: 'cancelled' }
     ],
@@ -71,6 +71,7 @@ function assert(condition, message) {
   });
   const normalBalance = await sandbox.runLedger(normal.transaction);
   assert(normalBalance === 110, 'deposits, withdrawals, collections, and expenses produce the correct balance');
+  assert(normal.movements.find(x => x.id === 'd1').category === 'إيداع نقدي' && normal.movements.find(x => x.id === 'w1').category === 'سحب تشغيلي', 'movement categories are retained as metadata without changing ledger calculation');
   assert(normal.movements.find(x => x.id === 'w-cancelled').balanceAfterCents === undefined, 'cancelled movements do not affect the ledger');
   assert(normal.links.find(x => x.id === 'p1').balanceAfterCents === 14000, 'cash collection is credited once');
   assert(normal.links.find(x => x.id === 'e1').balanceAfterCents === 11000, 'cash expense is debited once');
