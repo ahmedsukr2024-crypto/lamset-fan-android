@@ -3110,7 +3110,7 @@ async function correctTreasuryCloseout(businessDate,button){
  if(!item)return alert('الإقفال المطلوب غير موجود.');
  const amountText=prompt('النقدية الفعلية الصحيحة لإقفال '+businessDate+' بالجنيه المصري:',Number(item.actual||0).toFixed(2));if(amountText===null)return;
  const raw=amountText.trim(),actual=Number(raw);
- if(!/^\\d+(?:\\.\\d{1,2})?$/.test(raw)||!Number.isFinite(actual)||actual<0)return alert('أدخل قيمة صحيحة غير سالبة وبحد أقصى منزلتين عشريتين.');
+ if(!/^\d+(?:\.\d{1,2})?$/.test(raw)||!Number.isFinite(actual)||actual<0)return alert('أدخل قيمة صحيحة غير سالبة وبحد أقصى منزلتين عشريتين.');
  const reason=prompt('سبب تصحيح الإقفال (إلزامي):');if(reason===null)return;if(!reason.trim())return alert('سبب تصحيح الإقفال مطلوب.');
  const affected=closeouts.filter(x=>x.businessDate>=businessDate),expected=Number(item.expected||0),nextDifference=actual-expected;
  const preview='مراجعة تصحيح إقفال '+businessDate+'\nالقيمة الفعلية المسجلة: '+lfTreasuryAmount(item.actual)+'\nالقيمة الفعلية الصحيحة: '+lfTreasuryAmount(actual)+'\nالرصيد المتوقع: '+lfTreasuryAmount(expected)+'\nالفرق بعد التصحيح: '+(nextDifference<0?'عجز ':nextDifference>0?'زيادة ':'')+lfTreasuryAmount(Math.abs(nextDifference))+'\nسبب التصحيح: '+reason+'\nالإقفالات اللاحقة التي ستتم إعادة حساب أرصدتها: '+Math.max(0,affected.length-1)+'\nسيتم الاحتفاظ بالقيمة الفعلية الأصلية وسجل التصحيح مع التاريخ والوقت.\n\nهل تؤكد التصحيح؟';
