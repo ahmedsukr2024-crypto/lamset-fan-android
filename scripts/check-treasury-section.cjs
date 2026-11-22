@@ -52,6 +52,11 @@ assert(db.includes("expenseId: previous.expenseId || null, expenseLabel: previou
 assert(html.includes('id="lfTreasuryMovementAttachment"')&&html.includes('accept="image/jpeg,image/png,image/webp"'),'Treasury movement form must accept optional receipt images');
 assert(html.includes('previewTreasuryMovementAttachment(this)')&&html.includes('lfTreasuryMovementAttachmentPreview'),'New movement receipt selection must provide feedback');
 assert(html.includes('lfTreasuryChooseAttachment')&&html.includes('lfTreasuryViewAttachment')&&html.includes('lfTreasuryRemoveAttachment'),'Existing movements must support viewing, replacing, and removing attachments');
+assert(html.includes('onclick="previewTreasuryMovementsPdf(this)"')&&html.includes('تصدير سجل الحركات PDF'),'The existing treasury movement ledger must expose filtered PDF export');
+assert(html.includes('async function previewTreasuryMovementsPdf(button)')&&html.includes('lfTreasuryFilterType')&&html.includes('lfTreasuryFilterFrom')&&html.includes('lfTreasuryFilterTo')&&html.includes('lfTreasurySearch'),'Movement PDF export must apply the current type, date, and search filters');
+assert(html.includes('item.movementNo||item.id')&&html.includes('item.category||\'بدون تصنيف\'')&&html.includes('item.notes||\'لا توجد\''),'Movement PDF export must include identifying details, category, and notes');
+assert(html.includes('lfTreasuryLinkedExpense(item)')&&html.includes('item.referenceOnly?' )&&html.includes('دون أثر مالي'),'Movement PDF export must preserve the reference-only expense distinction');
+assert(html.includes('item.attachment.dataUrl')&&html.includes('سجل التعديلات والإلغاء')&&html.includes('lfOpenTreasuryPdf(html'),'Movement PDF export must include safe receipt previews and audit details, then use the existing PDF sharing workflow');
 assert(db.includes('function normalizeTreasuryAttachment(value)')&&db.includes('dataUrl.length > 1200000'),'Treasury attachments must be validated and size-limited before persistence');
 assert(db.includes('attachment: normalizeTreasuryAttachment(input.attachment)'),'New movement attachments must persist in the existing movement record');
 assert(db.includes("Object.prototype.hasOwnProperty.call(input, 'attachment')")&&db.includes('attachment,\n      updatedAt: now'),'Movement edits must preserve attachments unless explicitly replaced or removed');
