@@ -2,6 +2,9 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/facebook-tajawal-theme-2026-11-14
 
 jobs:
   build:
