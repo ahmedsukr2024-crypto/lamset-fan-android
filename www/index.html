@@ -2902,6 +2902,15 @@ async function viewExpenseReceipt(expenseId){const item=(db.expenses||[]).find(x
 
 function lfTreasuryToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function lfTreasuryDate(value){const raw=String(value||'');const parts=raw.split('-');const valid=parts.length===3&&parts[0].length===4&&parts[1].length===2&&parts[2].length===2&&parts.every(part=>part.length>0&&Array.from(part).every(char=>char>='0'&&char<='9'));if(valid)return raw;const date=new Date(raw);if(!Number.isFinite(date.getTime()))return '';return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
+async function lfTreasuryConfirmMovementDateImpact(date){
+ if(!window.LamsetLocalDB)return true;
+ try{
+  const businessDate=lfTreasuryDate(date),today=lfTreasuryToday(),closeouts=await LamsetLocalDB.listTreasuryCloseouts(),closed=closeouts.find(item=>item.businessDate===businessDate&&item.status==='closed');
+  if(closed)return confirm('تنبيه: تاريخ حركة الخزينة '+businessDate+' سبق إقفاله.\\nسيظل الإقفال الأصلي والنقدية الفعلية محفوظين، وسيُعاد احتساب الرصيد المتوقع والفرق والأرصدة اللاحقة مع تسجيل أثر الحركة في سجل تصحيحات الإقفال.\\n\\nهل تريد المتابعة؟');
+  if(businessDate!==today)return confirm('التاريخ المختار '+businessDate+' يختلف عن تاريخ اليوم. هل تريد المتابعة؟');
+  return true;
+ }catch(error){alert(error.message||'تعذر التحقق من تاريخ حركة الخزينة؛ لم يتم حفظ الحركة.');return false;}
+}
 async function lfTreasuryConfirmClosedDateImpact(date,operationLabel){
  if(!window.LamsetLocalDB)return true;
  try{
@@ -3212,7 +3221,7 @@ async function saveTreasuryMovement(button){
  if(window.__lfTreasuryCloseoutSaving)return alert('بدأ إقفال الخزينة أثناء مراجعة الحركة؛ أعد المحاولة بعد انتهائه.');
  if(linkedExpense&&!cashLinks.some(link=>String(link.id)===String(linkedExpense.id)&&link.type==='expense'&&link.status==='active'))return alert('المصروف النقدي لم يكتمل ربطه بالخزينة بعد؛ افتح قسم الخزينة للمزامنة ثم أعد المحاولة.');
  if(linkedExpense&&Math.round(Number(linkedExpense.amount)*100)!==Math.round(Number(amount)*100))return alert('مبلغ حركة السحب يجب أن يطابق مبلغ المصروف النقدي المرتبط.');
- if(date!==lfTreasuryToday()&&!confirm('التاريخ المختار '+date+' يختلف عن تاريخ اليوم. هل تريد المتابعة؟'))return;
+ if(!(await lfTreasuryConfirmMovementDateImpact(date)))return;
  const balance=await LamsetLocalDB.getTreasuryBalance(),next=balance+(type==='deposit'?1:linkedExpense?0:-1)*Number(amount);
  if(window.__lfTreasuryCloseoutSaving)return alert('بدأ إقفال الخزينة أثناء مراجعة الحركة؛ أعد المحاولة بعد انتهائه.');
  if(next<0)return alert('الرصيد المتاح '+lfTreasuryAmount(balance)+'، والمبلغ المطلوب '+lfTreasuryAmount(amount)+'. لا يمكن إتمام السحب.');
