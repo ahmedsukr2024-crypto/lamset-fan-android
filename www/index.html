@@ -2200,6 +2200,7 @@ async function recordPayment(){
  if(!Number.isFinite(due)||due<=0)return alert('لا يوجد مبلغ مستحق للتحصيل على هذا الطلب.');
  if(amount>due)return alert('المبلغ أكبر من المتبقي على الطلب: '+money(due));
  window.__lfPaymentSaving=true;
+ if(methodInput?.value==='نقدي'&&!(await lfTreasuryConfirmClosedDateImpact(lfTreasuryToday(),'التحصيل النقدي'))){window.__lfPaymentSaving=false;return;}
  const paymentButton=document.querySelector('#collections button[onclick="recordPayment()"]');
  const originalText=paymentButton?.textContent||'حفظ التحصيل';
  if(paymentButton){paymentButton.disabled=true;paymentButton.textContent='جارٍ تسجيل التحصيل…';paymentButton.setAttribute('aria-busy','true');}
@@ -2802,7 +2803,9 @@ async function saveExpense(button){
  const amount=Number($('lfExpenseAmount')?.value),date=$('lfExpenseDate')?.value||lfExpenseToday(),category=$('lfExpenseCategory')?.value||'أخرى',method=$('lfExpenseMethod')?.value||'نقدي',notes=$('lfExpenseNotes')?.value.trim()||'',file=$('lfExpenseReceipt')?.files?.[0]||null;
  if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا صحيحًا أكبر من صفر.');
  if(!lfIsValidExpenseDate(date))return alert('اختر تاريخًا صحيحًا للمصروف.');
- button.disabled=true;const old=button.textContent;button.textContent='جارٍ الحفظ...';window.__lfExpenseSaving=true;
+ window.__lfExpenseSaving=true;
+ if(method==='نقدي'&&!(await lfTreasuryConfirmClosedDateImpact(date,'المصروف النقدي'))){window.__lfExpenseSaving=false;return;}
+ button.disabled=true;const old=button.textContent;button.textContent='جارٍ الحفظ...';
  const before=JSON.parse(JSON.stringify(db));
  try{
   const expense={id:id(),amount,category,method,date,notes,status:'active',createdAt:new Date().toISOString()};
@@ -2854,6 +2857,14 @@ async function viewExpenseReceipt(expenseId){const item=(db.expenses||[]).find(x
 
 function lfTreasuryToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function lfTreasuryDate(value){const raw=String(value||'');const parts=raw.split('-');const valid=parts.length===3&&parts[0].length===4&&parts[1].length===2&&parts[2].length===2&&parts.every(part=>part.length>0&&Array.from(part).every(char=>char>='0'&&char<='9'));if(valid)return raw;const date=new Date(raw);if(!Number.isFinite(date.getTime()))return '';return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
+async function lfTreasuryConfirmClosedDateImpact(date,operationLabel){
+ if(!window.LamsetLocalDB)return true;
+ try{
+  const businessDate=lfTreasuryDate(date),closeouts=await LamsetLocalDB.listTreasuryCloseouts(),closed=closeouts.find(item=>item.businessDate===businessDate&&item.status==='closed');
+  if(!closed)return true;
+  return confirm('تنبيه: يوجد إقفال محفوظ بتاريخ '+businessDate+'.\\nسيظل الإقفال الأصلي والنقدية الفعلية محفوظين، وسيُعاد احتساب الرصيد المتوقع والفرق والأرصدة اللاحقة مع تسجيل أثر '+operationLabel+' في سجل تصحيحات الإقفال.\\n\\nهل تريد المتابعة؟');
+ }catch(error){alert(error.message||'تعذر التحقق من حالة إقفال التاريخ؛ لم يتم حفظ العملية.');return false;}
+}
 function lfTreasuryAmount(value){return money(Number(value)||0)}
 function lfTreasuryIsLowBalance(balance,thresholdCents){const cents=Math.round(Number(balance||0)*100),limit=Number(thresholdCents)||0;return Number.isSafeInteger(cents)&&limit>0&&cents<=limit}
 function lfTreasuryHasPendingOperations(){return !!(window.__lfPaymentSaving||window.__lfOrderSaving||window.__lfExpenseSaving||window.__lfTreasuryMovementSaving)}
