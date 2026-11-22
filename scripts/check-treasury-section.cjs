@@ -57,4 +57,9 @@ assert(db.includes('attachment: normalizeTreasuryAttachment(input.attachment)'),
 assert(db.includes("Object.prototype.hasOwnProperty.call(input, 'attachment')")&&db.includes('attachment,\n      updatedAt: now'),'Movement edits must preserve attachments unless explicitly replaced or removed');
 assert(html.includes('attachment:{dataUrl,name:file.name,sizeBytes:file.size}'),'Attachment changes must pass the processed image and original filename to the existing movement update');
 assert(html.includes('سيظل سجل الحركة محفوظاً')&&html.includes('دون تغيير المبلغ أو الرصيد'),'Attachment operations must not alter the movement financial effect');
-console.log('Treasury section, owner gate, cash links, and optional receipt attachment checks passed.');
+assert(db.includes('async correctTreasuryCloseout(businessDate, actualCents, correctionReason)')&&db.includes('this.requireOwnerSession();'),'Prior closeout correction must be protected by the owner session');
+assert(db.includes('originalActualCents: previous.originalActualCents ?? Number(previous.actualCents || 0)'),'Closeout correction must preserve the original actual cash amount');
+assert(db.includes("action: 'manual-closeout-correction'")&&db.includes('previousActualCents: Number(previous.actualCents || 0)')&&db.includes('correctedActualCents: cents'),'Closeout correction must record the previous and corrected values with an audit reason and timestamp');
+assert(html.includes('correctTreasuryCloseout(\\'')&&html.includes('async function correctTreasuryCloseout')&&html.includes('تصحيح الإقفال'),'Closeout history must expose the audited correction action');
+assert(html.includes('القيمة الفعلية الأصلية قبل التصحيح'),'Closeout details must display the preserved original actual amount');
+console.log('Treasury section, owner gate, cash links, attachments, and audited closeout correction checks passed.');
