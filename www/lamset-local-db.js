@@ -43,7 +43,7 @@ function fromCents(value) {
 }
 
 function normalizeTreasuryCategory(value) {
-  const category = String(value || '').trim().replace(/\\s+/g, ' ');
+  const category = String(value || '').trim().replace(/\s+/g, ' ');
   if (category.length > 40) throw new Error('اسم تصنيف الخزينة يجب ألا يتجاوز 40 حرفاً.');
   return category;
 }
