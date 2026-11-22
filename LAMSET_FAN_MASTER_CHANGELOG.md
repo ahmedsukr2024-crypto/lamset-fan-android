@@ -1035,33 +1035,33 @@
 | SEC-005 | منفذ؛ الإلغاء والتعديل والتصحيحات المالية الحساسة تتطلب تحقق المالك | موجود بالكود/القاعدة وفق فحص الوحدة؛ لا يثبت ذلك اختبار Android | www/lamset-local-db.js؛ www/index.html؛ scripts/check-local-db-security.cjs؛ scripts/check-catalog-export.cjs |
 | SEC-006 | منفذ؛ سجل التعديلات والإلغاءات يحفظ القيم القديمة والجديدة والسبب والتوقيت حيث ينطبق | موجود بالكود/القاعدة وفق فحص الوحدة؛ لا يثبت ذلك اختبار Android | www/lamset-local-db.js؛ www/index.html؛ scripts/check-local-db-security.cjs؛ scripts/check-catalog-export.cjs |
 | SEC-007 | منفذ؛ الخزينة وأرصدةها وحركاتها وتقاريرها محمية بصلاحية المالك | موجود بالكود/القاعدة وفق فحص الوحدة؛ لا يثبت ذلك اختبار Android | www/lamset-local-db.js؛ www/index.html؛ scripts/check-local-db-security.cjs؛ scripts/check-catalog-export.cjs |
-| TRY-018 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-019 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-020 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-021 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-022 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-018 | معتمد — لم ينفذ | منفذ ومتحقق باختبار تخزين الرصيد الافتتاحي مرة واحدة (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-019 | معتمد — لم ينفذ | منفذ ومتحقق؛ تصحيح المالك محمي وموثق (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-020 | معتمد — لم ينفذ | منفذ ومتحقق؛ السبب إلزامي وتاريخ التسجيل منفصل عن تاريخ الحركة (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-021 | معتمد — لم ينفذ | منفذ ومتحقق؛ تأكيد التاريخ القديم قبل حفظ الحركة (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-022 | معتمد — لم ينفذ | منفذ ومتحقق؛ رقم TR تسلسلي فريد محفوظ بالبيانات الوصفية (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-023 | معتمد — لم ينفذ | منفذ — البحث يشمل رقم الطلب المرتبط، مع الاحتفاظ ببقية معايير البحث | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs (فحص ثابت) |
 | TRY-024 | معتمد — لم ينفذ | منفذ — تصنيفات مستقلة للإيداع والسحب، إضافة محمية للمالك، حفظ وعرض وبحث وتدقيق دون تغيير الرصيد | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-025 | معتمد — قاعدة ربط | منفذ — ربط اختياري بالطلب والمصروف المرجعي؛ منع ازدواج الخصم والتحقق من تطابق المبلغ | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-026 | معتمد — لم ينفذ | منفذ — إرفاق صورة اختيارية مع الحركة، عرضها واستبدالها وإزالتها، مع سجل تدقيق وعدم تغيير الأثر المالي | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-027 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-027 | معتمد — لم ينفذ | منفذ ومتحقق؛ تعديل/إلغاء المالك مع سجل القيم والأسباب (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-028 | معتمد — قاعدة تحقق | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-029 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-030 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-031 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-029 | معتمد — لم ينفذ | منفذ ومتحقق باختبار منع الرصيد السالب بعد إعادة الاحتساب (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-030 | معتمد — لم ينفذ | منفذ ومتحقق؛ مراجعة القيم والتاريخ والإقفالات المتأثرة قبل تعديل/إلغاء الحركة (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-031 | معتمد — لم ينفذ | منفذ ومتحقق؛ تأكيد خاص لليوم المقفل وتحذير للتاريخ القديم (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-032 | معتمد — لم ينفذ | منفذ — تصدير سجل الحركات الحالي PDF وفق البحث وفلاتر النوع والتاريخ، مع التفاصيل والمرفقات والتدقيق ومشاركة الملف | www/index.html؛ scripts/check-treasury-section.cjs |
-| TRY-033 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-034 | معتمد — قاعدة حساب | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-035 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-033 | معتمد — لم ينفذ | منفذ ومتحقق؛ فصل النقدي والتحويل البنكي والمحافظ في الملخص (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-034 | معتمد — قاعدة حساب | منفذ ومتحقق باختبار ترحيل النقدية الفعلية للإقفال إلى اليوم التالي (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-035 | معتمد — لم ينفذ | منفذ ومتحقق؛ منع الإقفال المكرر والسماح بإقفال يوم بلا حركات (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-036 | معتمد — لم ينفذ | منفذ ومتحقق آلياً؛ لا توجد تجربة Android فعلية | www/index.html؛ www/lamset-local-db.js؛ scripts/check-treasury-section.cjs؛ Validation run 45018571790؛ APK build run 45018571780؛ Commit 16f834ae31e1dea176365492ca198cff2aa1b742 |
-| TRY-037 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-037 | معتمد — لم ينفذ | منفذ ومتحقق؛ الإقفال المتأخر المحدد يبدأ من آخر إقفال فعلي (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-038 | معتمد — لم ينفذ | منفذ — تصحيح نقدية الإقفال مع حفظ القيمة الفعلية الأصلية وسبب/وقت التصحيح، وإعادة احتساب الأرصدة اللاحقة مع بقاء النقدية الفعلية للإقفالات التالية كما هي | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-039 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-039 | معتمد — لم ينفذ | منفذ ومتحقق؛ الملاحظة إلزامية عند العجز أو الزيادة ولا تنشأ حركة إيراد/مصروف (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-040 | معتمد — لم ينفذ | منفذ ومتحقق آلياً — لقطة ثابتة لإجماليات اليوم والرصيد والفرق، مع حفظ التصحيحات المرتبطة دون استبدال اللقطة الأصلية | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-041 | معتمد — قاعدة تحقق | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-042 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-042 | معتمد — لم ينفذ | منفذ ومتحقق؛ ملخص مراجعة وتأكيد قبل حفظ الإقفال (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-043 | معتمد — لم ينفذ | منفذ — بحث بتاريخ الإقفال ومسح الفلتر مع بقاء تفاصيل الإقفال وسجل التصحيحات متاحين | www/index.html؛ scripts/check-treasury-section.cjs |
-| TRY-044 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-044 | معتمد — لم ينفذ | منفذ ومتحقق؛ تفاصيل الإقفال متاحة لمعاينة ومشاركة PDF (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-045 | معتمد — منفذ ومتحقق آلياً وبنائياً (2026-11-22) | منفذ ومتحقق آلياً وبنائياً (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-046 | معتمد — منفذ ضمن حارس الإقفال المشترك مع TRY-054 (2026-11-22) | منفذ ومتحقق بفحوص مصدرية لحارس العمليات الجارية (2026-11-22) | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-047 | معتمد — قاعدة حساب | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
@@ -1091,7 +1091,7 @@
 
 ## فجوات الخزينة المؤكدة
 
-- مكتمل: TRY-045 تنبيه الأيام السابقة غير المقفلة؛ TRY-046 وTRY-054 حارس الإقفال أثناء العمليات الجارية؛ TRY-050 تأكيد العمليات النقدية على يوم مغلق؛ TRY-051 وTRY-052 تقرير الخزينة اليومي/الفترِي المستقل؛ TRY-053 تنبيه حد انخفاض الرصيد. TRY-049 مكتمل بعد إضافة تعديل إيصال التحصيل مع سجل تدقيق وربط نقدي مرجعي قابل لإعادة الاحتساب.
+- مكتمل: TRY-018 إلى TRY-022، TRY-027، TRY-029 إلى TRY-031، TRY-033 إلى TRY-035، TRY-037، TRY-039، TRY-042، TRY-044 إلى TRY-054 بعد مراجعة الكود والاختبارات؛ TRY-049 يشمل تعديل الإيصال مع سجل تدقيق وربط نقدي قابل لإعادة الاحتساب.
 - منفذ: TRY-025 (ربط الطلب والمصروف المرجعي مع منع تكرار الأثر المالي)؛ TRY-032 احترام جميع فلاتر سجل الحركات في PDF؛ TRY-036 تمثيل الأيام غير المقفلة تاريخياً والإقفال المتأخر المحدد؛ TRY-046 حارس الإقفال الشامل؛ TRY-049 تعديل التحصيل/طريقة الدفع؛ TRY-050 تأكيد صريح عند تسجيل حركة نقدية بتاريخ يوم مغلق.
 - منفذ ومتحقق آلياً/مصدرياً: TRY-040 لقطة إجماليات الإقفال وربط التصحيحات بها؛ TRY-045 تنبيه الأيام السابقة غير المقفلة؛ TRY-053 تنبيه حد انخفاض الرصيد؛ TRY-054 حارس الإقفال أثناء الحفظ المالي.
 
@@ -1251,7 +1251,7 @@
 - يحدد المالك الحد الأدنى بالجنيه ويفعل التنبيه أو يعطله، مع التحقق من قيمة موجبة صحيحة وحماية تعديل الإعداد برمز المالك.
 - يحفظ الإعداد في مخزن metadata الحالي بالمفتاح treasury.lowBalanceAlert، ويستخدم مقارنة بالسنتات لتجنب أخطاء الكسور العشرية.
 - يظهر التحذير عندما يساوي الرصيد الحالي الحد الأدنى أو يقل عنه؛ لا يمنع السحب ولا يغير الرصيد أو أي حركة مالية.
-- الاختبار: scripts/check-treasury-section.cjs؛ نُفذت 115 تأكيداً ثابتاً من ملف الاختبار على محتوى الملفات الفعلي، مع فحص صياغة JavaScript لثماني كتل inline وملف قاعدة البيانات بعد إزالة export لأغراض التحليل. اختُبرت حالات حد الرصيد الست، وحالات وجود/غياب عمليات الحفظ الخمس.
+- الاختبار: scripts/check-treasury-section.cjs؛ نُفذت 127 تأكيداً ثابتاً من ملف الاختبار على محتوى الملفات الفعلي، مع فحص صياغة JavaScript لثماني كتل inline وملف قاعدة البيانات بعد إزالة export لأغراض التحليل. اختُبرت حالات حد الرصيد الست، وحالات وجود/غياب عمليات الحفظ الخمس.
 - لم يُشغّل npm run check:all عبر GitHub Actions في هذه الجولة، ولم يُبن APK؛ لا يوجد ادعاء بتحقق ميداني على Android.
 - التعديل على الفرع المعتمد؛ لا دمج إلى main.
 
@@ -1261,7 +1261,7 @@
 - أضيفت حالة حفظ للمصروف وحركة الخزينة، واستُخدمت حالات الحفظ القائمة للطلب والتحصيل، مع تنظيف الحالة في finally بعد النجاح أو الخطأ. وأضيف عدّاد موحد يحيط بـ13 عملية كتابة مالية تشمل الإنشاء والتعديل والإلغاء وتصحيح الافتتاح والإقفال.
 - أثناء حفظ الإقفال يُمنع بدء طلب أو تحصيل أو مصروف أو حركة خزينة جديدة، وتعيد حركة الخزينة فحص القفل بعد عمليات القراءة غير المتزامنة وقبل الحفظ.
 - يبقى فحص التحصيلات/المصروفات النقدية التي لم يكتمل ربطها بالخزينة قائماً؛ لا يسمح الإقفال عند وجود روابط معلقة.
-- الاختبار: scripts/check-treasury-section.cjs؛ نُفذت 115 تأكيداً ثابتاً على الملفات الفعلية، واختُبر منطق كشف كل حالة حفظ منفردة، مع تحليل صياغة JavaScript لكتل الواجهة وملف قاعدة البيانات.
+- الاختبار: scripts/check-treasury-section.cjs؛ نُفذت 127 تأكيداً ثابتاً على الملفات الفعلية، واختُبر منطق كشف كل حالة حفظ منفردة، مع تحليل صياغة JavaScript لكتل الواجهة وملف قاعدة البيانات.
 - لم يُشغّل npm run check:all عبر GitHub Actions في هذه الجولة، ولم يُبن APK؛ لم يتم اختبار التزامن على جهاز Android فعلي. تم تحويل Workflow بناء APK إلى تشغيل يدوي فقط (workflow_dispatch) حتى لا يبدأ بناء جديد مع كل تعديل؛ يظل Workflow التحقق منفصلاً.
 - التعديل على الفرع المعتمد؛ لا دمج إلى main.
 
@@ -1272,7 +1272,7 @@
 - عند وجود إقفال، يظهر تأكيد يوضح أن الإقفال الأصلي والنقدية الفعلية سيظلان محفوظين، وأن الرصيد المتوقع والفرق والأرصدة اللاحقة ستعاد حساباتها مع تسجيل أثر العملية في سجل تصحيحات الإقفال.
 - عند رفض التأكيد لا يتم حفظ العملية. وعند الموافقة تستخدم العملية مسار cash link الحالي، مع إعادة احتساب دفتر الخزينة داخل المعاملة.
 - الاختبار: scripts/check-treasury-section.cjs؛ فحوص مصدرية لمسارات التحصيل والمصروف والعربون والتحقق من الإقفال المحفوظ، مع اختبار helper لتاريخ مغلق وآخر غير مغلق.
-- نُفذت 115 تأكيداً ثابتة من ملف الاختبار على محتوى الملفات الفعلي، مع تحليل صياغة JavaScript لثماني كتل inline وملف قاعدة البيانات.
+- نُفذت 127 تأكيداً ثابتة من ملف الاختبار على محتوى الملفات الفعلي، مع تحليل صياغة JavaScript لثماني كتل inline وملف قاعدة البيانات.
 - لم يُشغّل npm run check:all عبر GitHub Actions، ولم يُبن APK أو يُختبر Android فعلياً.
 
 # 47. تقرير الخزينة اليومي والفترِي المستقل — TRY-051 وTRY-052 — 2026-11-22
@@ -1281,7 +1281,7 @@
 - يدعم تحديد بداية ونهاية الفترة، ويعرض رصيد بداية الفترة، والتحصيلات النقدية، والمصروفات النقدية، والإيداعات، والسحوبات، وصافي الحركة، ورصيد نهاية الفترة بعد الإقفالات.
 - يعرض تفاصيل الإقفالات والفروق والحركات خلال الفترة، مع مسار معاينة ومشاركة PDF.
 - الاختبار: scripts/check-treasury-section.cjs؛ فحوص مصدرية لتاريخ البداية والنهاية وحقول التقرير وفروق الإقفالات وتفاصيل الحركات واستقلال تبويبة التقارير.
-- نُفذت 115 تأكيداً ثابتة من ملف الاختبار على محتوى الملفات الفعلي. لم يُشغّل npm run check:all أو بناء APK في هذه الجولة، ولم يتم اختبار PDF على Android فعلياً.
+- نُفذت 127 تأكيداً ثابتة من ملف الاختبار على محتوى الملفات الفعلي. لم يُشغّل npm run check:all أو بناء APK في هذه الجولة، ولم يتم اختبار PDF على Android فعلياً.
 
 
 # 48. تعديل وإلغاء إيصال التحصيل النقدي مع سجل تدقيق — استكمال TRY-049 — 2026-11-22
@@ -1292,5 +1292,16 @@
 - عند التحويل من نقدي إلى وسيلة أخرى يزال رابط الأثر النقدي؛ وعند التحويل إلى نقدي أو تعديل تحصيل نقدي يُحدّث الرابط المرجعي idempotently ويعاد احتساب دفتر الخزينة.
 - عند تعذر حفظ بيانات التطبيق تعاد البيانات السابقة ويُحاول استرجاع رابط التحصيل النقدي السابق. وإذا تم حفظ الإيصال وتعذر تحديث الرابط، يبقى الإيصال محفوظاً وتتم إعادة المزامنة عند فتح الخزينة.
 - تعديل إيصال مرتبط بتاريخ مغلق يمر عبر تأكيد TRY-050 قبل اعتماد التغيير.
-- الاختبار: scripts/check-treasury-section.cjs؛ نُفذت 115 تأكيداً ثابتاً من الملف على مصادر المشروع الفعلية، مع تحليل صياغة JavaScript لثماني كتل inline وملف قاعدة البيانات، واختبارات helper لحد الرصيد والعمليات الجارية والتاريخ المغلق.
+- الاختبار: scripts/check-treasury-section.cjs؛ نُفذت 127 تأكيداً ثابتاً من الملف على مصادر المشروع الفعلية، مع تحليل صياغة JavaScript لثماني كتل inline وملف قاعدة البيانات، واختبارات helper لحد الرصيد والعمليات الجارية والتاريخ المغلق.
 - لم يُشغّل npm run check:all عبر GitHub Actions ولم يُبن APK؛ لم يتم اختبار التعديل أو مزامنة الخزينة على جهاز Android فعلي.
+
+
+# 49. مراجعة ضوابط الخزينة الأساسية — TRY-018 إلى TRY-044 — 2026-11-22
+
+- تمت مطابقة تسجيل الرصيد الافتتاحي مرة واحدة وتصحيحه بصلاحية المالك، مع إضافة اختبار runtime يثبت حفظ القيمة بوحدة القرش ورفض التسجيل المكرر.
+- تمت مراجعة حقول حركة الخزينة: سبب إلزامي، ملاحظات اختيارية، تاريخ فعلي، وقت تسجيل مستقل، ورقم مسلسل TR فريد.
+- تأكدت حماية تعديل وإلغاء الحركات، وإعادة احتساب الدفتر مع منع الرصيد السالب، وإظهار مراجعة أثر الحركة على الإقفالات قبل اعتماد التعديل أو الإلغاء.
+- تم استكمال تأكيد التاريخ القديم/المقفل لحركة الخزينة، وفصل وسائل الدفع، وترحيل النقدية الفعلية بعد الإقفال، ومنع الإقفال المكرر، ودعم الإقفال المتأخر المحدد.
+- تأكد اشتراط الملاحظة عند العجز/الزيادة، ونافذة مراجعة الإقفال، وتفاصيل PDF للإقفال.
+- الاختبارات المرجعية: scripts/check-treasury-section.cjs وscripts/check-treasury-ledger-runtime.cjs. نُفذت 127 تأكيداً ثابتاً على الملفات الفعلية، مع اختبارات helper للحد الأدنى وحالات الحفظ والتاريخ المغلق، واختبار runtime للرصيد الافتتاحي ومنع التكرار، وتحليل صياغة JavaScript للواجهة وقاعدة البيانات وملفات الاختبار.
+- لم يُشغّل npm run check:all عبر GitHub Actions ولم يُبن APK في هذه الجولة؛ لا نسجل اختباراً ميدانياً على Android.
