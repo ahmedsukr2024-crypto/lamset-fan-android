@@ -21,4 +21,13 @@ assert(html.includes("delete order.pausedAt;delete order.pauseReason;delete orde
 assert(html.includes("order.lastResumedAt=at;"),'resume records its timestamp');
 assert(html.includes("if(!o.pausedAt&&status!=='تم التسليم'"),'paused orders do not create duplicate generic overdue alerts');
 
+
+assert(html.includes('id="lfHomeTreasuryCloseoutAlert"'),'dashboard must expose the existing-home treasury closeout alert region');
+assert(html.includes('async function renderHomeTreasuryCloseoutAlert()'),'dashboard must refresh the previous-day treasury closeout alert');
+assert(html.includes("LamsetLocalDB.getMeta('treasury.opening')")&&html.includes('LamsetLocalDB.listTreasuryCloseouts()'),'treasury alert must read the existing opening and closeout records');
+assert(html.includes("if(opening.businessDate>=today)return;"),'treasury alert must not warn about the current day before it ends');
+assert(html.includes('const closed=new Set((closeouts||[]).map(item=>String(item.businessDate||\'\')))'),'treasury alert must exclude dates already closed');
+assert(html.includes('openTreasuryCloseoutFollowup(){tab(\'treasury\');setTreasuryTab(\'closeout\');}'),'clicking the dashboard treasury alert must open the existing closeout tab');
+assert(html.includes('renderHomeTreasuryCloseoutAlert();const alertPriority='),'dashboard refresh must include the treasury closeout alert');
+
 console.log('Home dashboard status, delivery follow-up, and quick-action checks passed.');
