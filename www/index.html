@@ -605,8 +605,8 @@ html[data-theme="dark"] .lf-treasury-tabs button.active{color:#fff}
   <div class="card"><div class="sectionhead"><h3>سجل الحركات</h3></div><div class="field"><label for="lfTreasurySearch">بحث</label><input id="lfTreasurySearch" type="search" placeholder="رقم الحركة أو الطلب أو المبلغ أو السبب أو الملاحظات" oninput="renderTreasuryMovements()"></div><div class="row"><div class="field"><label for="lfTreasuryFilterType">نوع الحركة</label><select id="lfTreasuryFilterType" onchange="renderTreasuryMovements()"><option value="">كل الحركات</option><option value="deposit">إيداع</option><option value="withdrawal">سحب</option></select></div><div class="field"><label for="lfTreasuryFilterFrom">من تاريخ</label><input id="lfTreasuryFilterFrom" type="date" onchange="renderTreasuryMovements()"></div><div class="field"><label for="lfTreasuryFilterTo">إلى تاريخ</label><input id="lfTreasuryFilterTo" type="date" onchange="renderTreasuryMovements()"></div></div><div class="row" style="justify-content:flex-end;margin:10px 0"><button type="button" class="ghost" onclick="previewTreasuryMovementsPdf(this)">📄 تصدير سجل الحركات PDF</button></div><div id="lfTreasuryMovementsList"></div></div>
  </div>
  <div class="lf-treasury-view" data-treasury-view="closeout" hidden>
-  <div class="card"><h3>إقفال اليوم</h3><div id="lfTreasuryCloseoutStatus" class="muted">جارٍ تحميل بيانات الخزينة...</div><div class="field"><label for="lfTreasuryActualCash">النقدية الفعلية بالخزينة (ج.م)</label><input id="lfTreasuryActualCash" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div><div class="field"><label for="lfTreasuryCloseoutNotes">ملاحظات العجز أو الزيادة (مطلوبة عند وجود فرق)</label><textarea id="lfTreasuryCloseoutNotes" rows="2" maxlength="500"></textarea></div><div id="lfTreasuryCloseoutPreview" class="result">سيظهر ملخص الإقفال هنا.</div><button type="button" onclick="previewTreasuryCloseout(this)">مراجعة إقفال اليوم</button></div>
-  <div class="card"><h3>سجل الإقفالات</h3><div class="row"><div class="field"><label for="lfTreasuryCloseoutSearchDate">بحث بتاريخ الإقفال</label><input id="lfTreasuryCloseoutSearchDate" type="date" onchange="renderTreasury()"></div><button type="button" class="ghost" onclick="clearTreasuryCloseoutSearch()">مسح البحث</button></div><div id="lfTreasuryCloseoutHistory"></div></div>
+  <div class="card"><h3>إقفال اليوم</h3><div id="lfTreasuryCloseoutStatus" class="muted">جارٍ تحميل بيانات الخزينة...</div><div class="field"><label for="lfTreasuryCloseoutDate">تاريخ الإقفال</label><input id="lfTreasuryCloseoutDate" type="date" onchange="lfTreasuryCloseoutDateChanged()"></div><small class="muted">يمكن تسجيل إقفال متأخر ليوم سابق لم يتم إقفاله؛ لا ينشئ التطبيق إقفالات تلقائية.</small><div class="field"><label for="lfTreasuryActualCash">النقدية الفعلية بالخزينة (ج.م)</label><input id="lfTreasuryActualCash" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div><div class="field"><label for="lfTreasuryCloseoutNotes">ملاحظات العجز أو الزيادة (مطلوبة عند وجود فرق)</label><textarea id="lfTreasuryCloseoutNotes" rows="2" maxlength="500"></textarea></div><div id="lfTreasuryCloseoutPreview" class="result">سيظهر ملخص الإقفال هنا.</div><button type="button" onclick="previewTreasuryCloseout(this)">مراجعة إقفال اليوم</button></div>
+  <div class="card"><h3>سجل الإقفالات</h3><div class="row"><div class="field"><label for="lfTreasuryCloseoutSearchDate">بحث بتاريخ الإقفال</label><input id="lfTreasuryCloseoutSearchDate" type="date" onchange="renderTreasury()"></div><button type="button" class="ghost" onclick="clearTreasuryCloseoutSearch()">مسح البحث</button></div><div id="lfTreasuryCloseoutHistory"></div><div class="sectionhead" style="margin-top:14px"><div><b>الأيام التي لم يتم إقفالها</b><small class="muted">تُعرض للمتابعة فقط، دون إنشاء سجلات إقفال أو حركات مالية تلقائية.</small></div><button type="button" class="ghost" onclick="showTreasuryUnclosedDays(this)">عرض الأيام</button></div><div id="lfTreasuryUnclosedDays" hidden></div></div>
  </div>
  <div class="lf-treasury-view" data-treasury-view="reports" hidden>
   <div class="card"><h3>تقرير الخزينة</h3><div class="row"><div class="field"><label for="lfTreasuryReportFrom">من تاريخ</label><input id="lfTreasuryReportFrom" type="date"></div><div class="field"><label for="lfTreasuryReportTo">إلى تاريخ</label><input id="lfTreasuryReportTo" type="date"></div></div><button type="button" class="ghost" onclick="renderTreasuryReport()">عرض التقرير</button><div id="lfTreasuryReportResult"></div></div>
@@ -3022,8 +3022,8 @@ async function renderTreasury(){
   }
   const openingCard=$('lfTreasuryOpeningCard');if(openingCard){openingCard.hidden=false;const inputRow=openingCard.querySelector('.row'),initialButton=openingCard.querySelector('[onclick="saveTreasuryOpening(this)"]'),correctionButton=$('lfTreasuryOpeningCorrection'),historyButton=$('lfTreasuryOpeningHistory');if(data.opening){if(inputRow)inputRow.hidden=true;if(initialButton)initialButton.hidden=true;if(correctionButton)correctionButton.hidden=false;if(historyButton)historyButton.hidden=!(data.opening.corrections||[]).length;$('lfTreasuryOpeningStatus').textContent='الرصيد الافتتاحي: '+lfTreasuryAmount(Number(data.opening.cents||0)/100)+' بتاريخ '+data.opening.businessDate+' · التصحيحات المسجلة: '+(data.opening.corrections||[]).length;}else{if(inputRow)inputRow.hidden=false;if(initialButton)initialButton.hidden=false;if(correctionButton)correctionButton.hidden=true;if(historyButton)historyButton.hidden=true;$('lfTreasuryOpeningStatus').textContent='لم يتم تسجيل الرصيد الافتتاحي بعد.';}}
   const preview=$('lfTreasuryMovementPreview');if(preview)preview.textContent='الرصيد المتاح حاليًا: '+lfTreasuryAmount(data.balance);
-  const closeStatus=$('lfTreasuryCloseoutStatus');if(closeStatus)closeStatus.textContent=closed?'تم إقفال اليوم بالفعل. لا يمكن تكرار الإقفال.':'رصيد الخزينة المتوقع حاليًا: '+lfTreasuryAmount(data.balance);
-  const actual=$('lfTreasuryActualCash');if(actual&&!actual.value)actual.value=data.balance.toFixed(2);
+  const closeoutDate=$('lfTreasuryCloseoutDate'),selectedCloseoutDate=closeoutDate?.value||today;if(closeoutDate){closeoutDate.max=today;if(!closeoutDate.value)closeoutDate.value=today;}\n  const selectedCloseout=data.closeouts.some(x=>x.businessDate===selectedCloseoutDate),closeStatus=$('lfTreasuryCloseoutStatus');if(closeStatus)closeStatus.textContent=selectedCloseout?'تم إقفال هذا التاريخ بالفعل.':selectedCloseoutDate<today?'اليوم المحدد لم يتم إقفاله؛ يمكنك تسجيل إقفال متأخر بعد توضيح السبب.':'الرصيد المتوقع لهذا اليوم: '+lfTreasuryAmount(lfTreasuryExpectedBalanceForDate(data,selectedCloseoutDate));
+  const actual=$('lfTreasuryActualCash');if(actual&&!actual.value)actual.value=lfTreasuryExpectedBalanceForDate(data,selectedCloseoutDate).toFixed(2);
   const closeoutSearchDate=$('lfTreasuryCloseoutSearchDate')?.value||'',history=$('lfTreasuryCloseoutHistory');if(history)history.innerHTML=data.closeouts.filter(x=>!closeoutSearchDate||x.businessDate===closeoutSearchDate).map(x=>'<div class="lf-treasury-row"><div><b>'+lfTreasuryEsc(x.businessDate)+'</b><small>متوقع '+lfTreasuryAmount(x.expected)+' · فعلي '+lfTreasuryAmount(x.actual)+'</small>'+(x.recalculatedAt?'<small>أعيد حساب المتوقع بعد تصحيح '+(x.corrections||[]).length+' حركة · القيمة الأصلية '+lfTreasuryAmount(Number(x.originalExpectedCents||0)/100)+'</small>':'')+(x.originalActualCents!==undefined?'<small>القيمة الفعلية الأصلية قبل التصحيح: '+lfTreasuryAmount(Number(x.originalActualCents||0)/100)+'</small>':'')+'<button type="button" class="textbtn" onclick="previewTreasuryCloseoutPdf(\''+lfTreasuryEsc(x.businessDate)+'\')">تفاصيل / PDF</button><button type="button" class="textbtn" onclick="correctTreasuryCloseout(\''+lfTreasuryEsc(x.businessDate)+'\',this)">تصحيح الإقفال</button></div><strong class="'+(x.difference<0?'lf-treasury-negative':x.difference>0?'lf-treasury-positive':'')+'">'+(x.difference>0?'+':'')+lfTreasuryAmount(x.difference)+'</strong></div>').join('')||'<p class="empty">لا توجد إقفالات مسجلة.</p>';
   await renderTreasuryMovements(data.movements);
  }catch(error){window.LamsetUI?.toast(error.message||'تعذر تحميل بيانات الخزينة.','error');}
@@ -3146,18 +3146,66 @@ async function correctTreasuryCloseout(businessDate,button){
  }catch(error){alert(error.message||'تعذر تصحيح إقفال الخزينة.');}
  finally{if(button){button.disabled=false;button.textContent='تصحيح الإقفال';}}
 }
+function lfTreasuryExpectedBalanceForDate(data,businessDate){
+ const prior=(data.closeouts||[]).filter(x=>x.businessDate<businessDate).sort((a,b)=>a.businessDate.localeCompare(b.businessDate));
+ const baseline=prior[prior.length-1],openingDate=data.opening?.businessDate||'0000-00-00';
+ let balance=baseline?Number(baseline.actual||0):Number(data.opening?.cents||0)/100;
+ const baselineDate=baseline?.businessDate||openingDate;
+ const events=[
+  ...(data.movements||[]).filter(x=>x.status==='active'&&(baseline?x.effectiveDate>baselineDate:x.effectiveDate>=baselineDate)&&x.effectiveDate<=businessDate).map(item=>({item,kind:'movement'})),
+  ...(data.links||[]).filter(x=>x.status==='active'&&(baseline?x.effectiveDate>baselineDate:x.effectiveDate>=baselineDate)&&x.effectiveDate<=businessDate).map(item=>({item,kind:'link'}))
+ ].sort((a,b)=>String(a.item.effectiveDate).localeCompare(String(b.item.effectiveDate))||String(a.item.createdAt||'').localeCompare(String(b.item.createdAt||'')));
+ for(const event of events){
+  const item=event.item,sign=event.kind==='movement'?(item.referenceOnly?0:item.type==='deposit'?1:-1):(item.type==='collection'?1:-1);
+  balance+=Number(item.amount||0)*sign;
+  if(balance<-.0001)throw new Error('الرصيد المتوقع يصبح سالباً بتاريخ '+item.effectiveDate+'؛ راجع الحركات قبل الإقفال.');
+ }
+ return Number(balance.toFixed(2));
+}
+async function lfTreasuryCloseoutDateChanged(){
+ const date=$('lfTreasuryCloseoutDate')?.value||lfTreasuryToday(),actual=$('lfTreasuryActualCash');
+ if(actual)actual.value='';
+ try{
+  const data=await lfTreasuryData();if(actual&&data.opening)actual.value=lfTreasuryExpectedBalanceForDate(data,date).toFixed(2);
+  const status=$('lfTreasuryCloseoutStatus');if(status){const today=lfTreasuryToday(),closed=data.closeouts.some(x=>x.businessDate===date);status.textContent=closed?'تم إقفال هذا التاريخ بالفعل.':date<today?'اليوم المحدد لم يتم إقفاله؛ يمكنك تسجيل إقفال متأخر بعد توضيح السبب.':'الرصيد المتوقع لهذا اليوم: '+lfTreasuryAmount(lfTreasuryExpectedBalanceForDate(data,date));}
+ }catch(error){if(actual)actual.value='';alert(error.message||'تعذر حساب الرصيد المتوقع للتاريخ المحدد.');}
+}
+async function showTreasuryUnclosedDays(button){
+ if(button?.disabled)return;
+ button.disabled=true;const old=button.textContent;button.textContent='جارٍ تجهيز القائمة...';
+ try{
+  const data=await lfTreasuryData(),host=$('lfTreasuryUnclosedDays'),today=lfTreasuryToday();
+  if(!host)return;
+  if(!data.opening?.businessDate){host.hidden=false;host.innerHTML='<p class="empty">سجّل الرصيد الافتتاحي أولاً لعرض الأيام.</p>';return;}
+  const closed=new Set(data.closeouts.map(x=>x.businessDate)),days=[];
+  const cursor=new Date(data.opening.businessDate+'T00:00:00.000Z'),end=new Date(today+'T00:00:00.000Z');
+  while(cursor<=end){const date=cursor.toISOString().slice(0,10);if(!closed.has(date))days.push(date);cursor.setUTCDate(cursor.getUTCDate()+1);}
+  host.hidden=false;
+  host.innerHTML=days.length?'<p class="muted">عدد الأيام غير المقفلة: '+days.length+'</p>'+days.reverse().map(date=>'<div class="lf-treasury-row"><div><b>'+lfTreasuryEsc(date)+'</b><small>لم يتم الإقفال · لا يوجد سجل إقفال محفوظ لهذا اليوم</small></div><button type="button" class="textbtn" onclick="lfTreasurySelectLateCloseout(\\''+lfTreasuryEsc(date)+'\\')">تسجيل إقفال متأخر</button></div>').join(''):'<p class="empty">لا توجد أيام غير مقفلة منذ تاريخ بدء الخزينة.</p>';
+ }catch(error){alert(error.message||'تعذر عرض الأيام غير المقفلة.');}
+ finally{button.disabled=false;button.textContent=old;}
+}
+async function lfTreasurySelectLateCloseout(date){
+ const input=$('lfTreasuryCloseoutDate');if(!input)return;
+ input.value=date;await lfTreasuryCloseoutDateChanged();input.scrollIntoView?.({behavior:'smooth',block:'center'});
+}
 async function previewTreasuryCloseout(button){
  if(button?.disabled)return;
- const data=await lfTreasuryData(),today=lfTreasuryToday(),actual=Number($('lfTreasuryActualCash').value),notes=$('lfTreasuryCloseoutNotes').value.trim();
+ const data=await lfTreasuryData(),today=lfTreasuryToday(),date=$('lfTreasuryCloseoutDate')?.value||today,actual=Number($('lfTreasuryActualCash').value),notes=$('lfTreasuryCloseoutNotes').value.trim();
+ if(!data.opening?.businessDate)return alert('سجّل الرصيد الافتتاحي أولاً قبل إقفال الخزينة.');
+ if(date<data.opening.businessDate||date>today)return alert('تاريخ الإقفال يجب أن يكون بين تاريخ بدء الخزينة واليوم.');
  if(data.pendingCashLinks>0)return alert('لا يمكن إقفال الخزينة الآن؛ يوجد '+data.pendingCashLinks+' تحصيل/مصروف نقدي لم يكتمل ربطه. راجع الاتصال ثم أعد المحاولة.');
- if(data.closeouts.some(x=>x.businessDate===today))return alert('تم إقفال اليوم بالفعل.');
+ if(data.closeouts.some(x=>x.businessDate===date))return alert('تم إقفال هذا التاريخ بالفعل.');
  if(!Number.isFinite(actual)||actual<0)return alert('أدخل النقدية الفعلية بقيمة صحيحة غير سالبة.');
- const difference=actual-data.balance;if(Math.abs(difference)>=0.01&&!notes)return alert('اكتب ملاحظة توضح سبب العجز أو الزيادة.');
- const summary='مراجعة إقفال '+today+'\nالرصيد المتوقع: '+lfTreasuryAmount(data.balance)+'\nالنقدية الفعلية: '+lfTreasuryAmount(actual)+'\n'+(difference<0?'عجز: ':difference>0?'زيادة: ':'الفرق: ')+lfTreasuryAmount(Math.abs(difference))+'\nالملاحظات: '+(notes||'لا يوجد');
- if(!confirm(summary+'\n\nبعد التأكيد يصبح الرصيد الفعلي رصيد بداية اليوم التالي. هل تؤكد الإقفال؟'))return;
+ let expected;try{expected=lfTreasuryExpectedBalanceForDate(data,date);}catch(error){return alert(error.message||'تعذر حساب الرصيد المتوقع.');}
+ const late=date<today,difference=actual-expected;
+ if(late&&!notes)return alert('اكتب ملاحظة توضح سبب الإقفال المتأخر.');
+ if(Math.abs(difference)>=0.01&&!notes)return alert('اكتب ملاحظة توضح سبب العجز أو الزيادة.');
+ const summary='مراجعة '+(late?'إقفال متأخر':'إقفال اليوم')+' · '+date+'\\nالرصيد المتوقع حتى التاريخ المحدد: '+lfTreasuryAmount(expected)+'\\nالنقدية الفعلية المسجلة: '+lfTreasuryAmount(actual)+'\\n'+(difference<0?'عجز: ':difference>0?'زيادة: ':'الفرق: ')+lfTreasuryAmount(Math.abs(difference))+'\\nالملاحظات: '+(notes||'لا يوجد')+(late?'\\nسيتم حفظ إقفال هذا اليوم فقط، ولن تُنشأ إقفالات تلقائية للأيام الأخرى.':'');
+ if(!confirm(summary+'\\n\\nبعد التأكيد يصبح الرصيد الفعلي أساس احتساب الرصيد للأيام التالية. هل تؤكد الإقفال؟'))return;
  button.disabled=true;const old=button.textContent;button.textContent='جارٍ الإقفال...';
- try{if(!(await window.lamsetRequireOwnerPin('تأكيد إقفال الخزينة لليوم')))return;await LamsetLocalDB.createTreasuryCloseout({businessDate:today,actualCents:Math.round(actual*100),notes});alert('تم إقفال اليوم وحفظ الرصيد الفعلي.');await renderTreasury();}
- catch(error){alert(error.message||'تعذر إقفال اليوم.');}
+ try{if(!(await window.lamsetRequireOwnerPin(late?'تأكيد إقفال خزينة متأخر '+date:'تأكيد إقفال الخزينة لليوم')))return;await LamsetLocalDB.createTreasuryCloseout({businessDate:date,actualCents:Math.round(actual*100),notes});alert(late?'تم تسجيل الإقفال المتأخر وحفظ الأرصدة مع الاحتفاظ بالأيام الأخرى دون إقفال.':'تم إقفال اليوم وحفظ الرصيد الفعلي.');$('lfTreasuryCloseoutNotes').value='';await renderTreasury();}
+ catch(error){alert(error.message||'تعذر إقفال الخزينة.');}
  finally{button.disabled=false;button.textContent=old;}
 }
 async function renderTreasuryReport(){
