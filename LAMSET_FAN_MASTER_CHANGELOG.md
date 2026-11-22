@@ -959,8 +959,8 @@
 | TRY-015 | منفذ؛ تعديل وإلغاء موثق مع إعادة احتساب دفتر الخزينة | موجود بالكود/القاعدة وفق فحص الوحدة؛ لا يثبت ذلك اختبار Android | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-016 | منفذ؛ معالجة الحركات المؤرخة سابقاً مع حفظ لقطة الإقفال الأصلية وسجل التصحيحات | موجود بالكود/القاعدة وفق فحص الوحدة؛ لا يثبت ذلك اختبار Android | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-017 | منفذ؛ تقارير الخزينة ومعاينة PDF ومشاركة PDF | موجود بالكود/القاعدة وفق فحص الوحدة؛ لا يثبت ذلك اختبار Android | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| QA-001 | منفذ؛ GitHub Actions وcheck:all ناجحان على النسخة التي تم التحقق منها | موجود بالكود/القاعدة وفق فحص الوحدة؛ لا يثبت ذلك اختبار Android | .github/workflows/validate.yml؛ .github/workflows/android.yml؛ package.json (check:all) |
-| QA-002 | قيد التحقق على آخر Commit؛ لا يُعلن نجاح APK قبل اكتمال Workflow | تم بناء APK بنجاح على Commit المراجعة 0062013؛ لا يعني اختباراً وظيفياً على جهاز | .github/workflows/validate.yml؛ .github/workflows/android.yml؛ package.json (check:all) |
+| QA-001 | منفذ؛ GitHub Actions وcheck:all ناجحان على Commit التحقق 2dd0404 (2026-11-22) | ناجح؛ Validation run 45031219320؛ لا يثبت اختبار Android فعلياً | .github/workflows/validate.yml؛ package.json (check:all) |
+| QA-002 | منفذ؛ بناء APK على نسخة التحليلات الحالية | نجح بناء debug APK ورفع artifact في Android build run 45031080974 على Commit 94c8a0e؛ تم التحقق من سلامة ملف APK | .github/workflows/android.yml؛ package.json (build:android)؛ artifact 14757731721 |
 | QA-003 | اختبارات سلوكية آلية لدفتر الخزينة؛ لم يُنفذ اختبار على جهاز Android فعلي في هذه الجولة | اختبارات آلية سلوكية؛ لم يجر اختبار جهاز Android فعلي | .github/workflows/validate.yml؛ .github/workflows/android.yml؛ package.json (check:all) |
 | QA-004 | قاعدة تحقق مطبقة؛ يتم الفصل بين نجاح الاختبارات والبناء واختبار الجهاز | موجود بالكود/القاعدة وفق فحص الوحدة؛ لا يثبت ذلك اختبار Android | .github/workflows/validate.yml؛ .github/workflows/android.yml؛ package.json (check:all) |
 | ORD-005 | استُبدلت لاحقاً بتفاصيل طلب في بطاقات قابلة للفتح والطي وفق اعتماد البند 37؛ الملخص والتنبيهات تبقى ظاهرة | موجود بالكود/القاعدة وفق فحص الوحدة؛ لا يثبت ذلك اختبار Android | www/index.html؛ www/lamset-local-db.js؛ scripts/check-order-workspace.cjs؛ scripts/check-order-shipping-history.cjs؛ scripts/check-order-status-consistency.cjs؛ scripts/check-order-edit-production.cjs |
@@ -1083,7 +1083,7 @@
 ## ملخص حالات التنفيذ
 
 - إحصاء 22/11 السابق (22 موجودة، 8 جزئية، 7 غير منفذة) لقطة قبل استكمال TRY-045 وTRY-053 وTRY-054؛ لا يمثل الحالة الحالية.
-- ANA-001 إلى ANA-004: منفذة ومتحققة آلياً ضمن Validation run 45030838233؛ شمل ذلك فحوص JavaScript ومركز التحليلات والخزينة وبقية check:all. لم يُنفذ بناء APK في هذه الجولة ولم يحدث اختبار Android فعلي؛ لا تخلط بين اجتياز الفحوص المصدرية والتحقق على جهاز.
+- ANA-001 إلى ANA-004: منفذة ومتحققة آلياً ضمن Validation run 45031219320؛ شمل ذلك فحوص JavaScript ومركز التحليلات والخزينة وبقية check:all. كما نجح بناء APK على Commit 94c8a0e في Android build run 45031080974 ورُفع artifact رقم 14757731721. لم يحدث اختبار وظيفي على جهاز Android فعلي؛ لا تخلط بين نجاح البناء والتحقق على جهاز.
 - PEND-001: مقترح غير محسوم، لا يدخل ضمن المتطلبات المعتمدة.
 - ORD-003: مستبعد نهائياً؛ لا نظام مرتجعات أو استبدال.
 - CAT-009: الاستيراد الآلي مؤجل؛ الإدخال اليدوي هو النطاق الحالي.
