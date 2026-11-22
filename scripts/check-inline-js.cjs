@@ -59,6 +59,10 @@ if (classicSources.length > 1) {
   }
 }
 const focusFix = "try{const closeButton=modal?.querySelector?.('#lf-system-message-x');if(typeof closeButton?.focus==='function')closeButton.focus({preventScroll:true})}catch(focusError){console.warn('System message modal focus skipped:',focusError)}";
+if (!html.includes("var tap=window.__lamsetLastTap;") || !html.includes("آخر زر تم الضغط عليه:")) {
+  console.error('Runtime error details must include the last tapped button when available.');
+  process.exit(1);
+}
 if (!html.includes('id="lf-system-message-x"') || !html.includes(focusFix)) {
   console.error('System message modal focus must be optional-chained and isolated from restore error reporting.');
   process.exit(1);
