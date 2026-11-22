@@ -7,10 +7,10 @@ const end = source.indexOf('\n  async updateTreasuryMovement(', start);
 if (start < 0 || end < 0) throw new Error('Treasury ledger implementation could not be isolated.');
 const method = source.slice(start, end).trim().replace(/^async recomputeTreasuryLedger/, 'async function recomputeTreasuryLedger');
 const categoryStart = source.indexOf('function normalizeTreasuryCategory(');
-const categoryEnd = source.indexOf('\\nfunction bytesToBase64', categoryStart);
+const categoryEnd = source.indexOf('\nfunction bytesToBase64', categoryStart);
 if (categoryStart < 0 || categoryEnd < 0) throw new Error('Treasury category normalization could not be isolated.');
 const categorySandbox = {};
-vm.runInNewContext(source.slice(categoryStart, categoryEnd) + '\\nthis.normalizeCategory = normalizeTreasuryCategory;', categorySandbox);
+vm.runInNewContext(source.slice(categoryStart, categoryEnd) + '\nthis.normalizeCategory = normalizeTreasuryCategory;', categorySandbox);
 function assert(condition, message) {
   if (!condition) throw new Error('Treasury ledger runtime check failed: ' + message);
 }
