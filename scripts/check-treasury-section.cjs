@@ -9,6 +9,16 @@ assert(html.includes("case'treasury':renderTreasuryPage();break;"),'Treasury pag
 assert(db.includes('applyCashLink')&&db.includes('CASH_LINKS'),'Cash links must be idempotent in IndexedDB');
 assert(db.includes("database.transaction([META, CASH_LINKS, MOVEMENTS, CLOSEOUTS], 'readwrite')"),'Cash links, movements, closeouts, and balance must update atomically');
 assert(db.includes('createTreasuryCloseout'),'Daily closeout must be persisted');
+assert(db.includes("async listTreasuryCategories()")&&db.includes("async addTreasuryCategory(type, value)"),'Treasury categories must be stored and managed through the existing local database');
+assert(db.includes("this.requireOwnerSession();\\n    if (!['deposit', 'withdrawal'].includes(type))"),'Only the owner may add a category and each category must belong to a movement type');
+assert(db.includes("meta.get('treasury.categories')")&&db.includes("store.put({ key: 'treasury.categories', value: categories })"),'Separate deposit and withdrawal category lists must persist in the existing metadata store');
+assert(db.includes("categories[type].some(item => String(item).toLocaleLowerCase('ar') === category.toLocaleLowerCase('ar'))"),'Duplicate categories must be rejected within the same movement type');
+assert(html.includes('id="lfTreasuryMovementCategory"')&&html.includes('onclick="lfTreasuryAddCategory()"'),'The existing movement form must let the owner select or add a category');
+assert(html.includes('category,orderId:linkedOrder?.id||null'),'New and edited movements must save the selected category alongside existing references');
+assert(html.includes('category: category || null'),'The category is stored as descriptive metadata and not used as a ledger amount');
+assert(html.includes('categoryText=x.category'),'Movement history must display the category');
+assert(html.includes('x.category,x.notes'),'Movement search must include the category');
+assert(db.includes('category: previous.category || null')&&db.includes('category: category || null'),'Movement edits must preserve old and new category values in the audit log');
 assert(html.includes("await LamsetLocalDB.applyCashLink(payment.id,'collection'"),'Cash collection must update treasury once');
 assert(html.includes('id="lfTreasuryMovementOrderRef"'),'Manual treasury movements must support an optional order reference');
 assert(db.includes("orderId: String(input.orderId || '').trim() || null")&&db.includes("orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null"),'Manual movement order references must be persisted without changing ledger amounts');
