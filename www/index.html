@@ -7,53 +7,7 @@
 function lamsetPrintThemeTag(){return '<style id="lamset-unified-document-theme">@import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap");:root{color-scheme:light;--lf-print-blue:#0866FF;--lf-print-blue-hover:#075CE5;--lf-print-ink:#1C1E21;--lf-print-muted:#65676B;--lf-print-line:#CED0D4;--lf-print-soft:#F0F2F5}*{box-sizing:border-box;font-family:"Tajawal",Tahoma,Arial,sans-serif!important}html,body{background:#fff!important;color:var(--lf-print-ink)!important;font-family:"Tajawal",Tahoma,Arial,sans-serif!important;line-height:1.65}body{font-size:11px}h1,h2,h3,.brand,.brand-wordmark,.title h1,.section{color:var(--lf-print-ink)!important}header,.head,.invoice-header,.catalog-header{border-color:var(--lf-print-line)!important}table{border-collapse:collapse}table th,.items th,thead th{background:#F0F2F5!important;color:#1C1E21!important;border-color:#CED0D4!important}table td,table th,.meta div,.box,.card,.summary,.note{border-color:var(--lf-print-line)!important}.summary,.box,.note,.meta div{background:var(--lf-print-soft)!important}button,.button{background:var(--lf-print-blue)!important;color:#fff!important;border-color:var(--lf-print-blue)!important;box-shadow:none!important}.pill,.badge{background:#E7F3FF!important;color:#166FE5!important;border-color:#CED0D4!important}.foot,footer,.muted,small{color:var(--lf-print-muted)}.invoice-title p,.meta small,.detail small{color:var(--lf-print-muted)!important}.brand-wordmark small{color:var(--lf-print-blue)!important}.invoice-foot,.invoice-foot b,.invoice-foot a{color:#fff!important}.total,.grand-total{color:var(--lf-print-blue)!important}header{border-bottom-color:var(--lf-print-blue)!important}img{max-width:100%}a{color:var(--lf-print-blue)}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.no-print,button{display:none!important}tr,.card,.box,.summary{break-inside:avoid;page-break-inside:avoid}thead{display:table-header-group}tfoot{display:table-footer-group}}</style>';
 }function lamsetApplyPrintTheme(html){
  const source=String(html||''),theme=lamsetPrintThemeTag();
- if(source.includes('<style id="lf-document-action-footer">.lf-document-footer,#invoicePreview .preview-footer{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line);background:var(--surface,#fff)}.lf-document-footer .lf-document-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;width:100%}.lf-document-footer button,#invoicePreview .preview-footer button{min-height:42px}.lf-document-footer #lfDocumentWhatsAppButton,#invoicePreview #invoicePreviewWhatsApp{background:#168b55!important;color:#fff!important;border-color:#168b55!important}@media(max-width:520px){.lf-document-footer,#invoicePreview .preview-footer{padding:10px;gap:7px}.lf-document-footer .lf-document-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.lf-document-footer button,#invoicePreview .preview-footer button{width:100%;min-height:42px}#invoicePreview .preview-footer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}</style><style id="lf-android-fixed-header-v4">
-/* Android-first global header: fixed across every workspace page, with room for status icons and camera cutout. */
-:root{--lf-header-safe-top:env(safe-area-inset-top,0px);--lf-header-height:78px}
-@media(max-width:699px){:root{--lf-header-safe-top:max(env(safe-area-inset-top,0px),30px);--lf-header-height:78px}}
-body{--lf-fixed-header-gap:calc(var(--lf-header-safe-top) + 8px + var(--lf-header-height) + 16px)}
-.wrap{padding-top:var(--lf-fixed-header-gap)!important}
-.lf-app-header{
- position:fixed!important;top:calc(var(--lf-header-safe-top) + 8px)!important;
- left:50%!important;right:auto!important;transform:translateX(-50%)!important;
- width:min(1100px,calc(100% - 24px))!important;max-width:1100px!important;
- min-height:var(--lf-header-height)!important;height:var(--lf-header-height)!important;
- margin:0!important;padding:11px 16px!important;gap:14px!important;
- border:1px solid var(--line)!important;border-radius:20px!important;
- background:var(--surface,rgba(255,255,255,.97))!important;
- box-shadow:0 5px 22px rgba(0,0,0,.12)!important;
- z-index:120!important;overflow:visible!important;
-}
-.lf-app-brand{order:1!important;flex:0 1 auto!important;min-width:0!important;gap:11px!important}
-.lf-header-actions{order:2!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;flex:0 0 auto!important}
-.lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:48px!important;height:48px!important;flex:0 0 48px!important;border-radius:15px!important}
-.lf-app-brand-copy b{font-size:18px!important;font-weight:900!important;line-height:1.25!important}
-.lf-app-brand-copy small{font-size:10px!important;line-height:1.3!important}
-.lf-header-menu,.lf-header-search,.lf-header-alerts,.lf-header-settings{
- width:46px!important;height:46px!important;min-width:46px!important;flex:0 0 46px!important;
- display:grid!important;place-items:center!important;border-radius:15px!important;
-}
-.lf-header-menu [data-lucide],.lf-header-search [data-lucide],.lf-header-alerts [data-lucide],.lf-header-settings [data-lucide]{width:21px!important;height:21px!important}
-.lf-header-alert-count{top:-4px!important;left:-4px!important}
-@media(min-width:700px){
- :root{--lf-header-height:78px}
- .lf-app-header{width:min(1100px,calc(100% - 40px))!important;padding-inline:20px!important}
-}
-@media(max-width:390px){
- :root{--lf-header-height:74px}
- .lf-app-header{width:calc(100% - 16px)!important;padding:8px 10px!important;gap:7px!important;border-radius:17px!important}
- .lf-app-brand{gap:7px!important}
- .lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:43px!important;height:43px!important;flex-basis:43px!important}
- .lf-app-brand-copy b{font-size:16px!important}
- .lf-app-brand-copy small{font-size:8px!important;letter-spacing:0!important}
- .lf-header-actions{gap:5px!important}
- .lf-header-menu,.lf-header-search,.lf-header-alerts,.lf-header-settings{width:41px!important;height:41px!important;min-width:41px!important;flex-basis:41px!important;border-radius:13px!important}
-}
-@media(max-width:340px){
- .lf-app-brand-copy small{display:none!important}
- .lf-header-search,.lf-header-settings{display:none!important}
-}
-</style>
+ if(source.includes('<style id="lf-document-action-footer">.lf-document-footer,#invoicePreview .preview-footer{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line);background:var(--surface,#fff)}.lf-document-footer .lf-document-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;width:100%}.lf-document-footer button,#invoicePreview .preview-footer button{min-height:42px}.lf-document-footer #lfDocumentWhatsAppButton,#invoicePreview #invoicePreviewWhatsApp{background:#168b55!important;color:#fff!important;border-color:#168b55!important}@media(max-width:520px){.lf-document-footer,#invoicePreview .preview-footer{padding:10px;gap:7px}.lf-document-footer .lf-document-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.lf-document-footer button,#invoicePreview .preview-footer button{width:100%;min-height:42px}#invoicePreview .preview-footer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
 </head>'))return source.replace('</head>',theme+'</head>');
  return source.replace('<body',theme+'<body');
 }
@@ -3499,7 +3453,54 @@ async function previewTreasuryCloseoutPdf(businessDate){
    ['النقدية الفعلية وقت الإقفال',snapshot.actualCents],
    ['الفرق وقت الإقفال',snapshot.differenceCents]
   ].map(([label,value])=>'<div class="lf-treasury-row"><span>'+label+'</span><b>'+lfTreasuryAmount(Number(value||0)/100)+'</b></div>').join(''):'<p>لا تتوفر لقطة تفصيلية لهذا الإقفال القديم.</p>';
-  const html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>إقفال الخزينة</title><style>body{font-family:Arial,sans-serif;color:#222;padding:20px;direction:rtl}.lf-doc{width:100%;font-size:13px}.lf-doc h1{font-size:22px}.result{border:1px solid #ddd;border-radius:10px;padding:14px}.lf-treasury-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #eee}small{display:block;color:#666;margin-top:4px}.lf-treasury-positive{color:#16834a}.lf-treasury-negative{color:#bd3434}</style></head><body><main class="lf-doc"><h1>تفاصيل إقفال الخزينة · '+lfTreasuryEsc(businessDate)+'</h1><div class="result"><div class="lf-treasury-row"><span>الرصيد المتوقع الحالي</span><b>'+lfTreasuryAmount(closeout.expected)+'</b></div><div class="lf-treasury-row"><span>النقدية الفعلية الحالية</span><b>'+lfTreasuryAmount(closeout.actual)+'</b></div><div class="lf-treasury-row"><span>الفرق الحالي</span><b>'+lfTreasuryAmount(closeout.difference)+'</b></div><p>الملاحظات: '+lfTreasuryEsc(closeout.notes||'لا توجد')+'</p><p>تاريخ التسجيل: '+lfTreasuryEsc(closeout.createdAt)+'</p>'+(closeout.recalculatedAt?'<p>تمت إعادة حساب الرصيد لاحقاً؛ اللقطة الأصلية أدناه محفوظة دون استبدال.</p>':'')+(closeout.originalActualCents!==undefined?'<p>القيمة الفعلية الأصلية قبل التصحيح: '+lfTreasuryAmount(Number(closeout.originalActualCents||0)/100)+'</p>':'')+'</div><h2>لقطة الإقفال الأصلية المحفوظة</h2><p>وقت حفظ اللقطة: '+lfTreasuryEsc(snapshot?.capturedAt||closeout.snapshotCapturedAt||'غير متاح')+'</p>'+snapshotRows+'<h2>الحركات والتحصيلات والمصروفات</h2>'+rows+(corrections?'<h2>سجل التصحيحات المرتبط بالإقفال</h2>'+corrections:'')+'</main></body></html>';
+  const html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>إقفال الخزينة</title><style>body{font-family:Arial,sans-serif;color:#222;padding:20px;direction:rtl}.lf-doc{width:100%;font-size:13px}.lf-doc h1{font-size:22px}.result{border:1px solid #ddd;border-radius:10px;padding:14px}.lf-treasury-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #eee}small{display:block;color:#666;margin-top:4px}.lf-treasury-positive{color:#16834a}.lf-treasury-negative{color:#bd3434}</style><style id="lf-android-fixed-header-v4">
+/* Android-first global header: fixed across every workspace page, with room for status icons and camera cutout. */
+:root{--lf-header-safe-top:env(safe-area-inset-top,0px);--lf-header-height:78px}
+@media(max-width:699px){:root{--lf-header-safe-top:max(env(safe-area-inset-top,0px),30px);--lf-header-height:78px}}
+body{--lf-fixed-header-gap:calc(var(--lf-header-safe-top) + 8px + var(--lf-header-height) + 16px)}
+.wrap{padding-top:var(--lf-fixed-header-gap)!important}
+.lf-app-header{
+ position:fixed!important;top:calc(var(--lf-header-safe-top) + 8px)!important;
+ left:50%!important;right:auto!important;transform:translateX(-50%)!important;
+ width:min(1100px,calc(100% - 24px))!important;max-width:1100px!important;
+ min-height:var(--lf-header-height)!important;height:var(--lf-header-height)!important;
+ margin:0!important;padding:11px 16px!important;gap:14px!important;
+ border:1px solid var(--line)!important;border-radius:20px!important;
+ background:var(--surface,rgba(255,255,255,.97))!important;
+ box-shadow:0 5px 22px rgba(0,0,0,.12)!important;
+ z-index:120!important;overflow:visible!important;
+}
+.lf-app-brand{order:1!important;flex:0 1 auto!important;min-width:0!important;gap:11px!important}
+.lf-header-actions{order:2!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;flex:0 0 auto!important}
+.lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:48px!important;height:48px!important;flex:0 0 48px!important;border-radius:15px!important}
+.lf-app-brand-copy b{font-size:18px!important;font-weight:900!important;line-height:1.25!important}
+.lf-app-brand-copy small{font-size:10px!important;line-height:1.3!important}
+.lf-header-menu,.lf-header-search,.lf-header-alerts,.lf-header-settings{
+ width:46px!important;height:46px!important;min-width:46px!important;flex:0 0 46px!important;
+ display:grid!important;place-items:center!important;border-radius:15px!important;
+}
+.lf-header-menu [data-lucide],.lf-header-search [data-lucide],.lf-header-alerts [data-lucide],.lf-header-settings [data-lucide]{width:21px!important;height:21px!important}
+.lf-header-alert-count{top:-4px!important;left:-4px!important}
+@media(min-width:700px){
+ :root{--lf-header-height:78px}
+ .lf-app-header{width:min(1100px,calc(100% - 40px))!important;padding-inline:20px!important}
+}
+@media(max-width:390px){
+ :root{--lf-header-height:74px}
+ .lf-app-header{width:calc(100% - 16px)!important;padding:8px 10px!important;gap:7px!important;border-radius:17px!important}
+ .lf-app-brand{gap:7px!important}
+ .lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:43px!important;height:43px!important;flex-basis:43px!important}
+ .lf-app-brand-copy b{font-size:16px!important}
+ .lf-app-brand-copy small{font-size:8px!important;letter-spacing:0!important}
+ .lf-header-actions{gap:5px!important}
+ .lf-header-menu,.lf-header-search,.lf-header-alerts,.lf-header-settings{width:41px!important;height:41px!important;min-width:41px!important;flex-basis:41px!important;border-radius:13px!important}
+}
+@media(max-width:340px){
+ .lf-app-brand-copy small{display:none!important}
+ .lf-header-search,.lf-header-settings{display:none!important}
+}
+</style>
+</head><body><main class="lf-doc"><h1>تفاصيل إقفال الخزينة · '+lfTreasuryEsc(businessDate)+'</h1><div class="result"><div class="lf-treasury-row"><span>الرصيد المتوقع الحالي</span><b>'+lfTreasuryAmount(closeout.expected)+'</b></div><div class="lf-treasury-row"><span>النقدية الفعلية الحالية</span><b>'+lfTreasuryAmount(closeout.actual)+'</b></div><div class="lf-treasury-row"><span>الفرق الحالي</span><b>'+lfTreasuryAmount(closeout.difference)+'</b></div><p>الملاحظات: '+lfTreasuryEsc(closeout.notes||'لا توجد')+'</p><p>تاريخ التسجيل: '+lfTreasuryEsc(closeout.createdAt)+'</p>'+(closeout.recalculatedAt?'<p>تمت إعادة حساب الرصيد لاحقاً؛ اللقطة الأصلية أدناه محفوظة دون استبدال.</p>':'')+(closeout.originalActualCents!==undefined?'<p>القيمة الفعلية الأصلية قبل التصحيح: '+lfTreasuryAmount(Number(closeout.originalActualCents||0)/100)+'</p>':'')+'</div><h2>لقطة الإقفال الأصلية المحفوظة</h2><p>وقت حفظ اللقطة: '+lfTreasuryEsc(snapshot?.capturedAt||closeout.snapshotCapturedAt||'غير متاح')+'</p>'+snapshotRows+'<h2>الحركات والتحصيلات والمصروفات</h2>'+rows+(corrections?'<h2>سجل التصحيحات المرتبط بالإقفال</h2>'+corrections:'')+'</main></body></html>';
   lfOpenTreasuryPdf(html,'إقفال الخزينة · '+businessDate,'lamset-fan-treasury-closeout-'+businessDate+'.pdf');
  }catch(error){alert(error.message||'تعذر تجهيز تفاصيل الإقفال.');}
 }
