@@ -9,6 +9,9 @@ assert(html.includes("case'treasury':renderTreasuryPage();break;"),'Treasury pag
 assert(db.includes('applyCashLink')&&db.includes('CASH_LINKS'),'Cash links must be idempotent in IndexedDB');
 assert(db.includes("database.transaction([META, CASH_LINKS, MOVEMENTS, CLOSEOUTS], 'readwrite')"),'Cash links, movements, closeouts, and balance must update atomically');
 assert(db.includes('createTreasuryCloseout'),'Daily closeout must be persisted');
+assert(db.includes('openingExpectedCents: openingBalanceCents')&&db.includes('initialSnapshot: {')&&db.includes('depositsCents: dailyTotals.depositsCents')&&db.includes('collectionsCents: dailyTotals.collectionsCents')&&db.includes('expensesCents: dailyTotals.expensesCents'),'Initial closeout snapshot must preserve opening balance and separate daily totals');
+assert(db.includes('delete closeout.pendingInitialSnapshot;')&&db.includes('if (closeout.pendingInitialSnapshot)'),'Detailed closeout snapshot must be captured once and remain immutable on later ledger recalculations');
+assert(html.includes('لقطة الإقفال الأصلية المحفوظة')&&html.includes('snapshot.depositsCents')&&html.includes('snapshot.collectionsCents')&&html.includes('سجل التصحيحات المرتبط بالإقفال'),'Closeout PDF must show the original daily snapshot and linked correction history');
 assert(db.includes("async listTreasuryCategories()")&&db.includes("async addTreasuryCategory(type, value)"),'Treasury categories must be stored and managed through the existing local database');
 assert(db.includes("async addTreasuryCategory(type, value)")&&db.includes("this.requireOwnerSession();")&&db.includes("if (!['deposit', 'withdrawal'].includes(type))"),'Only the owner may add a category and each category must belong to a movement type');
 assert(db.includes("meta.get('treasury.categories')")&&db.includes("store.put({ key: 'treasury.categories', value: categories })"),'Separate deposit and withdrawal category lists must persist in the existing metadata store');
