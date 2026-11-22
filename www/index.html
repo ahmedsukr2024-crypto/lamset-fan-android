@@ -1437,6 +1437,7 @@ function lfOrderPriceChanges(existingOrder,nextItems){
  return changes;
 }
 async function saveOrder(){
+ if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.');
  const customerChoice=$('oCustomerSelect')?.value||'';
  const selectedCustomer=customerChoice&&customerChoice!=='__new__'?(db.customers||[]).find(c=>c.id===customerChoice):null;
  const customerName=(customerChoice==='__new__'?$('oCustomerNew').value:(selectedCustomer?.name||'')).trim();
@@ -2189,6 +2190,7 @@ const historyQuery=String($('lfPaymentHistorySearch')?.value||'').trim().toLocal
 $('paymentHistory').innerHTML=(history.length?history.map(p=>{let o=db.orders.find(x=>x.id===p.orderId),cancelled=p.status==='cancelled';return '<div class="collection-row"><span><b>'+esc(o?.customer||p.customerName||'طلب محذوف')+' · '+esc(p.receiptNumber||'بدون رقم إيصال')+'</b><small class="muted">'+new Date(p.date||Date.now()).toLocaleString('ar-EG')+' · طلب '+esc(lfOrderNumber(o||{}))+' · '+(p.kind==='deposit'?'عربون · ':'')+esc(p.method||'')+(p.note?' · '+esc(p.note):'')+(cancelled?' · ملغي: '+esc(p.cancelReason||''):'')+'</small><span class="actions"><button type="button" class="ghost smallbtn" onclick="lamsetRunButtonAction(this,()=>previewPaymentReceipt('+JSON.stringify(p.id)+'))">'+(cancelled?'عرض الإيصال الملغي':p.kind==='deposit'?'فاتورة العربون':'فاتورة التحصيل')+'</button>'+(cancelled?'':'<button type="button" class="ghost smallbtn" onclick="lamsetRunButtonAction(this,()=>sharePaymentReceiptWhatsApp('+JSON.stringify(p.id)+'))">واتساب</button><button type="button" class="danger smallbtn" onclick="lamsetRunButtonAction(this,()=>cancelPayment('+JSON.stringify(p.id)+'))">إلغاء الإيصال</button>')+'</span></span><strong class="'+(cancelled?'warn':'')+'">'+money(p.amount)+(cancelled?' · ملغي':'')+'</strong></div>'}).join(''):'<p class="muted">لا توجد إيصالات مطابقة لبحثك.</p>')+(orderSettlementHistory.length?'<h4>سجل رد الأرصدة الزائدة من الطلبات</h4>'+orderSettlementHistory.map(x=>'<div class="collection-row"><span><b>'+esc(x.customerName||'عميل')+'</b><small class="muted">طلب '+esc(x.orderId)+' · '+new Date(x.date).toLocaleString('ar-EG')+' · '+esc(x.method||'')+(x.note?' · '+esc(x.note):'')+'</small></span><strong>'+money(x.amount)+' (تم الرد)</strong></div>').join(''):'');
 }
 async function recordPayment(){
+ if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.');
  if(window.__lfPaymentSaving)return;
  const orderSelect=$('paymentOrder'),amountInput=$('paymentAmount'),methodInput=$('paymentMethod'),noteInput=$('paymentNote');
  const o=(db.orders||[]).find(x=>x.id===orderSelect?.value),amount=Number(amountInput?.value);
@@ -2796,10 +2798,11 @@ function printFinancialMovementReport(){
 }
 
 async function saveExpense(button){
- if(button?.disabled)return;const amount=Number($('lfExpenseAmount')?.value),date=$('lfExpenseDate')?.value||lfExpenseToday(),category=$('lfExpenseCategory')?.value||'أخرى',method=$('lfExpenseMethod')?.value||'نقدي',notes=$('lfExpenseNotes')?.value.trim()||'',file=$('lfExpenseReceipt')?.files?.[0]||null;
+ if(button?.disabled)return;if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.');if(window.__lfExpenseSaving)return;
+ const amount=Number($('lfExpenseAmount')?.value),date=$('lfExpenseDate')?.value||lfExpenseToday(),category=$('lfExpenseCategory')?.value||'أخرى',method=$('lfExpenseMethod')?.value||'نقدي',notes=$('lfExpenseNotes')?.value.trim()||'',file=$('lfExpenseReceipt')?.files?.[0]||null;
  if(!Number.isFinite(amount)||amount<=0)return alert('أدخل مبلغًا صحيحًا أكبر من صفر.');
  if(!lfIsValidExpenseDate(date))return alert('اختر تاريخًا صحيحًا للمصروف.');
- button.disabled=true;const old=button.textContent;button.textContent='جارٍ الحفظ...';
+ button.disabled=true;const old=button.textContent;button.textContent='جارٍ الحفظ...';window.__lfExpenseSaving=true;
  const before=JSON.parse(JSON.stringify(db));
  try{
   const expense={id:id(),amount,category,method,date,notes,status:'active',createdAt:new Date().toISOString()};
@@ -2808,7 +2811,7 @@ async function saveExpense(button){
   if(method==='نقدي'&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(expense.id,'expense',amount,date,'مصروف نقدي · '+category);}catch(error){console.warn('Cash expense link pending:',error);alert('تم حفظ المصروف، وسيعيد التطبيق محاولة ربطه بالخزينة عند فتح قسم الخزينة.');}}
   $('lfExpenseAmount').value='';$('lfExpenseNotes').value='';$('lfExpenseReceipt').value='';renderExpenses();alert('تم تسجيل المصروف بنجاح.');
  }catch(error){db=before;save();alert(error.message||'تعذر حفظ المصروف.');}
- finally{button.disabled=false;button.textContent=old;}
+ finally{window.__lfExpenseSaving=false;button.disabled=false;button.textContent=old;}
 }
 async function editExpense(expenseId){
  const item=(db.expenses||[]).find(x=>x.id===expenseId&&x.status!=='cancelled');if(!item)return;
@@ -2853,6 +2856,7 @@ function lfTreasuryToday(){const d=new Date();return d.getFullYear()+'-'+String(
 function lfTreasuryDate(value){const raw=String(value||'');const parts=raw.split('-');const valid=parts.length===3&&parts[0].length===4&&parts[1].length===2&&parts[2].length===2&&parts.every(part=>part.length>0&&Array.from(part).every(char=>char>='0'&&char<='9'));if(valid)return raw;const date=new Date(raw);if(!Number.isFinite(date.getTime()))return '';return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
 function lfTreasuryAmount(value){return money(Number(value)||0)}
 function lfTreasuryIsLowBalance(balance,thresholdCents){const cents=Math.round(Number(balance||0)*100),limit=Number(thresholdCents)||0;return Number.isSafeInteger(cents)&&limit>0&&cents<=limit}
+function lfTreasuryHasPendingOperations(){return !!(window.__lfPaymentSaving||window.__lfOrderSaving||window.__lfExpenseSaving||window.__lfTreasuryMovementSaving)}
 function lfTreasuryEsc(value){return typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function lfTreasuryReconcileCashPayments(){
  if(!window.LamsetLocalDB)return 0;
@@ -3142,22 +3146,24 @@ async function correctTreasuryOpening(button){
  finally{button.disabled=false;button.textContent=old;}
 }
 async function saveTreasuryMovement(button){
- if(button?.disabled)return;
+ if(button?.disabled)return;if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.');if(window.__lfTreasuryMovementSaving)return;
  const type=$('lfTreasuryMovementType').value,category=$('lfTreasuryMovementCategory')?.value||null,amount=$('lfTreasuryMovementAmount').value,reason=$('lfTreasuryMovementReason').value.trim(),date=$('lfTreasuryMovementDate').value||lfTreasuryToday(),notes=$('lfTreasuryMovementNotes').value.trim(),orderRef=$('lfTreasuryMovementOrderRef')?.value.trim()||'',linkedOrder=orderRef?(db.orders||[]).find(order=>String(order.orderNumber||'').trim().toLocaleLowerCase('ar')===orderRef.toLocaleLowerCase('ar')||String(order.id)===orderRef):null,expenseRef=$('lfTreasuryMovementExpenseRef')?.value||'',linkedExpense=expenseRef?(db.expenses||[]).find(x=>String(x.id)===String(expenseRef)&&x.status!=='cancelled'&&x.method==='نقدي'):null;
  if(!amount||!Number.isFinite(Number(amount))||Number(amount)<=0||!reason)return alert('أدخل مبلغًا صحيحًا وسبب الحركة؛ السبب إلزامي.');
  if(orderRef&&!linkedOrder)return alert('رقم الطلب غير موجود. اكتب رقم طلب مسجلاً أو اترك الحقل فارغاً.');
  if(expenseRef&&!linkedExpense)return alert('المصروف المحدد غير متاح أو ليس مصروفاً نقدياً نشطاً.');
  if(linkedExpense&&type!=='withdrawal')return alert('ربط المصروف متاح مع حركة السحب فقط.');
  const cashLinks=await LamsetLocalDB.listCashLinks();
+ if(window.__lfTreasuryCloseoutSaving)return alert('بدأ إقفال الخزينة أثناء مراجعة الحركة؛ أعد المحاولة بعد انتهائه.');
  if(linkedExpense&&!cashLinks.some(link=>String(link.id)===String(linkedExpense.id)&&link.type==='expense'&&link.status==='active'))return alert('المصروف النقدي لم يكتمل ربطه بالخزينة بعد؛ افتح قسم الخزينة للمزامنة ثم أعد المحاولة.');
  if(linkedExpense&&Math.round(Number(linkedExpense.amount)*100)!==Math.round(Number(amount)*100))return alert('مبلغ حركة السحب يجب أن يطابق مبلغ المصروف النقدي المرتبط.');
  if(date!==lfTreasuryToday()&&!confirm('التاريخ المختار '+date+' يختلف عن تاريخ اليوم. هل تريد المتابعة؟'))return;
  const balance=await LamsetLocalDB.getTreasuryBalance(),next=balance+(type==='deposit'?1:linkedExpense?0:-1)*Number(amount);
+ if(window.__lfTreasuryCloseoutSaving)return alert('بدأ إقفال الخزينة أثناء مراجعة الحركة؛ أعد المحاولة بعد انتهائه.');
  if(next<0)return alert('الرصيد المتاح '+lfTreasuryAmount(balance)+'، والمبلغ المطلوب '+lfTreasuryAmount(amount)+'. لا يمكن إتمام السحب.');
  const label=type==='deposit'?'إيداع':'سحب';
  const referenceNotice=linkedExpense?'\nالمصروف: '+linkedExpense.category+' · '+money(linkedExpense.amount)+' · '+linkedExpense.date+'\nسيُحفظ السحب كمرجع فقط ولن يخصم من الرصيد؛ المصروف محسوب تلقائياً مرة واحدة.':'';
  if(!confirm('مراجعة الحركة\nالنوع: '+label+'\nالمبلغ: '+lfTreasuryAmount(amount)+'\nالتاريخ: '+date+'\nالسبب: '+reason+referenceNotice+'\nالرصيد قبل الحركة: '+lfTreasuryAmount(balance)+'\nالرصيد المتوقع بعدها: '+lfTreasuryAmount(next)+'\n\nهل تؤكد الحفظ؟'))return;
- button.disabled=true;const old=button.textContent;button.textContent='جارٍ الحفظ...';
+ button.disabled=true;const old=button.textContent;button.textContent='جارٍ الحفظ...';window.__lfTreasuryMovementSaving=true;
  try{
   if(!(await window.lamsetRequireOwnerPin('تأكيد حركة '+label+' بالخزينة')))return;
   const attachmentFile=$('lfTreasuryMovementAttachment')?.files?.[0]||null;
@@ -3172,7 +3178,7 @@ async function saveTreasuryMovement(button){
   alert('تم تسجيل الحركة '+movement.movementNo+' بنجاح.'+(linkedExpense?' تم ربط المصروف مرجعياً فقط دون خصم إضافي.':''));
   await renderTreasury();
  }catch(error){alert(error.message||'تعذر حفظ حركة الخزينة.');}
- finally{button.disabled=false;button.textContent=old;}
+ finally{window.__lfTreasuryMovementSaving=false;button.disabled=false;button.textContent=old;}
 }
 function clearTreasuryCloseoutSearch(){const input=$('lfTreasuryCloseoutSearchDate');if(input)input.value='';renderTreasury();}
 async function correctTreasuryCloseout(businessDate,button){
@@ -3240,6 +3246,7 @@ async function lfTreasurySelectLateCloseout(date){
 async function previewTreasuryCloseout(button){
  if(button?.disabled)return;
  const data=await lfTreasuryData(),today=lfTreasuryToday(),date=$('lfTreasuryCloseoutDate')?.value||today,actual=Number($('lfTreasuryActualCash').value),notes=$('lfTreasuryCloseoutNotes').value.trim();
+ if(lfTreasuryHasPendingOperations())return alert('لا يمكن إقفال الخزينة الآن؛ توجد عملية طلب أو تحصيل أو مصروف أو حركة خزينة ما زالت قيد الحفظ. انتظر اكتمالها ثم أعد الإقفال.');
  if(!data.opening?.businessDate)return alert('سجّل الرصيد الافتتاحي أولاً قبل إقفال الخزينة.');
  if(date<data.opening.businessDate||date>today)return alert('تاريخ الإقفال يجب أن يكون بين تاريخ بدء الخزينة واليوم.');
  if(data.pendingCashLinks>0)return alert('لا يمكن إقفال الخزينة الآن؛ يوجد '+data.pendingCashLinks+' تحصيل/مصروف نقدي لم يكتمل ربطه. راجع الاتصال ثم أعد المحاولة.');
@@ -3251,10 +3258,11 @@ async function previewTreasuryCloseout(button){
  if(Math.abs(difference)>=0.01&&!notes)return alert('اكتب ملاحظة توضح سبب العجز أو الزيادة.');
  const summary='مراجعة '+(late?'إقفال متأخر':'إقفال اليوم')+' · '+date+'\\nالرصيد المتوقع حتى التاريخ المحدد: '+lfTreasuryAmount(expected)+'\\nالنقدية الفعلية المسجلة: '+lfTreasuryAmount(actual)+'\\n'+(difference<0?'عجز: ':difference>0?'زيادة: ':'الفرق: ')+lfTreasuryAmount(Math.abs(difference))+'\\nالملاحظات: '+(notes||'لا يوجد')+(late?'\\nسيتم حفظ إقفال هذا اليوم فقط، ولن تُنشأ إقفالات تلقائية للأيام الأخرى.':'');
  if(!confirm(summary+'\\n\\nبعد التأكيد يصبح الرصيد الفعلي أساس احتساب الرصيد للأيام التالية. هل تؤكد الإقفال؟'))return;
- button.disabled=true;const old=button.textContent;button.textContent='جارٍ الإقفال...';
+ if(lfTreasuryHasPendingOperations())return alert('بدأت عملية مالية أخرى أثناء مراجعة الإقفال؛ انتظر اكتمالها ثم أعد المحاولة.');
+ window.__lfTreasuryCloseoutSaving=true;button.disabled=true;const old=button.textContent;button.textContent='جارٍ الإقفال...';
  try{if(!(await window.lamsetRequireOwnerPin(late?'تأكيد إقفال خزينة متأخر '+date:'تأكيد إقفال الخزينة لليوم')))return;await LamsetLocalDB.createTreasuryCloseout({businessDate:date,actualCents:Math.round(actual*100),notes});alert(late?'تم تسجيل الإقفال المتأخر وحفظ الأرصدة مع الاحتفاظ بالأيام الأخرى دون إقفال.':'تم إقفال اليوم وحفظ الرصيد الفعلي.');$('lfTreasuryCloseoutNotes').value='';await renderTreasury();}
  catch(error){alert(error.message||'تعذر إقفال الخزينة.');}
- finally{button.disabled=false;button.textContent=old;}
+ finally{window.__lfTreasuryCloseoutSaving=false;button.disabled=false;button.textContent=old;}
 }
 async function renderTreasuryReport(){
  try{
