@@ -53,5 +53,36 @@ assert(html.includes("x.title==='نفاد المخزون'||x.title==='مخزون
 assert(html.includes('renderHomeStockAlert(allAlerts)'), 'dashboard refreshes the dedicated stock alert from current stock alerts');
 assert(html.includes('releaseByProduct.set(line.productId'), 'order cancellation validates aggregate reservations when the same product appears on multiple lines');
 assert(html.includes('deleteReleaseByProduct.set(line.productId'), 'order deletion validates aggregate reservations before releasing stock');
+
+const homeAlertStart = html.indexOf('function renderHomeStockAlert(alerts)');
+const homeAlertEnd = html.indexOf('\\nfunction renderDash', homeAlertStart);
+const homeAlertSource = homeAlertStart >= 0 && homeAlertEnd > homeAlertStart ? html.slice(homeAlertStart, homeAlertEnd) : '';
+assert(!!homeAlertSource, 'home stock alert renderer can be isolated for behavior checks');
+if (homeAlertSource) {
+  const hosts = {
+    lfHomeStockAlert: { hidden: true },
+    lfHomeStockAlertList: { innerHTML: '' },
+    lfHomeStockAlertCount: { textContent: '' }
+  };
+  const context = vm.createContext({
+    $: id => hosts[id],
+    esc: value => String(value ?? ''),
+    window: {}
+  });
+  vm.runInContext(homeAlertSource + '\\nthis.renderHomeStockAlert=renderHomeStockAlert;', context);
+  context.renderHomeStockAlert([
+    { category: 'المخزون', title: 'نفاد المخزون', level: 'danger', body: 'منتج صفر — المتاح صفر قطعة' },
+    { category: 'المخزون', title: 'مخزون منخفض', level: 'warning', body: 'منتج قليل — المتاح 2 قطعة · حد التنبيه 3' },
+    { category: 'المخزون', title: 'مخزون يحتاج متابعة', level: 'info', body: 'منتج مراقبة — المتاح 4 قطع · حد التنبيه 3' },
+    { category: 'التحصيل', title: 'مستحق', level: 'warning', body: 'عميل — باقي' }
+  ]);
+  assert(hosts.lfHomeStockAlert.hidden === false, 'home stock alert appears when stock reaches or falls below its threshold');
+  assert(hosts.lfHomeStockAlertCount.textContent === '2', 'home stock alert count includes only out-of-stock and low-stock products');
+  assert(hosts.lfHomeStockAlertList.innerHTML.includes('منتج صفر') && hosts.lfHomeStockAlertList.innerHTML.includes('منتج قليل'), 'home stock alert renders both zero and low stock products');
+  assert(!hosts.lfHomeStockAlertList.innerHTML.includes('منتج مراقبة'), 'home stock alert excludes above-threshold watch notices');
+  context.renderHomeStockAlert([]);
+  assert(hosts.lfHomeStockAlert.hidden === true && hosts.lfHomeStockAlertList.innerHTML === '', 'home stock alert hides and clears when no products remain below threshold');
+}
+
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Stock reservation, migration, shipment, and production checks passed.');
