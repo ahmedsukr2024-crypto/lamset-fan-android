@@ -47,6 +47,10 @@ assert(html.includes('!o.stockIssuedAt&&!o.stockIssueMigrated'), 'shipping issue
 assert(html.includes('p.reservedStock=Math.max(0,Number(p.reservedStock)||0)+allocation.allocated'), 'production allocated to orders is recorded as reserved');
 assert(html.includes('reservedDelta:-returned'), 'cancelling an order releases its reserved stock');
 assert(html.includes('reservedDelta:-allocated'), 'cancelling a production batch reverses its reserved allocation');
+assert(html.includes('id="lfHomeStockAlert"'), 'home dashboard contains a dedicated low-stock alert section');
+assert(html.includes("function renderHomeStockAlert(alerts)"), 'home low-stock alert reuses the existing alert records');
+assert(html.includes("x.title==='نفاد المخزون'||x.title==='مخزون منخفض'"), 'home low-stock alert excludes watch-only stock warnings above the threshold');
+assert(html.includes('renderHomeStockAlert(allAlerts)'), 'dashboard refreshes the dedicated stock alert from current stock alerts');
 assert(html.includes('releaseByProduct.set(line.productId'), 'order cancellation validates aggregate reservations when the same product appears on multiple lines');
 assert(html.includes('deleteReleaseByProduct.set(line.productId'), 'order deletion validates aggregate reservations before releasing stock');
 if (process.exitCode) process.exit(process.exitCode);
