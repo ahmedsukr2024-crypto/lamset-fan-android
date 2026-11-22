@@ -44,6 +44,19 @@ const sandbox = {
   fromCents: value => Number((Number(value || 0) / 100).toFixed(2))
 };
 vm.runInNewContext(method + '\nthis.runLedger = recomputeTreasuryLedger;', sandbox);
+const openingStart = source.indexOf('  async setOpeningBalance(amount, businessDate)');
+const openingEnd = source.indexOf('\\n  async correctOpeningBalance(', openingStart);
+if (openingStart < 0 || openingEnd < 0) throw new Error('Opening balance registration implementation could not be isolated.');
+const openingMethod = source.slice(openingStart, openingEnd).trim().replace(/^async setOpeningBalance/, 'async function setOpeningBalance');
+const openingSandbox = {
+  META: 'meta',
+  toCents: value => { const amount = Number(value); if (!Number.isFinite(amount) || amount <= 0) throw new Error('invalid amount'); return Math.round(amount * 100); },
+  normalizeBusinessDate: value => String(value),
+  requestValue: value => Promise.resolve(value),
+  transactionDone: () => Promise.resolve(true),
+  fromCents: value => Number((Number(value || 0) / 100).toFixed(2))
+};
+vm.runInNewContext(openingMethod + '\\nthis.setOpeningBalance = setOpeningBalance;', openingSandbox);
 const correctionStart = source.indexOf('  async correctOpeningBalance(');
 const correctionEnd = source.indexOf('\n  async getTreasuryBalance()', correctionStart);
 if (correctionStart < 0 || correctionEnd < 0) throw new Error('Opening balance correction implementation could not be isolated.');
@@ -77,6 +90,22 @@ function assert(condition, message) {
   if (!condition) throw new Error('Treasury ledger runtime check failed: ' + message);
 }
 (async () => {
+  const openingRecords = [];
+  const openingStore = makeStore(openingRecords, 'key');
+  let openingOwnerChecks = 0, openingAborts = 0;
+  const openingOwner = {
+    requireOwnerSession: () => { openingOwnerChecks += 1; },
+    open: async () => ({ transaction: () => ({ objectStore: name => { if (name !== 'meta') throw new Error('opening balance must use metadata only'); return openingStore; }, abort: () => { openingAborts += 1; } }) })
+  };
+  const savedOpening = await openingSandbox.setOpeningBalance.call(openingOwner, 250.75, '2026-11-01');
+  assert(savedOpening.balance === 250.75, 'opening balance initializes the real cash balance');
+  assert(openingRecords.find(item => item.key === 'treasury.opening')?.value.cents === 25075, 'opening balance is stored in integer cents with its business date');
+  assert(openingRecords.find(item => item.key === 'treasury.balance.cents')?.value === 25075, 'opening balance initializes the treasury ledger balance');
+  let openingDuplicateRejected = false;
+  try { await openingSandbox.setOpeningBalance.call(openingOwner, 400, '2026-11-02'); } catch (error) { openingDuplicateRejected = /تم تسجيل الرصيد الافتتاحي من قبل/.test(error.message); }
+  assert(openingDuplicateRejected && openingAborts === 1, 'a second opening balance is rejected without overwriting the first');
+  assert(openingOwnerChecks === 2 && openingRecords.length === 2, 'opening balance writes are owner-protected and do not create payment or expense records');
+
   const categoryRecords = [{ key: 'treasury.categories', value: { deposit: ['إيداع نقدي'], withdrawal: [] } }];
   const categoryStore = {
     get: key => categoryRecords.find(item => item.key === key),
