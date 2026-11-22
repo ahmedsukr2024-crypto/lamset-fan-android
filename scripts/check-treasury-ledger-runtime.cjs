@@ -12,7 +12,7 @@ if (categoryStart < 0 || categoryEnd < 0) throw new Error('Treasury category nor
 const categorySandbox = {};
 vm.runInNewContext(source.slice(categoryStart, categoryEnd) + '\nthis.normalizeCategory = normalizeTreasuryCategory;', categorySandbox);
 const addCategoryStart = source.indexOf('  async addTreasuryCategory(');
-const addCategoryEnd = source.indexOf('\\n  async recordTreasuryMovement(', addCategoryStart);
+const addCategoryEnd = source.indexOf('\n  async recordTreasuryMovement(', addCategoryStart);
 if (addCategoryStart < 0 || addCategoryEnd < 0) throw new Error('Treasury category storage implementation could not be isolated.');
 const categoryStoreMethod = source.slice(addCategoryStart, addCategoryEnd).trim().replace(/^async addTreasuryCategory/, 'async function addTreasuryCategory');
 const categoryStoreSandbox = {
@@ -26,24 +26,7 @@ assert(categorySandbox.normalizeCategory('  سحب   مشتريات  ') === 'س�
 let longCategoryRejected = false;
 try { categorySandbox.normalizeCategory('x'.repeat(41)); } catch (error) { longCategoryRejected = /40/.test(error.message); }
 assert(longCategoryRejected, 'category names longer than 40 characters are rejected');
-  const categoryRecords = [{ key: 'treasury.categories', value: { deposit: ['إيداع نقدي'], withdrawal: [] } }];
-  const categoryStore = {
-    get: key => categoryRecords.find(item => item.key === key),
-    put: value => { const index = categoryRecords.findIndex(item => item.key === value.key); if (index < 0) categoryRecords.push(value); else categoryRecords[index] = value; }
-  };
-  let ownerChecks = 0;
-  const categoryOwner = {
-    requireOwnerSession: () => { ownerChecks += 1; },
-    open: async () => ({ transaction: () => ({ objectStore: name => { if (name !== 'meta') throw new Error('unexpected store'); return categoryStore; } }) })
-  };
-  const savedCategories = await categoryStoreSandbox.addCategory.call(categoryOwner, 'deposit', ' إيداع بنكي ');
-  assert(savedCategories.deposit.includes('إيداع بنكي'), 'new category is persisted in the selected movement type');
-  let duplicateRejected = false;
-  try { await categoryStoreSandbox.addCategory.call(categoryOwner, 'deposit', 'إيداع بنكي'); } catch (error) { duplicateRejected = /موجود بالفعل/.test(error.message); }
-  assert(duplicateRejected, 'duplicate categories are rejected');
-  const otherType = await categoryStoreSandbox.addCategory.call(categoryOwner, 'withdrawal', 'إيداع بنكي');
-  assert(otherType.withdrawal.includes('إيداع بنكي'), 'the same label may exist independently for deposits and withdrawals');
-  assert(ownerChecks === 3, 'each category write requires an owner session');
+
 const sandbox = {
   META: 'meta', MOVEMENTS: 'treasuryMovements', CASH_LINKS: 'treasuryCashLinks', CLOSEOUTS: 'treasuryCloseouts',
   META: 'meta', MOVEMENTS: 'treasuryMovements', CASH_LINKS: 'treasuryCashLinks', CLOSEOUTS: 'treasuryCloseouts',
@@ -86,6 +69,24 @@ function assert(condition, message) {
   if (!condition) throw new Error('Treasury ledger runtime check failed: ' + message);
 }
 (async () => {
+  const categoryRecords = [{ key: 'treasury.categories', value: { deposit: ['إيداع نقدي'], withdrawal: [] } }];
+  const categoryStore = {
+    get: key => categoryRecords.find(item => item.key === key),
+    put: value => { const index = categoryRecords.findIndex(item => item.key === value.key); if (index < 0) categoryRecords.push(value); else categoryRecords[index] = value; }
+  };
+  let ownerChecks = 0;
+  const categoryOwner = {
+    requireOwnerSession: () => { ownerChecks += 1; },
+    open: async () => ({ transaction: () => ({ objectStore: name => { if (name !== 'meta') throw new Error('unexpected store'); return categoryStore; }, abort: () => {} }) })
+  };
+  const savedCategories = await categoryStoreSandbox.addCategory.call(categoryOwner, 'deposit', ' إيداع بنكي ');
+  assert(savedCategories.deposit.includes('إيداع بنكي'), 'new category is persisted in the selected movement type');
+  let duplicateRejected = false;
+  try { await categoryStoreSandbox.addCategory.call(categoryOwner, 'deposit', 'إيداع بنكي'); } catch (error) { duplicateRejected = /موجود بالفعل/.test(error.message); }
+  assert(duplicateRejected, 'duplicate categories are rejected');
+  const otherType = await categoryStoreSandbox.addCategory.call(categoryOwner, 'withdrawal', 'إيداع بنكي');
+  assert(otherType.withdrawal.includes('إيداع بنكي'), 'the same label may exist independently for deposits and withdrawals');
+  assert(ownerChecks === 3, 'each category write requires an owner session');
   const normal = fixture({
     movements: [
       { id: 'd1', type: 'deposit', category: 'إيداع نقدي', amountCents: 5000, effectiveDate: '2026-11-01', createdAt: '2026-11-01T08:00:00Z', status: 'active' },
