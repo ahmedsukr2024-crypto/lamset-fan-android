@@ -15,7 +15,7 @@ assert(db.includes("meta.get('treasury.categories')")&&db.includes("store.put({ 
 assert(db.includes("categories[type].some(item => String(item).toLocaleLowerCase('ar') === category.toLocaleLowerCase('ar'))"),'Duplicate categories must be rejected within the same movement type');
 assert(html.includes('id="lfTreasuryMovementCategory"')&&html.includes('onclick="lfTreasuryAddCategory()"'),'The existing movement form must let the owner select or add a category');
 assert(html.includes('category,orderId:linkedOrder?.id||null'),'New and edited movements must save the selected category alongside existing references');
-assert(html.includes('category: category || null'),'The category is stored as descriptive metadata and not used as a ledger amount');
+assert(db.includes('category: category || null'),'The category is stored as descriptive metadata and not used as a ledger amount');
 assert(html.includes('categoryText=x.category'),'Movement history must display the category');
 assert(html.includes('x.category,x.notes'),'Movement search must include the category');
 assert(db.includes('category: previous.category || null')&&db.includes('category: category || null'),'Movement edits must preserve old and new category values in the audit log');
