@@ -1456,6 +1456,7 @@ async function saveOrder(){
  let before=null,orderCommitted=false;
  try{
   before=JSON.parse(JSON.stringify(db));
+  if(deposit>0&&depositMethod==='نقدي'&&!(await lfTreasuryConfirmClosedDateImpact(lfTreasuryToday(),'عربون الطلب النقدي')))return;
   const enteredPhone=normalizePhone($('oPhone').value,$('oCountryCode').value),area=$('oArea').value.trim(),dueValue=$('oDue').value,statusValue=$('oStatus').value,phoneDigits=customerPhoneDigits(enteredPhone);
   if(phoneDigits&&(phoneDigits.length<7||phoneDigits.length>15))return alert('رقم الهاتف غير مكتمل أو أطول من المسموح؛ راجع كود الدولة والرقم المحلي.');
   if(!lfIsValidOrderDate(dueValue))return alert('موعد التسليم غير صحيح؛ اختر تاريخًا صالحًا من حقل الموعد.');
