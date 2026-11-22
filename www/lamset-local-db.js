@@ -42,6 +42,12 @@ function fromCents(value) {
   return Number((Number(value || 0) / 100).toFixed(2));
 }
 
+function normalizeTreasuryCategory(value) {
+  const category = String(value || '').trim().replace(/\\s+/g, ' ');
+  if (category.length > 40) throw new Error('اسم تصنيف الخزينة يجب ألا يتجاوز 40 حرفاً.');
+  return category;
+}
+
 function bytesToBase64(bytes) {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -225,6 +231,40 @@ class LamsetLocalDatabase {
     return fromCents(cents);
   }
 
+  async listTreasuryCategories() {
+    const saved = await this.getMeta('treasury.categories');
+    const source = saved && typeof saved === 'object' ? saved : {};
+    return {
+      deposit: Array.isArray(source.deposit) ? source.deposit.slice() : [],
+      withdrawal: Array.isArray(source.withdrawal) ? source.withdrawal.slice() : []
+    };
+  }
+
+  async addTreasuryCategory(type, value) {
+    this.requireOwnerSession();
+    if (!['deposit', 'withdrawal'].includes(type)) throw new Error('نوع تصنيف الخزينة غير صحيح.');
+    const category = normalizeTreasuryCategory(value);
+    if (!category) throw new Error('اكتب اسم التصنيف أولاً.');
+    const database = await this.open();
+    const transaction = database.transaction(META, 'readwrite');
+    const store = transaction.objectStore(META);
+    const record = await requestValue(store.get('treasury.categories'));
+    const source = record?.value && typeof record.value === 'object' ? record.value : {};
+    const categories = {
+      deposit: Array.isArray(source.deposit) ? source.deposit.slice() : [],
+      withdrawal: Array.isArray(source.withdrawal) ? source.withdrawal.slice() : []
+    };
+    if (categories[type].some(item => String(item).toLocaleLowerCase('ar') === category.toLocaleLowerCase('ar'))) {
+      transaction.abort();
+      throw new Error('هذا التصنيف موجود بالفعل لهذا النوع من الحركات.');
+    }
+    if (categories[type].length >= 50) { transaction.abort(); throw new Error('وصلت إلى الحد الأقصى للتصنيفات لهذا النوع.'); }
+    categories[type].push(category);
+    store.put({ key: 'treasury.categories', value: categories });
+    await transactionDone(transaction);
+    return categories;
+  }
+
   async recordTreasuryMovement(input) {
     this.requireOwnerSession();
     const type = String(input?.type || '');
@@ -238,11 +278,12 @@ class LamsetLocalDatabase {
     const movements = transaction.objectStore(MOVEMENTS);
     const cashLinks = transaction.objectStore(CASH_LINKS);
     const expenseId = String(input.expenseId || '').trim() || null;
-    const [sequenceRecord, openingRecord, existingMovements, expenseLink] = await Promise.all([
+    const [sequenceRecord, openingRecord, existingMovements, expenseLink, categoryRecord] = await Promise.all([
       requestValue(meta.get('treasury.movement.sequence')),
       requestValue(meta.get('treasury.opening')),
       requestValue(movements.getAll()),
-      expenseId ? requestValue(cashLinks.get(expenseId)) : Promise.resolve(null)
+      expenseId ? requestValue(cashLinks.get(expenseId)) : Promise.resolve(null),
+      requestValue(meta.get('treasury.categories'))
     ]);
     if (!openingRecord?.value) { transaction.abort(); throw new Error('سجّل الرصيد الافتتاحي أولاً قبل إضافة حركات الخزينة.'); }
     if (expenseId) {
@@ -251,6 +292,9 @@ class LamsetLocalDatabase {
       if (Number(expenseLink.amountCents) !== amountCents) { transaction.abort(); throw new Error('مبلغ حركة السحب المرجعية يجب أن يطابق مبلغ المصروف النقدي المرتبط.'); }
       if (existingMovements.some(item => item.status === 'active' && item.expenseId === expenseId)) { transaction.abort(); throw new Error('هذا المصروف مرتبط بالفعل بحركة خزينة نشطة؛ لا يمكن تكرار الربط.'); }
     }
+    const category = normalizeTreasuryCategory(input.category);
+    const categoryList = Array.isArray(categoryRecord?.value?.[type]) ? categoryRecord.value[type] : [];
+    if (category && !categoryList.includes(category)) { transaction.abort(); throw new Error('تصنيف الحركة غير موجود ضمن تصنيفات هذا النوع.'); }
     const effectiveDate = normalizeBusinessDate(input.effectiveDate);
     if (effectiveDate < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ الحركة يسبق تاريخ بدء سجل الخزينة.'); }
     const sequence = Number(sequenceRecord?.value || 0) + 1;
@@ -258,6 +302,7 @@ class LamsetLocalDatabase {
     const movement = {
       id: movementNo, movementNo, type, amountCents, reason,
       notes: String(input.notes || ''),
+      category: category || null,
       orderId: String(input.orderId || '').trim() || null,
       orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null,
       expenseId,
@@ -361,11 +406,13 @@ class LamsetLocalDatabase {
     const store = transaction.objectStore(MOVEMENTS);
     const cashLinks = transaction.objectStore(CASH_LINKS);
     const expenseId = String(input.expenseId || '').trim() || null;
-    const [previous, openingRecord, existingMovements, expenseLink] = await Promise.all([
+    const metaStore = transaction.objectStore(META);
+    const [previous, openingRecord, existingMovements, expenseLink, categoryRecord] = await Promise.all([
       requestValue(store.get(id)),
-      requestValue(transaction.objectStore(META).get('treasury.opening')),
+      requestValue(metaStore.get('treasury.opening')),
       requestValue(store.getAll()),
-      expenseId ? requestValue(cashLinks.get(expenseId)) : Promise.resolve(null)
+      expenseId ? requestValue(cashLinks.get(expenseId)) : Promise.resolve(null),
+      requestValue(metaStore.get('treasury.categories'))
     ]);
     if (!previous || previous.status !== 'active') { transaction.abort(); throw new Error('الحركة غير موجودة أو سبق إلغاؤها.'); }
     if (!openingRecord?.value || effectiveDate < openingRecord.value.businessDate) { transaction.abort(); throw new Error('تاريخ الحركة يجب ألا يسبق تاريخ بدء الخزينة.'); }
@@ -382,11 +429,15 @@ class LamsetLocalDatabase {
         throw new Error('لا يمكن إزالة أو تغيير مرجع المصروف ما دام المصروف النقدي الأصلي محسوباً بالخزينة؛ ألغِ المصروف أو غيّر طريقة دفعه أولاً لتجنب تكرار الخصم.');
       }
     }
+    const category = normalizeTreasuryCategory(input.category);
+    const categoryList = Array.isArray(categoryRecord?.value?.[type]) ? categoryRecord.value[type] : [];
+    if (category && !categoryList.includes(category)) { transaction.abort(); throw new Error('تصنيف الحركة غير موجود ضمن تصنيفات هذا النوع.'); }
     const now = new Date().toISOString();
     const next = {
       ...previous,
       type, amountCents, reason, effectiveDate,
       notes: String(input.notes || ''),
+      category: category || null,
       orderId: String(input.orderId || '').trim() || null,
       orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null,
       expenseId,
@@ -395,8 +446,8 @@ class LamsetLocalDatabase {
       updatedAt: now,
       audit: [...(previous.audit || []), {
         action: 'edit', at: now, reason: reasonForChange,
-        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', orderId: previous.orderId || null, orderNumber: previous.orderNumber || null, expenseId: previous.expenseId || null, expenseLabel: previous.expenseLabel || null, referenceOnly: !!previous.referenceOnly },
-        next: { type, amountCents, reason, effectiveDate, notes: String(input.notes || ''), orderId: String(input.orderId || '').trim() || null, orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null, expenseId, expenseLabel: String(input.expenseLabel || '').trim().slice(0, 180) || null, referenceOnly: !!expenseId }
+        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', category: previous.category || null, orderId: previous.orderId || null, orderNumber: previous.orderNumber || null, expenseId: previous.expenseId || null, expenseLabel: previous.expenseLabel || null, referenceOnly: !!previous.referenceOnly },
+        next: { type, amountCents, reason, effectiveDate, notes: String(input.notes || ''), category: category || null, orderId: String(input.orderId || '').trim() || null, orderNumber: String(input.orderNumber || '').trim().slice(0, 64) || null, expenseId, expenseLabel: String(input.expenseLabel || '').trim().slice(0, 180) || null, referenceOnly: !!expenseId }
       }]
     };
     store.put(next);
@@ -421,7 +472,7 @@ class LamsetLocalDatabase {
       ...previous, status: 'cancelled', cancelledAt: now, cancellationReason: reason,
       audit: [...(previous.audit || []), {
         action: 'cancel', at: now, reason,
-        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '' }
+        previous: { type: previous.type, amountCents: previous.amountCents, reason: previous.reason, effectiveDate: previous.effectiveDate, notes: previous.notes || '', category: previous.category || null }
       }]
     };
     store.put(next);
