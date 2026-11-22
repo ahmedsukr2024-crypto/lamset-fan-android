@@ -945,24 +945,6 @@ function lfRestoreNavigationSnapshot(page){
  panel.scrollTop=snapshot.panelTop||0;
  requestAnimationFrame(()=>window.scrollTo({top:snapshot.windowY||0,left:0,behavior:'auto'}));
 }
-function tab(t,options={})')+'"]';
-  fields.push({key,type:el.type||el.tagName.toLowerCase(),value:el.value,checked:!!el.checked});
- });
- lfNavigationSnapshots.set(page,{fields,windowY:window.scrollY||0,panelTop:panel.scrollTop||0});
-}
-function lfRestoreNavigationSnapshot(page){
- const panel=document.getElementById(page),snapshot=lfNavigationSnapshots.get(page);if(!panel||!snapshot)return;
- snapshot.fields.forEach(item=>{
-  let el=item.key[0]==='#'?document.getElementById(item.key.slice(1)):panel.querySelectorAll(item.key)[item.index||0];
-  if(!el||!panel.contains(el)||el.disabled)return;
-  if(item.type==='checkbox'||item.type==='radio')el.checked=item.checked;
-  else if(item.type!=='file'&&item.type!=='password')el.value=item.value;
-  el.dispatchEvent(new Event('input',{bubbles:true}));
-  el.dispatchEvent(new Event('change',{bubbles:true}));
- });
- panel.scrollTop=snapshot.panelTop||0;
- requestAnimationFrame(()=>window.scrollTo({top:snapshot.windowY||0,left:0,behavior:'auto'}));
-}
 function tab(t,options={}){t=String(t||'');if((t==='treasury'||t==='reports')&&!options.ownerPinVerified){if(window.__lfTreasuryGate)return false;window.__lfTreasuryGate=(async()=>{if(!window.LamsetLocalDB||!window.lamsetRequireOwnerPin){alert('خدمة حماية البيانات المالية غير جاهزة. أغلق التطبيق وافتحه مرة أخرى.');return}if(!(await window.LamsetLocalDB.ownerPinConfigured())){alert('يجب إعداد رمز المالك من الإعدادات ← الأمان والخصوصية قبل فتح البيانات المالية.');tab('settings');return}if(await window.lamsetRequireOwnerPin(t==='treasury'?'فتح قسم الخزينة والاطلاع على الأرصدة':'فتح مركز التحليلات والاطلاع على البيانات المالية الداخلية'))tab(t,{...options,ownerPinVerified:true})})().catch(error=>alert(error.message||'تعذر التحقق من صلاحية المالك.')).finally(()=>{window.__lfTreasuryGate=null});return false}const target=document.getElementById(t);if(!target||!target.classList.contains('panel')){window.LamsetUI?.toast('الصفحة المطلوبة غير متاحة: '+t,'error');return false}const previous=document.querySelector('.panel.active')?.id||'dashboard';if(previous!==t)lfCaptureNavigationSnapshot(previous);document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x===target));const navParent=['dashboard','orders','products','customers'].includes(t)?t:'more';document.querySelectorAll('.nav button').forEach(x=>{let active=x.dataset.tab===navParent||(navParent==='more'&&x.id==='lfNavMore');x.classList.toggle('active',active);if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current')});document.querySelectorAll('.lf-drawer-link').forEach(x=>{const active=x.getAttribute('data-nav-target')===t;x.classList.toggle('active',active);if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current')});try{localStorage.setItem('lf:last-page',t);const current=document.getElementById('lfDrawerCurrentLabel'),activeLink=document.querySelector('.lf-drawer-link[data-nav-target="'+t+'"]');if(current)current.textContent=activeLink?.getAttribute('data-label')||({dashboard:'الرئيسية',orders:'الطلبات',customers:'العملاء',products:'المنتجات',production:'التصنيع والمطلوب تصنيعه',reports:'التقارير والتحليلات',settings:'الإعدادات'}[t]||t)}catch(_){}if(!options.fromHistory&&previous!==t){try{history.pushState({...(history.state||{}),lamsetPage:t},'', '#'+encodeURIComponent(t));window.__lamsetNavigationDepth=(window.__lamsetNavigationDepth||0)+1}catch(_){}}window.scrollTo({top:0,left:0,behavior:'auto'});target.scrollTop=0;try{renderPage(t);lfRestoreNavigationSnapshot(t);if(t==='backup')refreshStorageUsage();return true}catch(error){console.error('Lamset navigation render error:',t,error);window.LamsetUI?.toast('تم فتح الصفحة، لكن تعذر تحديث بعض بياناتها. راجع سجل الأخطاء.','error');return false}}window.tab=tab;
 const lfInitialPage=document.querySelector('.panel.active')?.id||'dashboard';
 window.__lamsetNavigationDepth=0;
