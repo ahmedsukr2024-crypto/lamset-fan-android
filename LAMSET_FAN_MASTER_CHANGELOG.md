@@ -1049,7 +1049,7 @@
 | TRY-029 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-030 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-031 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-032 | معتمد — لم ينفذ | منفذ جزئياً — فجوة موثقة في المراجعة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-032 | معتمد — لم ينفذ | منفذ — تصدير سجل الحركات الحالي PDF وفق البحث وفلاتر النوع والتاريخ، مع التفاصيل والمرفقات والتدقيق ومشاركة الملف | www/index.html؛ scripts/check-treasury-section.cjs |
 | TRY-033 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-034 | معتمد — قاعدة حساب | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-035 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
@@ -1186,3 +1186,16 @@
 - تبقى تفاصيل الإقفال وPDF وسجل التصحيحات المرتبطة متاحة لكل نتيجة، بما في ذلك بيانات التصحيح اليدوي لـ TRY-038.
 - لا يغير البحث أي بيانات أو أرصدة أو سجلات مالية؛ هو فلتر عرض فقط.
 - الاختبار البنيوي: scripts/check-treasury-section.cjs ضمن npm run check:all.
+
+
+# 40. تصدير سجل حركات الخزينة PDF ومشاركته — 2026-11-22
+
+- تم استكمال TRY-032 داخل بطاقة «سجل الحركات» الحالية، دون إنشاء صفحة أو سجل موازٍ.
+- أضيف إجراء لتصدير الحركات المطابقة للفلاتر الحالية نفسها: البحث النصي، نوع الحركة، وتاريخ البداية والنهاية.
+- يتضمن ملف PDF رقم الحركة ونوعها ومبلغها وتاريخها وحالتها والسبب والتصنيف والطلب والمصروف المرجعي والملاحظات وتاريخ التسجيل.
+- يتضمن الملف صورة الإيصال المرفقة عند وجودها، مع سجل التعديلات والإلغاء وأسبابها، مع توضيح أن ربط المصروف المرجعي لا يضيف أثراً مالياً.
+- تستخدم المعاينة مسار PDF والمشاركة الموجودين بالتطبيق؛ يمكن الطباعة أو الحفظ أو مشاركة الملف واختيار واتساب من قائمة المشاركة في Android.
+- لا ينشئ التصدير حركة أو قيداً مالياً ولا يعدل الأرصدة أو البيانات؛ هو إخراج للعرض فقط.
+- الاختبارات: أضيفت تأكيدات بنيوية لتوافر زر التصدير وتطبيق الفلاتر ووجود التفاصيل والمرفقات والتدقيق ومسار المشاركة في scripts/check-treasury-section.cjs.
+- نجح Validate App JavaScript run 45017888226، ونجح Build Android APK run 45017888209 على Commit الكود 619e62ab1fb9bc9cabb61afc584c8b370f0d43ea.
+- تم رفع lamset-fan-debug-apk (Artifact 14752367473) وlamset-fan-complete-project (Artifact 14751684135). لا يمثل نجاح البناء اختباراً على جهاز Android فعلي؛ يلزم التحقق الميداني من فتح PDF ومشاركة واتساب وظهور الصور.
