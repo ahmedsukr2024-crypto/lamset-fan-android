@@ -63,4 +63,7 @@ assert(db.includes("action: 'manual-closeout-correction'")&&db.includes('previou
 assert(db.includes('try { transaction.abort(); } catch (_) {}')&&db.includes('throw error;'),'Invalid downstream balances must roll back the entire closeout correction transaction');
 assert(html.includes("correctTreasuryCloseout(\\'")&&html.includes("async function correctTreasuryCloseout")&&html.includes("تصحيح الإقفال"),"Closeout history must expose the audited correction action");
 assert(html.includes('القيمة الفعلية الأصلية قبل التصحيح'),'Closeout details must display the preserved original actual amount');
-console.log('Treasury section, owner gate, cash links, attachments, and audited closeout correction checks passed.');
+assert(html.includes('id="lfTreasuryCloseoutSearchDate"')&&html.includes('onchange="renderTreasury()"'),'Closeout history must provide a date filter');
+assert(html.includes('function clearTreasuryCloseoutSearch()')&&html.includes("data.closeouts.filter(x=>!closeoutSearchDate||x.businessDate===closeoutSearchDate)"),'Closeout date search must filter existing records and provide a clear action');
+assert(html.includes('previewTreasuryCloseoutPdf')&&html.includes('const corrections=(closeout.corrections||[])'),'Closeout search results must retain details and correction history access');
+console.log('Treasury section, owner gate, cash links, attachments, audited closeout correction, and date search checks passed.');
