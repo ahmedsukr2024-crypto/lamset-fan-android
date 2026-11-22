@@ -2852,6 +2852,7 @@ async function viewExpenseReceipt(expenseId){const item=(db.expenses||[]).find(x
 function lfTreasuryToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function lfTreasuryDate(value){const raw=String(value||'');const parts=raw.split('-');const valid=parts.length===3&&parts[0].length===4&&parts[1].length===2&&parts[2].length===2&&parts.every(part=>part.length>0&&Array.from(part).every(char=>char>='0'&&char<='9'));if(valid)return raw;const date=new Date(raw);if(!Number.isFinite(date.getTime()))return '';return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
 function lfTreasuryAmount(value){return money(Number(value)||0)}
+function lfTreasuryIsLowBalance(balance,thresholdCents){const cents=Math.round(Number(balance||0)*100),limit=Number(thresholdCents)||0;return Number.isSafeInteger(cents)&&limit>0&&cents<=limit}
 function lfTreasuryEsc(value){return typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function lfTreasuryReconcileCashPayments(){
  if(!window.LamsetLocalDB)return 0;
@@ -3050,7 +3051,7 @@ async function renderTreasury(){
   if(thresholdInput&&document.activeElement!==thresholdInput)thresholdInput.value=lowBalanceEnabled?(lowBalanceCents/100).toFixed(2):'';
   if(enabledInput)enabledInput.checked=lowBalanceEnabled;
   if(lowBalanceStatus)lowBalanceStatus.textContent=lowBalanceEnabled?'التنبيه مفعّل عند '+lfTreasuryAmount(lowBalanceCents/100)+'. يمكنك تعطيله في أي وقت.':'التنبيه معطل؛ لن يظهر تحذير حتى تفعّله.';
-  if(lowBalanceWarning){const isLow=lowBalanceEnabled&&lowBalanceCents>0&&Math.round(Number(data.balance||0)*100)<=lowBalanceCents;lowBalanceWarning.hidden=!isLow;lowBalanceWarning.textContent=isLow?'تنبيه: رصيد الخزينة الحالي '+lfTreasuryAmount(data.balance)+' وصل إلى الحد الأدنى المحدد ('+lfTreasuryAmount(lowBalanceCents/100)+'). راجع الرصيد قبل متابعة العمل.':'';}
+  if(lowBalanceWarning){const isLow=lowBalanceEnabled&&lfTreasuryIsLowBalance(data.balance,lowBalanceCents);lowBalanceWarning.hidden=!isLow;lowBalanceWarning.textContent=isLow?'تنبيه: رصيد الخزينة الحالي '+lfTreasuryAmount(data.balance)+' وصل إلى الحد الأدنى المحدد ('+lfTreasuryAmount(lowBalanceCents/100)+'). راجع الرصيد قبل متابعة العمل.':'';}
   set('lfTreasuryBalance',lfTreasuryAmount(data.balance));
   set('lfTreasuryDeposits',lfTreasuryAmount(sum(todayMoves,'deposit')));
   set('lfTreasuryWithdrawals',lfTreasuryAmount(sum(todayMoves,'withdrawal')));
