@@ -2188,7 +2188,7 @@ sel.innerHTML='<option value="">اختر الطلب</option>'+orders.map(o=>'<op
 let rows=(db.customers||[]).map(c=>{let os=db.orders.filter(o=>o.status!=='ملغي'&&customerOrderMatches(o,c)),balance=os.reduce((v,o)=>v+orderDue(o),0);return{c,os,balance}}).filter(x=>x.balance>0).sort((a,b)=>b.balance-a.balance),total=rows.reduce((v,x)=>v+x.balance,0);
 $('collectionList').innerHTML='<div class="collection-total"><small>إجمالي المستحقات</small><strong>'+money(total)+'</strong></div>'+(rows.length?rows.map(x=>'<div class="collection-row"><b>'+esc(x.c.name)+'</b><div class="muted">'+x.os.length+' طلب · '+esc(x.c.phone||'بدون هاتف')+'</div><strong>'+money(x.balance)+'</strong></div>').join(''):'<div class="empty">لا توجد مبالغ مستحقة حالياً.</div>');
 const historyQuery=String($('lfPaymentHistorySearch')?.value||'').trim().toLocaleLowerCase('ar');let history=(db.payments||[]).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).filter(p=>{const o=db.orders.find(x=>x.id===p.orderId),customer=o?.customer||p.customerName||'',invoice=o?.invoiceNumber||lfOrderNumber(o||{});return !historyQuery||[p.receiptNumber,p.id,customer,invoice,o?.orderNumber,p.amount,p.method,p.note,p.cancelReason].some(v=>String(v??'').toLocaleLowerCase('ar').includes(historyQuery))}),orderSettlementHistory=(db.orderCreditSettlements||[]).slice().reverse();
-$('paymentHistory').innerHTML=(history.length?history.map(p=>{let o=db.orders.find(x=>x.id===p.orderId),cancelled=p.status==='cancelled';return '<div class="collection-row"><span><b>'+esc(o?.customer||p.customerName||'طلب محذوف')+' · '+esc(p.receiptNumber||'بدون رقم إيصال')+'</b><small class="muted">'+new Date(p.date||Date.now()).toLocaleString('ar-EG')+' · طلب '+esc(lfOrderNumber(o||{}))+' · '+(p.kind==='deposit'?'عربون · ':'')+esc(p.method||'')+(p.note?' · '+esc(p.note):'')+(cancelled?' · ملغي: '+esc(p.cancelReason||''):'')+'</small><span class="actions"><button type="button" class="ghost smallbtn" onclick="lamsetRunButtonAction(this,()=>previewPaymentReceipt('+JSON.stringify(p.id)+'))">'+(cancelled?'عرض الإيصال الملغي':p.kind==='deposit'?'فاتورة العربون':'فاتورة التحصيل')+'</button>'+(cancelled?'':'<button type="button" class="ghost smallbtn" onclick="lamsetRunButtonAction(this,()=>sharePaymentReceiptWhatsApp('+JSON.stringify(p.id)+'))">واتساب</button><button type="button" class="danger smallbtn" onclick="lamsetRunButtonAction(this,()=>cancelPayment('+JSON.stringify(p.id)+'))">إلغاء الإيصال</button>')+'</span></span><strong class="'+(cancelled?'warn':'')+'">'+money(p.amount)+(cancelled?' · ملغي':'')+'</strong></div>'}).join(''):'<p class="muted">لا توجد إيصالات مطابقة لبحثك.</p>')+(orderSettlementHistory.length?'<h4>سجل رد الأرصدة الزائدة من الطلبات</h4>'+orderSettlementHistory.map(x=>'<div class="collection-row"><span><b>'+esc(x.customerName||'عميل')+'</b><small class="muted">طلب '+esc(x.orderId)+' · '+new Date(x.date).toLocaleString('ar-EG')+' · '+esc(x.method||'')+(x.note?' · '+esc(x.note):'')+'</small></span><strong>'+money(x.amount)+' (تم الرد)</strong></div>').join(''):'');
+$('paymentHistory').innerHTML=(history.length?history.map(p=>{let o=db.orders.find(x=>x.id===p.orderId),cancelled=p.status==='cancelled';return '<div class="collection-row"><span><b>'+esc(o?.customer||p.customerName||'طلب محذوف')+' · '+esc(p.receiptNumber||'بدون رقم إيصال')+'</b><small class="muted">'+new Date(p.date||Date.now()).toLocaleString('ar-EG')+' · طلب '+esc(lfOrderNumber(o||{}))+' · '+(p.kind==='deposit'?'عربون · ':'')+esc(p.method||'')+(p.note?' · '+esc(p.note):'')+(cancelled?' · ملغي: '+esc(p.cancelReason||''):'')+'</small><span class="actions"><button type="button" class="ghost smallbtn" onclick="lamsetRunButtonAction(this,()=>previewPaymentReceipt('+JSON.stringify(p.id)+'))">'+(cancelled?'عرض الإيصال الملغي':p.kind==='deposit'?'فاتورة العربون':'فاتورة التحصيل')+'</button>'+(cancelled?'':'<button type="button" class="ghost smallbtn" onclick="lamsetRunButtonAction(this,()=>editPayment('+JSON.stringify(p.id)+'))">تعديل التحصيل</button><button type="button" class="ghost smallbtn" onclick="lamsetRunButtonAction(this,()=>sharePaymentReceiptWhatsApp('+JSON.stringify(p.id)+'))">واتساب</button><button type="button" class="danger smallbtn" onclick="lamsetRunButtonAction(this,()=>cancelPayment('+JSON.stringify(p.id)+'))">إلغاء الإيصال</button>')+'</span></span><strong class="'+(cancelled?'warn':'')+'">'+money(p.amount)+(cancelled?' · ملغي':'')+'</strong></div>'}).join(''):'<p class="muted">لا توجد إيصالات مطابقة لبحثك.</p>')+(orderSettlementHistory.length?'<h4>سجل رد الأرصدة الزائدة من الطلبات</h4>'+orderSettlementHistory.map(x=>'<div class="collection-row"><span><b>'+esc(x.customerName||'عميل')+'</b><small class="muted">طلب '+esc(x.orderId)+' · '+new Date(x.date).toLocaleString('ar-EG')+' · '+esc(x.method||'')+(x.note?' · '+esc(x.note):'')+'</small></span><strong>'+money(x.amount)+' (تم الرد)</strong></div>').join(''):'');
 }
 async function recordPayment(){
  if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.');
@@ -2234,6 +2234,50 @@ async function recordPayment(){
    if(paymentButton){paymentButton.disabled=false;paymentButton.textContent=originalText;paymentButton.removeAttribute('aria-busy');}
   },450);
  }
+}
+async function editPayment(paymentId){
+ if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.');
+ if(window.__lfPaymentSaving)return;
+ const payment=(db.payments||[]).find(x=>x.id===paymentId&&x.status!=='cancelled');if(!payment)return alert('إيصال التحصيل غير متاح للتعديل.');
+ const order=(db.orders||[]).find(x=>x.id===payment.orderId);if(!order)return alert('الطلب المرتبط بالإيصال غير موجود.');
+ const oldValues={amount:Number(payment.amount)||0,method:String(payment.method||'نقدي'),note:String(payment.note||'')};
+ const amountText=prompt('المبلغ الجديد للتحصيل (ج.م):',String(oldValues.amount));if(amountText===null)return;
+ const amount=Number(amountText);if(!Number.isFinite(amount)||amount<=0)return alert('المبلغ الجديد يجب أن يكون أكبر من صفر.');
+ const maximum=orderDue(order)+oldValues.amount;if(amount>maximum)return alert('المبلغ يتجاوز إجمالي المتبقي مع قيمة الإيصال الحالي: '+money(maximum));
+ const methods=['نقدي','تحويل بنكي','محفظة إلكترونية','أخرى'],method=prompt('طريقة الدفع (نقدي / تحويل بنكي / محفظة إلكترونية / أخرى):',oldValues.method);if(method===null)return;
+ if(!methods.includes(method.trim()))return alert('طريقة الدفع غير صحيحة.');
+ const note=prompt('ملاحظات الإيصال (اختياري):',oldValues.note);if(note===null)return;
+ const reason=prompt('سبب تعديل التحصيل (إلزامي):','تصحيح مبلغ أو طريقة التحصيل');if(reason===null)return;if(!reason.trim())return alert('سبب التعديل مطلوب.');
+ const newValues={amount,method:method.trim(),note:note.trim()};
+ if(oldValues.amount===newValues.amount&&oldValues.method===newValues.method&&oldValues.note===newValues.note)return alert('لم يتم تغيير بيانات الإيصال.');
+ if(!confirm('مراجعة تعديل الإيصال '+(payment.receiptNumber||payment.id)+'\\nالمبلغ: '+money(oldValues.amount)+' ← '+money(newValues.amount)+'\\nطريقة الدفع: '+oldValues.method+' ← '+newValues.method+'\\nالسبب: '+reason+'\\n\\nهل تؤكد التعديل؟'))return;
+ window.__lfPaymentSaving=true;
+ const before=JSON.parse(JSON.stringify(db));let committed=false;
+ try{
+  if(oldValues.method==='نقدي'||newValues.method==='نقدي'){
+   if(!(await lfTreasuryConfirmClosedDateImpact(lfTreasuryDate(payment.date),'تعديل التحصيل النقدي')))return;
+  }
+  if(!(await window.lamsetRequireOwnerPin('تعديل إيصال التحصيل '+(payment.receiptNumber||payment.id))))return;
+  if(oldValues.method==='نقدي'&&newValues.method!=='نقدي'&&window.LamsetLocalDB)await LamsetLocalDB.removeCashLink(payment.id,reason.trim());
+  Object.assign(payment,newValues);
+  payment.updatedAt=new Date().toISOString();
+  payment.audit=[...(payment.audit||[]),{at:payment.updatedAt,reason:reason.trim(),oldValues,newValues:{...newValues}}];
+  lfRecordActivity('تعديل إيصال تحصيل',payment.receiptNumber||payment.id,money(oldValues.amount)+' → '+money(newValues.amount)+' · '+reason.trim());
+  if(!save())throw new Error('تعذر حفظ تعديل الإيصال.');
+  committed=true;
+  if(newValues.method==='نقدي'&&window.LamsetLocalDB){
+   try{await LamsetLocalDB.applyCashLink(payment.id,'collection',newValues.amount,lfTreasuryDate(payment.date),'تحصيل نقدي · '+(order.orderNumber||order.id));}
+   catch(error){console.warn('Updated cash collection link pending:',error);alert('تم حفظ تعديل الإيصال؛ وسيعيد التطبيق مزامنة أثره في الخزينة عند فتح قسم الخزينة.');}
+  }
+  lfRefreshCurrentPage();renderCollections();alert('تم تعديل الإيصال مع الاحتفاظ برقم الإيصال وسجل التعديلات.');
+ }catch(error){
+  if(!committed){
+   db=before;
+   try{save();}catch(rollbackError){console.error(rollbackError);}
+   if(oldValues.method==='نقدي'&&window.LamsetLocalDB){try{await LamsetLocalDB.applyCashLink(payment.id,'collection',oldValues.amount,lfTreasuryDate(payment.date),'تحصيل نقدي · '+(order.orderNumber||order.id));}catch(restoreError){console.warn('Previous cash collection link restoration pending:',restoreError);}}
+  }
+  alert(error.message||'تعذر تعديل إيصال التحصيل.');
+ }finally{window.__lfPaymentSaving=false;}
 }
 async function cancelPayment(paymentId){
  const payment=(db.payments||[]).find(x=>x.id===paymentId&&x.status!=='cancelled');if(!payment)return;
