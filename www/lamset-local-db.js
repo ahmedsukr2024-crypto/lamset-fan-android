@@ -350,6 +350,8 @@ class LamsetLocalDatabase {
     for (const item of closeouts) if (item.businessDate >= opening.businessDate) dates.add(item.businessDate);
     let balance = Number(opening.cents || 0);
     for (const date of Array.from(dates).sort()) {
+      const openingBalanceCents = balance;
+      const dailyTotals = { depositsCents: 0, withdrawalsCents: 0, collectionsCents: 0, expensesCents: 0 };
       const events = [
         ...movements.filter(item => item.effectiveDate === date).map(item => ({ kind: 'movement', item })),
         ...links.filter(item => item.effectiveDate === date).map(item => ({ kind: 'link', item }))
@@ -357,8 +359,16 @@ class LamsetLocalDatabase {
       for (const event of events) {
         const item = event.item;
         if (item.status !== 'active') continue;
+        const amountCents = Number(item.amountCents || 0);
+        if (event.kind === 'movement' && !item.referenceOnly) {
+          if (item.type === 'deposit') dailyTotals.depositsCents += amountCents;
+          else dailyTotals.withdrawalsCents += amountCents;
+        } else if (event.kind === 'link') {
+          if (item.type === 'collection') dailyTotals.collectionsCents += amountCents;
+          else dailyTotals.expensesCents += amountCents;
+        }
         const before = balance;
-        const signed = Number(item.amountCents || 0) * (
+        const signed = amountCents * (
           event.kind === 'movement'
             ? (item.referenceOnly ? 0 : (item.type === 'deposit' ? 1 : -1))
             : (item.type === 'collection' ? 1 : -1)
@@ -373,9 +383,27 @@ class LamsetLocalDatabase {
       const closeout = closeouts.find(item => item.businessDate === date);
       if (closeout) {
         if (closeout.pendingInitialSnapshot) {
+          const actualCents = Number(closeout.actualCents || 0);
+          const differenceCents = actualCents - balance;
+          closeout.openingExpectedCents = openingBalanceCents;
+          closeout.depositsCents = dailyTotals.depositsCents;
+          closeout.withdrawalsCents = dailyTotals.withdrawalsCents;
+          closeout.collectionsCents = dailyTotals.collectionsCents;
+          closeout.expensesCents = dailyTotals.expensesCents;
+          closeout.initialSnapshot = {
+            openingExpectedCents: openingBalanceCents,
+            depositsCents: dailyTotals.depositsCents,
+            withdrawalsCents: dailyTotals.withdrawalsCents,
+            collectionsCents: dailyTotals.collectionsCents,
+            expensesCents: dailyTotals.expensesCents,
+            expectedCents: balance,
+            actualCents,
+            differenceCents,
+            capturedAt: new Date().toISOString()
+          };
           closeout.originalExpectedCents = balance;
-          closeout.originalDifferenceCents = Number(closeout.actualCents || 0) - balance;
-          closeout.snapshotCapturedAt = new Date().toISOString();
+          closeout.originalDifferenceCents = differenceCents;
+          closeout.snapshotCapturedAt = closeout.initialSnapshot.capturedAt;
           delete closeout.pendingInitialSnapshot;
         } else {
           closeout.originalExpectedCents ??= closeout.expectedCents;
