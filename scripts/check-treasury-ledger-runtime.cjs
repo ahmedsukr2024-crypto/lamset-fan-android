@@ -10,7 +10,7 @@ const categoryStart = source.indexOf('function normalizeTreasuryCategory(');
 const categoryEnd = source.indexOf('\nfunction bytesToBase64', categoryStart);
 if (categoryStart < 0 || categoryEnd < 0) throw new Error('Treasury category normalization could not be isolated.');
 const categorySandbox = {};
-vm.runInNewContext(source.slice(categoryStart, categoryEnd) + '\nthis.normalizeCategory = normalizeTreasuryCategory;', categorySandbox);
+vm.runInNewContext(source.slice(categoryStart, categoryEnd) + '\nthis.normalizeCategory = normalizeTreasuryCategory; this.normalizeAttachment = normalizeTreasuryAttachment;', categorySandbox);
 const addCategoryStart = source.indexOf('  async addTreasuryCategory(');
 const addCategoryEnd = source.indexOf('\n  async recordTreasuryMovement(', addCategoryStart);
 if (addCategoryStart < 0 || addCategoryEnd < 0) throw new Error('Treasury category storage implementation could not be isolated.');
@@ -26,6 +26,14 @@ assert(categorySandbox.normalizeCategory('  سحب   مشتريات  ') === 'س�
 let longCategoryRejected = false;
 try { categorySandbox.normalizeCategory('x'.repeat(41)); } catch (error) { longCategoryRejected = /40/.test(error.message); }
 assert(longCategoryRejected, 'category names longer than 40 characters are rejected');
+const validAttachment = categorySandbox.normalizeAttachment({ dataUrl: 'data:image/jpeg;base64,AA==', name: 'receipt.png', sizeBytes: 2048 });
+assert(validAttachment.mimeType === 'image/jpeg' && validAttachment.name === 'receipt.png' && validAttachment.sizeBytes === 2048, 'receipt image metadata is normalized and preserved');
+let invalidAttachmentRejected = false;
+try { categorySandbox.normalizeAttachment({ dataUrl: 'data:image/svg+xml;base64,AA==' }); } catch (error) { invalidAttachmentRejected = /JPEG/.test(error.message); }
+assert(invalidAttachmentRejected, 'non-JPEG or unprocessed attachment data is rejected');
+let oversizedAttachmentRejected = false;
+try { categorySandbox.normalizeAttachment({ dataUrl: 'data:image/jpeg;base64,' + 'A'.repeat(1200000) }); } catch (error) { oversizedAttachmentRejected = /الحد المسموح/.test(error.message); }
+assert(oversizedAttachmentRejected, 'oversized processed attachment data is rejected');
 
 const sandbox = {
   META: 'meta', MOVEMENTS: 'treasuryMovements', CASH_LINKS: 'treasuryCashLinks', CLOSEOUTS: 'treasuryCloseouts',
