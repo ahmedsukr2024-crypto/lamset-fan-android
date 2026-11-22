@@ -30,7 +30,25 @@ function closeDocumentPreview(){
  window.lfCurrentDocumentKind='';
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
  if(modal)modal.classList.remove('open');
- if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body></body></html>';}
+ if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body><script id="lf-treasury-pending-action-guard">
+(function(){
+ 'use strict';
+ const actions=['saveOrder','recordPayment','editPayment','cancelPayment','saveExpense','editExpense','cancelExpense','saveTreasuryMovement','editTreasuryMovement','cancelTreasuryMovement','saveTreasuryOpening','correctTreasuryOpening','correctTreasuryCloseout'];
+ actions.forEach(name=>{
+  const core=window[name];
+  if(typeof core!=='function'||core.__lfTreasuryPendingGuard)return;
+  const wrapped=async function(){
+   if(window.__lfTreasuryCloseoutSaving)return alert('جارٍ إقفال الخزينة؛ انتظر انتهاء الإقفال ثم أعد المحاولة.');
+   window.__lfTreasuryPendingWriteCount=(Number(window.__lfTreasuryPendingWriteCount)||0)+1;
+   try{return await core.apply(this,arguments)}
+   finally{window.__lfTreasuryPendingWriteCount=Math.max(0,(Number(window.__lfTreasuryPendingWriteCount)||1)-1)}
+  };
+  wrapped.__lfTreasuryPendingGuard=true;
+  window[name]=wrapped;
+ });
+})();
+</script>
+</body></html>';}
  document.body.classList.remove('lf-modal-open');
 }
 async function printDocumentPreview(){
@@ -2912,7 +2930,7 @@ async function lfTreasuryConfirmClosedDateImpact(date,operationLabel){
 }
 function lfTreasuryAmount(value){return money(Number(value)||0)}
 function lfTreasuryIsLowBalance(balance,thresholdCents){const cents=Math.round(Number(balance||0)*100),limit=Number(thresholdCents)||0;return Number.isSafeInteger(cents)&&limit>0&&cents<=limit}
-function lfTreasuryHasPendingOperations(){return !!(window.__lfPaymentSaving||window.__lfOrderSaving||window.__lfExpenseSaving||window.__lfTreasuryMovementSaving)}
+function lfTreasuryHasPendingOperations(){return Number(window.__lfTreasuryPendingWriteCount||0)>0||!!(window.__lfPaymentSaving||window.__lfOrderSaving||window.__lfExpenseSaving||window.__lfTreasuryMovementSaving)}
 function lfTreasuryEsc(value){return typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function lfTreasuryReconcileCashPayments(){
  if(!window.LamsetLocalDB)return 0;
