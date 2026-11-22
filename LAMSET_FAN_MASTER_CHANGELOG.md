@@ -304,7 +304,7 @@
 | TRY-040 | بعد تأكيد الإقفال يحتفظ التطبيق بنسخة من إجماليات اليوم ورصيد الخزينة والفرق؛ وأي تصحيح لاحق يرتبط بالإقفال الأصلي ولا يغيره بصمت. | معتمد — لم ينفذ |
 | TRY-041 | التحقق من صحة مبلغ النقدية الفعلية، ومنع القيم السالبة وغير الصحيحة وقبول الكسور عند الحاجة. | معتمد — قاعدة تحقق |
 | TRY-042 | شاشة مراجعة مختصرة لملخص الإقفال قبل التأكيد، مع إمكانية الرجوع للتعديل. | معتمد — لم ينفذ |
-| TRY-043 | البحث في سجل الإقفالات حسب التاريخ، وعرض التفاصيل والتصحيحات المرتبطة. | معتمد — لم ينفذ |
+| TRY-043 | البحث في سجل الإقفالات حسب التاريخ، وعرض التفاصيل والتصحيحات المرتبطة. | منفذ — فلترة السجل بالتاريخ مع استمرار الوصول إلى تفاصيل الإقفال وسجل التصحيحات وPDF |
 | TRY-044 | طباعة ومشاركة ملخص إقفال اليوم PDF من داخل تفاصيل الإقفال. | معتمد — لم ينفذ |
 | TRY-045 | تنبيه في الصفحة الرئيسية عند انتهاء اليوم دون إقفال الخزينة، ويفتح تبويبة إقفال اليوم عند الضغط. | معتمد — لم ينفذ |
 | TRY-046 | منع الإقفال إذا وجدت حركة مالية غير مكتملة أو ما زالت قيد الحفظ، مع توضيح السبب. | معتمد — لم ينفذ |
@@ -1060,7 +1060,7 @@
 | TRY-040 | معتمد — لم ينفذ | منفذ جزئياً — فجوة موثقة في المراجعة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-041 | معتمد — قاعدة تحقق | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-042 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
-| TRY-043 | معتمد — لم ينفذ | غير منفذ — فجوة فعلية مؤكدة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
+| TRY-043 | معتمد — لم ينفذ | منفذ — بحث بتاريخ الإقفال ومسح الفلتر مع بقاء تفاصيل الإقفال وسجل التصحيحات متاحين | www/index.html؛ scripts/check-treasury-section.cjs |
 | TRY-044 | معتمد — لم ينفذ | موجود بالكود — تغطية اختبار آلي مناسبة ضمن اختبارات الخزينة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-045 | معتمد — لم ينفذ | غير منفذ — فجوة فعلية مؤكدة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
 | TRY-046 | معتمد — لم ينفذ | منفذ جزئياً — فجوة موثقة في المراجعة | www/lamset-local-db.js؛ www/index.html؛ scripts/check-treasury-section.cjs؛ scripts/check-treasury-recovery.cjs؛ scripts/check-treasury-ledger-runtime.cjs |
@@ -1091,7 +1091,7 @@
 
 ## فجوات الخزينة المؤكدة
 
-- غير منفذ: TRY-043 البحث في سجل الإقفالات؛ TRY-045 تنبيه الرئيسية عند انتهاء اليوم دون إقفال؛ TRY-053 حد تنبيه انخفاض الرصيد القابل للضبط.
+- غير منفذ: TRY-045 تنبيه الرئيسية عند انتهاء اليوم دون إقفال؛ TRY-053 حد تنبيه انخفاض الرصيد القابل للضبط.
 - منفذ: TRY-025 (ربط الطلب والمصروف المرجعي مع منع تكرار الأثر المالي)؛ TRY-032 احترام جميع فلاتر سجل الحركات في PDF؛ TRY-036 تمثيل الأيام غير المقفلة تاريخياً؛ TRY-040 حفظ لقطة كاملة للإقفال ورصيد البداية (ومنها أن openingExpectedCents يظل صفراً ولا يحدث لاحقاً)؛ TRY-046 وTRY-054 حارس شامل لكل العمليات الجارية؛ TRY-049 تعديل التحصيل/طريقة الدفع؛ TRY-050 تأكيد صريح عند تسجيل حركة نقدية بتاريخ يوم مغلق.
 
 ## مراجع الاختبارات وحدودها
@@ -1177,3 +1177,12 @@
 - تعرض تفاصيل الإقفال وPDF القيمة الفعلية الأصلية وسجل التصحيح والقيم السابقة والجديدة.
 - الاختبارات المرجعية: scripts/check-treasury-section.cjs وscripts/check-treasury-ledger-runtime.cjs ضمن npm run check:all.
 - نجاح الاختبارات والبناء لا يثبت تجربة تصحيح إقفال فعلي على جهاز Android؛ يلزم اختبار ميداني منفصل.
+
+
+# 39. البحث في سجل إقفالات الخزينة حسب التاريخ — 2026-11-22
+
+- تم استكمال TRY-043 داخل بطاقة سجل الإقفالات الحالية، دون إنشاء صفحة مستقلة أو تغيير تخزين الإقفالات.
+- يتيح حقل التاريخ عرض الإقفال المطابق فقط، مع زر لمسح البحث والعودة إلى كامل السجل.
+- تبقى تفاصيل الإقفال وPDF وسجل التصحيحات المرتبطة متاحة لكل نتيجة، بما في ذلك بيانات التصحيح اليدوي لـ TRY-038.
+- لا يغير البحث أي بيانات أو أرصدة أو سجلات مالية؛ هو فلتر عرض فقط.
+- الاختبار البنيوي: scripts/check-treasury-section.cjs ضمن npm run check:all.
