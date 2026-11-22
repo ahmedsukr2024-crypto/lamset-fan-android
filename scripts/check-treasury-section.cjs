@@ -60,6 +60,6 @@ assert(html.includes('سيظل سجل الحركة محفوظاً')&&html.includ
 assert(db.includes('async correctTreasuryCloseout(businessDate, actualCents, correctionReason)')&&db.includes('this.requireOwnerSession();'),'Prior closeout correction must be protected by the owner session');
 assert(db.includes('originalActualCents: previous.originalActualCents ?? Number(previous.actualCents || 0)'),'Closeout correction must preserve the original actual cash amount');
 assert(db.includes("action: 'manual-closeout-correction'")&&db.includes('previousActualCents: Number(previous.actualCents || 0)')&&db.includes('correctedActualCents: cents'),'Closeout correction must record the previous and corrected values with an audit reason and timestamp');
-assert(html.includes('correctTreasuryCloseout(\\'')&&html.includes('async function correctTreasuryCloseout')&&html.includes('تصحيح الإقفال'),'Closeout history must expose the audited correction action');
+assert(html.includes("correctTreasuryCloseout(\\'")&&html.includes("async function correctTreasuryCloseout")&&html.includes("تصحيح الإقفال"),"Closeout history must expose the audited correction action");
 assert(html.includes('القيمة الفعلية الأصلية قبل التصحيح'),'Closeout details must display the preserved original actual amount');
 console.log('Treasury section, owner gate, cash links, attachments, and audited closeout correction checks passed.');
