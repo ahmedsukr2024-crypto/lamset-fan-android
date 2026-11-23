@@ -24,3 +24,17 @@ html[data-theme="dark"] .lf-dash-order-status.is-late{background:#44272D;color:#
 @media(max-width:360px){.lf-home-workflow-stats{gap:5px}.lf-home-workflow-stat{min-height:82px!important}.lf-home-workflow-stat b{font-size:20px}.lf-home-workflow-stat small{font-size:10px}}
 
 .lf-dash-alert[role="button"]{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease}.lf-dash-alert[role="button"]:focus-visible{outline:2px solid var(--accent,#0866FF);outline-offset:2px}.lf-dash-alert[role="button"]:active{transform:scale(.99)}
+
+/* Header action icons: clean controls without circular button backgrounds. */
+.lf-header-actions .lf-header-menu,
+.lf-header-actions .lf-header-settings,
+.lf-header-actions .lf-header-alerts,
+.lf-header-actions .lf-header-search{
+ border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+.lf-header-actions .lf-header-menu:hover,
+.lf-header-actions .lf-header-settings:hover,
+.lf-header-actions .lf-header-alerts:hover,
+.lf-header-actions .lf-header-search:hover{
+ border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
