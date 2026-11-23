@@ -886,7 +886,7 @@ body{--lf-fixed-header-gap:calc(var(--lf-header-safe-top) + 8px + var(--lf-heade
   </div></footer>
  </section>
 </div>
-<div id="invoicePreview" onclick="if(event.target===this)closeInvoicePreview()"><div class="preview-shell"><div class="preview-tools"><b style="flex:1;padding:8px">معاينة فاتورة البيع</b><button type="button" class="ghost smallbtn lf-modal-close" onclick="closeInvoicePreview()" aria-label="إغلاق النافذة" title="إغلاق">×</button></div><iframe title="معاينة فاتورة البيع" id="invoicePreviewFrame"></iframe><footer class="preview-footer"><button type="button" class="smallbtn" id="invoicePreviewPrint">🖨️ طباعة / حفظ PDF</button><button type="button" class="smallbtn" id="invoicePreviewWhatsApp">إرسال واتساب</button></footer></div></div><script>
+<div id="invoicePreview" role="dialog" aria-modal="true" aria-label="معاينة فاتورة البيع" onclick="if(event.target===this)closeInvoicePreview()"><div class="preview-shell"><div class="preview-tools"><b style="flex:1;padding:8px">معاينة فاتورة البيع</b><button type="button" class="ghost smallbtn lf-modal-close" onclick="closeInvoicePreview()" aria-label="إغلاق النافذة" title="إغلاق">×</button></div><iframe title="معاينة فاتورة البيع" id="invoicePreviewFrame"></iframe><footer class="preview-footer"><button type="button" class="smallbtn" id="invoicePreviewPrint">🖨️ طباعة / حفظ PDF</button><button type="button" class="smallbtn" id="invoicePreviewWhatsApp">إرسال واتساب</button></footer></div></div><script>
 window.__lamsetDeepClone = function(value){ return JSON.parse(JSON.stringify(value)); };
 const KEY='lamset_fan_business_manager_v1';
 let db={products:[],orders:[],customers:[],productions:[],offers:[{threshold:10,bonus:1},{threshold:50,bonus:6},{threshold:100,bonus:12}],costLines:[]};
