@@ -64,6 +64,7 @@ function ensureCashUI(){
 }
 
 window.lfOwnerPinSetup=ownerPinSetup;
+window.lfRequireOwnerPin=reason=>requireOwnerPin(reason);
 const originalPayment=window.recordPayment;
 if(typeof originalPayment==='function')window.recordPayment=function(){const count=(db.payments||[]).length;originalPayment.apply(this,arguments);if((db.payments||[]).length>count){const p=db.payments[db.payments.length-1];if(p.method==='نقدي'&&!cashMoves().some(x=>x.reference==='payment:'+p.id)){const before=clone(db);cashMovement('in',p.amount,'تحصيل طلب '+String(p.orderId).slice(-8),'نقدي','payment:'+p.id,p.note);audit('تحصيل نقدي','إيصال '+p.id);if(!save())db=before;}renderCashbox()}};
 function orderShipTotals(orderId){const totals={};db.shipments.filter(x=>x.orderId===orderId&&!x.voidedAt).forEach(sh=>sh.lines.forEach(l=>totals[l.itemKey]=(totals[l.itemKey]||0)+Number(l.qty||0)));return totals}
