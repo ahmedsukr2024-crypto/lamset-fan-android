@@ -25,7 +25,6 @@ assert.match(html, /id="lfHeaderAlerts"[^>]*>[\\s\\S]*?data-lucide="bell"/, 'ي�
 assert.match(html, /id="lfHeaderSearch"[^>]*>[\\s\\S]*?data-lucide="search"/, 'يجب عرض أيقونة البحث المدعومة');
 assert.match(html, /id="lf-header-final-icons-v5"/, 'يجب تطبيق تنسيق الأيقونات دون دوائر مع دعم ألوان الثيم');
 assert.doesNotMatch(html, /lf-drawer-alert-link|id="lfHeaderAlerts"[^>]*class="lf-drawer-link/, 'يجب ألا يكون مركز التنبيهات مخفياً داخل القائمة الجانبية');
-assert.doesNotMatch(html, /lf-drawer-alert-link|id="lfHeaderAlerts"[^>]*class="lf-drawer-link/, 'يجب ألا يكون مركز التنبيهات مخفياً داخل القائمة الجانبية');
 assert.match(html, /id="lfHeaderAlertCount"/, 'يجب الحفاظ على عداد التنبيهات الظاهر');
 assert.match(html, /dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/, 'يجب تحديث العروض التابعة بعد استعادة قيم الحقول');
 console.log('Smart navigation checks passed.');
