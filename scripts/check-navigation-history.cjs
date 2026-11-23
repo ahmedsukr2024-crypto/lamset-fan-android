@@ -32,6 +32,10 @@ assert.match(html, /id="lfHeaderAlerts"[^>]*>[\s\S]*?<svg class="lf-header-svg"/
 assert.match(html, /id="lfHeaderSearch"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة البحث مباشرة');
 assert.match(html, /id="lf-header-final-icons-v6"[\s\S]*?border-radius:0!important[\s\S]*?background:transparent!important[\s\S]*?html\[data-theme="dark"\]/, 'يجب إزالة الدوائر وضبط تباين الأيقونات في الوضعين الفاتح والداكن');
 assert.doesNotMatch(html, /lf-drawer-alert-link|id="lfHeaderAlerts"[^>]*class="lf-drawer-link/, 'يجب ألا يكون مركز التنبيهات مخفياً داخل القائمة الجانبية');
+
+assert.equal((html.match(/data-nav-target="production" data-scroll-target="stockDashboard"/g)||[]).length,1,'يجب توفير اختصار مستقل للمخزون داخل المزيد دون إنشاء صفحة مخزون مكررة');
+assert.match(html,/data-nav-target="production" data-scroll-target="stockDashboard"[^>]*onclick="setStockView\('overview'\)"/,'اختصار المخزون يجب أن يفتح عرض المخزون الحالي ثم ينتقل إليه داخل صفحة التصنيع');
+assert.match(html,/id="stockDashboard"/,'اختصار المخزون يجب أن يشير إلى لوحة المخزون الحالية');
 assert.match(html, /id="lfHeaderAlertCount"/, 'يجب الحفاظ على عداد التنبيهات الظاهر');
 assert.match(html, /dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/, 'يجب تحديث العروض التابعة بعد استعادة قيم الحقول');
 console.log('Smart navigation checks passed.');
