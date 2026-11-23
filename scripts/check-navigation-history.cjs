@@ -17,8 +17,14 @@ assert.match(html, /window\.lamsetHandleBack=function\(\)\{if\(closeDrawer\(\)\)
 assert.match(html, /closeTopmostModal\(\)/, 'يجب إغلاق النافذة المنبثقة قبل مغادرة الصفحة');
 assert.match(bridge, /App\.addListener\('backButton'[\s\S]*window\.lamsetHandleBack\(\)/, 'يجب ربط زر الرجوع الفعلي في Android بالنظام الموحد');
 assert.match(html, /lf-header-actions[\s\S]*lf-app-brand/, 'يجب وجود مجموعة الأزرار والشعار في الهيدر');
-assert.match(html, /id="lfMenuToggle"[\s\S]*id="lfHeaderSettings"[\s\S]*id="lfHeaderSearch"/, 'ترتيب الهيدر يجب أن يكون القائمة ثم الإعدادات ثم البحث');
-assert.ok(html.indexOf('id="lfHeaderSearch"') < html.indexOf('id="lfHeaderAlerts"') && html.indexOf('id="lfHeaderAlerts"') < html.indexOf('<div class="lf-app-brand">'), 'يجب إبقاء مركز التنبيهات ظاهراً في الهيدر بين البحث والشعار');
+const headerMenu=html.indexOf('id="lfMenuToggle"'),headerSettings=html.indexOf('id="lfHeaderSettings"'),headerAlerts=html.indexOf('id="lfHeaderAlerts"'),headerSearch=html.indexOf('id="lfHeaderSearch"'),headerBrand=html.indexOf('<div class="lf-app-brand">');
+assert.ok(headerMenu<headerSettings&&headerSettings<headerAlerts&&headerAlerts<headerSearch&&headerSearch<headerBrand, 'ترتيب الهيدر من اليمين لليسار يجب أن يكون القائمة ثم الإعدادات ثم التنبيهات ثم البحث ثم الشعار');
+assert.match(html, /id="lfMenuToggle"[^>]*>[\\s\\S]*?data-lucide="menu"/, 'يجب عرض أيقونة القائمة المدعومة');
+assert.match(html, /id="lfHeaderSettings"[^>]*>[\\s\\S]*?data-lucide="settings"/, 'يجب عرض أيقونة الإعدادات المدعومة');
+assert.match(html, /id="lfHeaderAlerts"[^>]*>[\\s\\S]*?data-lucide="bell"/, 'يجب عرض أيقونة التنبيهات المدعومة');
+assert.match(html, /id="lfHeaderSearch"[^>]*>[\\s\\S]*?data-lucide="search"/, 'يجب عرض أيقونة البحث المدعومة');
+assert.match(html, /id="lf-header-final-icons-v5"/, 'يجب تطبيق تنسيق الأيقونات دون دوائر مع دعم ألوان الثيم');
+assert.doesNotMatch(html, /lf-drawer-alert-link|id="lfHeaderAlerts"[^>]*class="lf-drawer-link/, 'يجب ألا يكون مركز التنبيهات مخفياً داخل القائمة الجانبية');
 assert.doesNotMatch(html, /lf-drawer-alert-link|id="lfHeaderAlerts"[^>]*class="lf-drawer-link/, 'يجب ألا يكون مركز التنبيهات مخفياً داخل القائمة الجانبية');
 assert.match(html, /id="lfHeaderAlertCount"/, 'يجب الحفاظ على عداد التنبيهات الظاهر');
 assert.match(html, /dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/, 'يجب تحديث العروض التابعة بعد استعادة قيم الحقول');
