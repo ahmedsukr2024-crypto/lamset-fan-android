@@ -22,6 +22,10 @@ assert.match(html, /popstate',event=>\{const drawer=document\.getElementById\('l
 assert.match(html, /lfPageNavigationStack\.lastIndexOf\(route\)/, 'يجب مزامنة سجل الصفحات مع الرجوع عبر سجل المتصفح');
 assert.match(html, /window\.lamsetHandleBack=function\(\)\{if\(closeDrawer\(\)\)return true;[\s\S]*previousBack\(\)/, 'يجب إغلاق القائمة الجانبية قبل تمرير الرجوع إلى سجل الصفحات');
 assert.match(html, /closeTopmostModal\(\)/, 'يجب إغلاق النافذة المنبثقة قبل مغادرة الصفحة');
+assert.match(html, /const visibleDialog=\[\.\.\.document\.querySelectorAll\('\[role="dialog"\]'\)\]\)\.reverse\(\)\.find\(el=>!el\.closest\('#lfSideDrawer'\)&&el\.getAttribute\('aria-hidden'\)!=='true'&&!el\.classList\.contains\('hidden'\)&&getComputedStyle\(el\)\.display!=='none'\)/, 'يجب اكتشاف أي نافذة حوار ظاهرة قبل الرجوع حتى لو لم تكن ضمن النوافذ المعروفة');
+assert.match(html, /if\(visibleDialog\)\{const closer=visibleDialog\.querySelector\('\[aria-label\*="إغلاق"\],\.lf-modal-close,button\.ghost'\);if\(closer\)\{closer\.click\(\);return true\}\}/, 'يجب إغلاق النافذة الظاهرة عبر زر الإغلاق الخاص بها قبل مغادرة الصفحة');
+assert.match(html, /id="lfShipmentModal" class="lf-order-status-overlay" role="dialog"/, 'نافذة تسجيل الشحنة يجب أن تكون معرّفة كنافذة حوار قابلة للإغلاق بزر الرجوع');
+assert.match(html, /function closeOrderShipmentModal\(\)/, 'يجب توفير إجراء إغلاق لنافذة تسجيل الشحنة');
 assert.match(bridge, /App\.addListener\('backButton'[\s\S]*window\.lamsetHandleBack\(\)/, 'يجب ربط زر الرجوع الفعلي في Android بالنظام الموحد');
 assert.match(html, /lf-header-actions[\s\S]*lf-app-brand/, 'يجب وجود مجموعة الأزرار والشعار في الهيدر');
 const headerMenu=html.indexOf('id="lfMenuToggle"'),headerSettings=html.indexOf('id="lfHeaderSettings"'),headerAlerts=html.indexOf('id="lfHeaderAlerts"'),headerSearch=html.indexOf('id="lfHeaderSearch"'),headerBrand=html.indexOf('<div class="lf-app-brand">');
