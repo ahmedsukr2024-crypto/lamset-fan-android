@@ -349,7 +349,7 @@ html[data-theme="dark"] .lf-toast{
    fixed overlay root. Keep that root outside transformed/filtered app containers.
    Inner dialog cards may also carry the role; their z-index remains scoped by the overlay. */
 :root{--lf-z-modal:1000}
-[role="dialog"][aria-modal="true"]{z-index:var(--lf-z-modal)!important}
+[role="dialog"][aria-modal="true"]{z-index:var(--lf-z-modal)!important;}
 #lamsetDocumentPreview{z-index:1200!important}
 #lfGlobalSearchModal{z-index:10000!important}
 #lf-system-message{z-index:2147483647!important}
