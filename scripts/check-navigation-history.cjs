@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const html = fs.readFileSync('www/index.html', 'utf8');
 const bridge = fs.readFileSync('www/mobile-bridge.js', 'utf8');
+const designSystem = fs.readFileSync('www/lamset-design-system.css', 'utf8');
 
 assert.match(html, /function lfCaptureNavigationSnapshot\(page\)/, 'يجب حفظ حالة الصفحة قبل مغادرتها');
 assert.match(html, /function lfRestoreNavigationSnapshot\(page\)/, 'يجب استعادة حالة الصفحة عند الرجوع');
@@ -41,5 +42,6 @@ assert.equal((html.match(/data-nav-target="production" data-scroll-target="stock
 assert.match(html,/data-nav-target="production" data-scroll-target="stockDashboard"[^>]*onclick="setStockView\('overview'\)"/,'اختصار المخزون يجب أن يفتح عرض المخزون الحالي ثم ينتقل إليه داخل صفحة التصنيع');
 assert.match(html,/id="stockDashboard"/,'اختصار المخزون يجب أن يشير إلى لوحة المخزون الحالية');
 assert.match(html, /id="lfHeaderAlertCount"/, 'يجب الحفاظ على عداد التنبيهات الظاهر');
+assert.match(designSystem, /#lfStockAdjustModal,[\s\S]*?#invoicePreview,[\s\S]*?#productDetailModal,[\s\S]*?\.lf-order-status-overlay\s*\{\s*z-index:1000!important;/, 'يجب أن تظهر نوافذ المخزون والفاتورة والمنتج وحالة الطلب فوق الهيدر والشريط السفلي الثابتين');
 assert.match(html, /dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/, 'يجب تحديث العروض التابعة بعد استعادة قيم الحقول');
 console.log('Smart navigation checks passed.');
