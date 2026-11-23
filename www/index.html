@@ -4014,8 +4014,6 @@ window.renderProductionBatchHistory();
  };
  const previousBack=window.lamsetHandleBack;
  window.lamsetHandleBack=function(){if(closeDrawer())return true;
-  const expanded=[...document.querySelectorAll('details[open]')].filter(el=>!el.closest('#lfSideDrawer'));
-  if(expanded.length){expanded[expanded.length-1].open=false;return true}
   if(typeof window.closeTopmostModal==='function'&&window.closeTopmostModal())return true;
   const visibleDialog=[...document.querySelectorAll('[role="dialog"]')].reverse().find(el=>!el.closest('#lfSideDrawer')&&el.getAttribute('aria-hidden')!=='true'&&!el.classList.contains('hidden')&&getComputedStyle(el).display!=='none');
   if(visibleDialog){const closer=visibleDialog.querySelector('[aria-label*="إغلاق"],.lf-modal-close,button.ghost');if(closer){closer.click();return true}}
