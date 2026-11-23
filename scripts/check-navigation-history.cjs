@@ -10,6 +10,8 @@ assert.match(html, /const lfPageNavigationStack=\[\]/, 'يجب الاحتفاظ 
 assert.match(html, /lfPageNavigationStack\.push\(t\)/, 'يجب إضافة الصفحة الجديدة إلى سجل الرجوع');
 assert.match(html, /lfPageNavigationStack\.pop\(\)/, 'يجب استعادة الصفحة السابقة عند ضغط رجوع Android');
 assert.match(html, /if\(typeof closeTopmostModal==='function'&&closeTopmostModal\(\)\)return true;[\s\S]*lfPageNavigationStack\.length>1/, 'يجب إغلاق النافذة المنبثقة أولاً ثم الرجوع للصفحة السابقة');
+assert.match(html, /if\\(lfPageNavigationStack\\.length>1\\)\\{try\\{history\\.back\\(\\);return true/, 'يجب ترك popstate ينفذ الرجوع مرة واحدة دون تغيير الصفحة يدوياً قبل الرجوع');
+assert.doesNotMatch(html, /tab\\(previous,\\{fromHistory:true\\}\\);try\\{if\\(history\\.state\\?\\.lamsetPage!==previous\\)history\\.back\\(\\)/, 'يجب منع ازدواج الرجوع اليدوي مع popstate');
 assert.match(html, /lfCaptureNavigationSnapshot\(previous\)/, 'يجب التقاط حالة الصفحة السابقة');
 assert.match(html, /lfRestoreNavigationSnapshot\(t\)/, 'يجب استعادة الحالة بعد إعادة عرض الصفحة');
 assert.match(html, /history\.pushState\(\{\.\.\.\(history\.state\|\|\{\}\),lamsetPage:t\}/, 'يجب تسجيل كل انتقال صفحة في سجل المتصفح');
@@ -24,11 +26,11 @@ assert.match(bridge, /App\.addListener\('backButton'[\s\S]*window\.lamsetHandleB
 assert.match(html, /lf-header-actions[\s\S]*lf-app-brand/, 'يجب وجود مجموعة الأزرار والشعار في الهيدر');
 const headerMenu=html.indexOf('id="lfMenuToggle"'),headerSettings=html.indexOf('id="lfHeaderSettings"'),headerAlerts=html.indexOf('id="lfHeaderAlerts"'),headerSearch=html.indexOf('id="lfHeaderSearch"'),headerBrand=html.indexOf('<div class="lf-app-brand">');
 assert.ok(headerMenu<headerSettings&&headerSettings<headerAlerts&&headerAlerts<headerSearch&&headerSearch<headerBrand, 'ترتيب الهيدر من اليمين لليسار يجب أن يكون القائمة ثم الإعدادات ثم التنبيهات ثم البحث ثم الشعار');
-assert.match(html, /id="lfMenuToggle"[^>]*>[\s\S]*?data-lucide="menu"/, 'يجب عرض أيقونة القائمة المدعومة');
-assert.match(html, /id="lfHeaderSettings"[^>]*>[\s\S]*?data-lucide="settings"/, 'يجب عرض أيقونة الإعدادات المدعومة');
-assert.match(html, /id="lfHeaderAlerts"[^>]*>[\s\S]*?data-lucide="bell"/, 'يجب عرض أيقونة التنبيهات المدعومة');
-assert.match(html, /id="lfHeaderSearch"[^>]*>[\s\S]*?data-lucide="search"/, 'يجب عرض أيقونة البحث المدعومة');
-assert.match(html, /id="lf-header-final-icons-v5"/, 'يجب تطبيق تنسيق الأيقونات دون دوائر مع دعم ألوان الثيم');
+assert.match(html, /id="lfMenuToggle"[^>]*>[\\s\\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة القائمة مباشرة حتى لا تختفي إذا تأخر تحميل الأيقونات');
+assert.match(html, /id="lfHeaderSettings"[^>]*>[\\s\\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة الإعدادات مباشرة');
+assert.match(html, /id="lfHeaderAlerts"[^>]*>[\\s\\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة التنبيهات مباشرة');
+assert.match(html, /id="lfHeaderSearch"[^>]*>[\\s\\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة البحث مباشرة');
+assert.match(html, /id="lf-header-final-icons-v6"[\\s\\S]*?border-radius:0!important[\\s\\S]*?background:transparent!important[\\s\\S]*?html\\[data-theme="dark"\\]/, 'يجب إزالة الدوائر وضبط تباين الأيقونات في الوضعين الفاتح والداكن');
 assert.doesNotMatch(html, /lf-drawer-alert-link|id="lfHeaderAlerts"[^>]*class="lf-drawer-link/, 'يجب ألا يكون مركز التنبيهات مخفياً داخل القائمة الجانبية');
 assert.match(html, /id="lfHeaderAlertCount"/, 'يجب الحفاظ على عداد التنبيهات الظاهر');
 assert.match(html, /dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/, 'يجب تحديث العروض التابعة بعد استعادة قيم الحقول');
