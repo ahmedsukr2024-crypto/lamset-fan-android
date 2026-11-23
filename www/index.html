@@ -8,7 +8,15 @@ function lamsetPrintThemeTag(){
 }
 function lamsetApplyPrintTheme(html){
  const source=String(html||''),theme=lamsetPrintThemeTag();
- return source.includes('</head>')?source.replace('</head>',theme+'</head>'):source.replace('<body',theme+'<body');
+ return source.includes('<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lamset-theme-v3.css?v=20261114-5">
+<link rel="stylesheet" href="lamset-design-system.css?v=1.0.0">
+<link rel="stylesheet" href="lamset-theme-polish.css?v=20261116-1">
+<link rel="stylesheet" href="lamset-appearance-controls.css?v=20261118-1">
+<link rel="stylesheet" href="lamset-home-dashboard.css?v=20261118-1">
+</head>')?source.replace('</head>',theme+'</head>'):source.replace('<body',theme+'<body');
 }
 function showDocumentPreview(html,title){
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
