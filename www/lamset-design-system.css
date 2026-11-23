@@ -334,3 +334,12 @@ html[data-theme="dark"] .lf-toast{
 .lf-global-search-kind{
   background:var(--lf-surface-2)!important;color:var(--lf-muted)!important;
 }
+
+/* Unified modal layer: all in-app dialogs must cover the fixed header and bottom navigation.
+   Keep document preview, global search, drawer, and system-message layers at their existing higher levels. */
+#lfStockAdjustModal,
+#invoicePreview,
+#productDetailModal,
+.lf-order-status-overlay{
+  z-index:1000!important;
+}
