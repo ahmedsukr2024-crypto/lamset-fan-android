@@ -6,6 +6,10 @@ const bridge = fs.readFileSync('www/mobile-bridge.js', 'utf8');
 
 assert.match(html, /function lfCaptureNavigationSnapshot\(page\)/, 'يجب حفظ حالة الصفحة قبل مغادرتها');
 assert.match(html, /function lfRestoreNavigationSnapshot\(page\)/, 'يجب استعادة حالة الصفحة عند الرجوع');
+assert.match(html, /const lfPageNavigationStack=\[\]/, 'يجب الاحتفاظ بمسار الصفحات السابق مستقلاً عن النوافذ المنبثقة');
+assert.match(html, /lfPageNavigationStack\.push\(t\)/, 'يجب إضافة الصفحة الجديدة إلى سجل الرجوع');
+assert.match(html, /lfPageNavigationStack\.pop\(\)/, 'يجب استعادة الصفحة السابقة عند ضغط رجوع Android');
+assert.match(html, /if\(typeof closeTopmostModal==='function'&&closeTopmostModal\(\)\)return true;[\s\S]*lfPageNavigationStack\.length>1/, 'يجب إغلاق النافذة المنبثقة أولاً ثم الرجوع للصفحة السابقة');
 assert.match(html, /lfCaptureNavigationSnapshot\(previous\)/, 'يجب التقاط حالة الصفحة السابقة');
 assert.match(html, /lfRestoreNavigationSnapshot\(t\)/, 'يجب استعادة الحالة بعد إعادة عرض الصفحة');
 assert.match(html, /history\.pushState\(\{\.\.\.\(history\.state\|\|\{\}\),lamsetPage:t\}/, 'يجب تسجيل كل انتقال صفحة في سجل المتصفح');
