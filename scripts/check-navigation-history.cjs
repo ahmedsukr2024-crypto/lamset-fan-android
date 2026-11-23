@@ -44,4 +44,21 @@ assert.match(html,/id="stockDashboard"/,'اختصار المخزون يجب أن
 assert.match(html, /id="lfHeaderAlertCount"/, 'يجب الحفاظ على عداد التنبيهات الظاهر');
 assert.match(designSystem, /#lfStockAdjustModal,[\s\S]*?#invoicePreview,[\s\S]*?#productDetailModal,[\s\S]*?\.lf-order-status-overlay\s*\{\s*z-index:1000!important;/, 'يجب أن تظهر نوافذ المخزون والفاتورة والمنتج وحالة الطلب فوق الهيدر والشريط السفلي الثابتين');
 assert.match(html, /dispatchEvent\(new Event\('change',\{bubbles:true\}\)\)/, 'يجب تحديث العروض التابعة بعد استعادة قيم الحقول');
+
+assert.match(designSystem, /:root\\s*\\{\\s*--lf-z-modal:1000\\s*\\}/, 'يجب تعريف مستوى موحد للنوافذ المنبثقة');
+assert.match(designSystem, /\\[role="dialog"\\]\\[aria-modal="true"\\]\\s*\\{\\s*z-index:var\\(--lf-z-modal\\)!important;\\s*\\}/, 'أي نافذة حوار مستقبلية تحمل role=dialog وaria-modal=true ترث مستوى النوافذ الموحد');
+assert.match(designSystem, /#lamsetDocumentPreview\\s*\\{\\s*z-index:1200!important;\\s*\\}/, 'يجب أن تظل معاينة المستند أعلى من النوافذ العادية');
+assert.match(designSystem, /#lfGlobalSearchModal\\s*\\{\\s*z-index:10000!important;\\s*\\}/, 'يجب الحفاظ على أولوية البحث العام');
+assert.match(designSystem, /#lf-system-message\\s*\\{\\s*z-index:2147483647!important;\\s*\\}/, 'يجب الحفاظ على أولوية رسائل النظام');
+assert.match(designSystem, /\\.lf-toast-region\\s*\\{\\s*z-index:2147483000!important;\\s*\\}/, 'يجب الحفاظ على طبقة الإشعارات');
+assert.match(designSystem, /\\.lf-app-header\\s*\\{[\\s\\S]*?z-index:100!important;/, 'يجب بقاء الهيدر في طبقته الأصلية');
+assert.match(designSystem, /\\.nav\\s*\\{[\\s\\S]*?z-index:200!important;/, 'يجب بقاء الشريط السفلي أعلى الهيدر وقبل النوافذ');
+for (const id of ['productDetailModal','lfStockAdjustModal','lfOrderStatusModal','lfShipmentModal','lamsetDocumentPreview','invoicePreview']) {
+  const root = html.match(new RegExp('<div\\b(?=[^>]*\\bid="'+id+'")[^>]*>', 'i'))?.[0] || '';
+  assert.match(root, /role="dialog"/, 'يجب تعريف النافذة '+id+' كحوار');
+  assert.match(root, /aria-modal="true"/, 'يجب تعريف النافذة '+id+' كحوار modal');
+}
+assert.match(html, /id="invoicePreview"[^>]*role="dialog"[^>]*aria-modal="true"/, 'معاينة الفاتورة يجب أن تدخل ضمن نظام الطبقات الموحد');
+assert.match(html, /role="dialog" aria-modal="true" aria-labelledby="lfGlobalSearchTitle"/, 'نافذة البحث يجب أن تحتفظ بتعريف الحوار');
+
 console.log('Smart navigation checks passed.');
