@@ -1,0 +1,126 @@
+/* LAMSET FAN — approved responsive sizing and raised outlined controls
+   Based on lamset-design-system.css. Presentation only; no business logic changes. */
+:root{
+  --lf-action-ink:#1C1E21;
+  --lf-action-outline:#1C1E21;
+  --lf-action-surface:#FFFFFF;
+  --lf-action-glow:0 0 0 1px rgba(255,255,255,.82),0 2px 0 rgba(28,30,33,.10),0 5px 12px rgba(28,30,33,.09);
+  --lf-action-radius:999px;
+  --lf-control-height:46px;
+  --lf-control-small-height:40px;
+  --lf-control-icon-size:42px;
+  --lf-card-radius:18px;
+}
+html[data-theme="dark"]{
+  --lf-action-ink:#F4F6F8;
+  --lf-action-outline:#F4F6F8;
+  --lf-action-surface:#242526;
+  --lf-action-glow:0 0 0 1px rgba(255,255,255,.20),0 0 14px rgba(255,255,255,.11),0 3px 9px rgba(0,0,0,.34);
+}
+html,body{max-width:100%;overflow-x:clip}
+.wrap{width:100%;max-width:1180px;margin-inline:auto}
+.panel{min-width:0}
+.card,.metric,.customer-card,.customer-card-v2,.product-tile,.stock-status-card,.stock-table-card,
+.appearance-card,.security-card,.analytics-panel,.lf-alert-card,.lf-order-customer-card,
+.lf-order-card,.lf-executive,.lf-document-shell,.lf-orders-action-card,.lf-orders-stat-card{
+  border-radius:var(--lf-card-radius)!important;
+}
+button:not(.nav button):not(.lf-drawer-link):not(.lf-orders-nav-tab):not(.lf-order-workspace-tab):not(.lf-alert-filter):not(.lf-alert-primary):not(.danger):not(.success):not(.warning):not(.lf-whatsapp-smart-trigger):not(.order-pdf-btn):not(#lfDocumentWhatsAppButton):not(#invoicePreviewWhatsApp):not(.product-image-button):not(.product-name):not(.lf-orders-stat-card):not(.lf-orders-action-card):not(.customer-card-full){
+  min-height:var(--lf-control-height)!important;
+  padding:10px 18px!important;
+  border:1px solid var(--lf-action-outline)!important;
+  border-radius:var(--lf-action-radius)!important;
+  background:var(--lf-action-surface)!important;
+  color:var(--lf-action-ink)!important;
+  box-shadow:var(--lf-action-glow)!important;
+  font-weight:700!important;
+  transition:transform .14s ease,box-shadow .16s ease,background .16s ease,border-color .16s ease;
+}
+button:not(.nav button):not(.lf-drawer-link):not(.lf-orders-nav-tab):not(.lf-order-workspace-tab):not(.lf-alert-filter):not(.lf-alert-primary):not(.danger):not(.success):not(.warning):not(.lf-whatsapp-smart-trigger):not(.order-pdf-btn):not(#lfDocumentWhatsAppButton):not(#invoicePreviewWhatsApp):not(.product-image-button):not(.product-name):not(.lf-orders-stat-card):not(.lf-orders-action-card):not(.customer-card-full):hover:not(:disabled){
+  background:color-mix(in srgb,var(--lf-action-surface) 92%,var(--lf-action-ink) 8%)!important;
+  border-color:var(--lf-action-ink)!important;
+}
+button:not(.nav button):not(.lf-drawer-link):not(.lf-orders-nav-tab):not(.lf-order-workspace-tab):not(.lf-alert-filter):not(.lf-alert-primary):not(.danger):not(.success):not(.warning):not(.lf-whatsapp-smart-trigger):not(.order-pdf-btn):not(#lfDocumentWhatsAppButton):not(#invoicePreviewWhatsApp):not(.product-image-button):not(.product-name):not(.lf-orders-stat-card):not(.lf-orders-action-card):not(.customer-card-full):active:not(:disabled){
+  transform:translateY(1px) scale(.99);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--lf-action-outline) 18%,transparent),0 1px 3px rgba(0,0,0,.10)!important;
+}
+button:disabled{cursor:not-allowed}
+button.smallbtn,.smallbtn{
+  min-height:var(--lf-control-small-height)!important;
+  padding:8px 14px!important;
+  font-size:13px!important;
+}
+button.iconbtn,button.lf-header-menu,button.lf-header-alerts,button.lf-header-settings,
+button.lf-drawer-close,button.lf-modal-close{
+  display:inline-grid!important;place-items:center!important;
+  width:var(--lf-control-icon-size)!important;min-width:var(--lf-control-icon-size)!important;
+  height:var(--lf-control-icon-size)!important;min-height:var(--lf-control-icon-size)!important;
+  padding:0!important;border-radius:50%!important;
+}
+button.lf-orders-nav-tab,button.lf-order-workspace-tab,button.lf-alert-filter{
+  min-height:42px!important;border-radius:999px!important;
+}
+button.lf-orders-action-card,button.lf-orders-stat-card,button.customer-card-full{
+  min-height:54px!important;border-radius:16px!important;
+  box-shadow:var(--lf-action-glow)!important;
+}
+button.danger,.danger{border-radius:999px!important}
+button.success,.success{border-radius:999px!important}
+button.warning,.warning{border-radius:999px!important}
+input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),select,textarea{
+  min-height:46px!important;padding:10px 13px!important;border-radius:14px!important;
+  border-color:var(--lf-border,var(--line))!important;
+  background:var(--lf-surface,var(--surface))!important;color:var(--lf-text,var(--ink))!important;
+}
+.field textarea,textarea{min-height:88px}
+.card,.metric,.customer-card,.customer-card-v2,.product-tile,.analytics-panel,.lf-alert-card{
+  padding-inline:clamp(11px,3vw,17px);
+}
+.sectionhead{gap:clamp(7px,2vw,12px)!important}
+.actions{gap:8px!important;flex-wrap:wrap}
+.actions button{flex:1 1 140px;min-width:0}
+.lf-app-header{min-height:64px!important}
+.lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{object-fit:contain}
+.nav button{min-height:48px!important;border-radius:13px!important}
+.lf-side-drawer{border-radius:18px 0 0 0!important}
+.lf-document-overlay,.modal,.modal-overlay{padding:clamp(8px,2vw,18px)}
+.lf-document-shell,.lf-system-message-card{border-radius:20px!important}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
+  outline:2px solid var(--lf-action-outline)!important;outline-offset:3px!important;
+}
+@media(max-width:420px){
+  :root{--lf-control-height:44px;--lf-control-small-height:38px;--lf-control-icon-size:40px;--lf-card-radius:16px}
+  .wrap{padding-inline:10px!important}
+  .card{padding:12px!important}
+  .actions button{flex:1 1 calc(50% - 8px)}
+  .lf-app-header{min-height:62px!important}
+}
+@media(min-width:700px){
+  :root{--lf-control-height:48px;--lf-control-small-height:42px;--lf-control-icon-size:44px;--lf-card-radius:20px}
+  .wrap{padding-inline:18px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  button,button:active{transition:none!important;transform:none!important}
+}
+
+/* Manual product ordering */
+#productList .product-tile[draggable="true"]{cursor:grab;touch-action:pan-y}#productList .product-tile[draggable="true"]:active{cursor:grabbing}#productList .product-tile.lf-product-dragging{opacity:.45;transform:scale(.985)}#productList .product-tile.lf-product-drop-target{outline:2px dashed var(--accent,#0866FF);outline-offset:3px}
+
+#productList .lf-product-drag-handle{display:none}#productList.lf-manual-product-order .lf-product-drag-handle{display:block;padding:4px 8px;border-radius:8px;background:var(--surface-2,#F0F2F5);color:var(--muted,#65676B);font-size:12px;font-weight:700;text-align:center;cursor:grab;user-select:none}
+
+/* Product activation status — compact, readable in light and dark themes */
+#productList .lf-product-name-line{min-width:0}
+#productList .lf-product-status-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;min-height:22px;padding:2px 8px;border:1px solid transparent;
+  border-radius:999px;font-size:11px;line-height:1.4;font-weight:800;white-space:nowrap;
+}
+#productList .lf-product-status-badge.is-active{
+  color:#187A3D;background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.28);
+}
+#productList .lf-product-status-badge.is-inactive{
+  color:#B42318;background:rgba(220,38,38,.10);border-color:rgba(220,38,38,.26);
+}
+html[data-theme="dark"] #productList .lf-product-status-badge.is-active{color:#86EFAC;background:rgba(34,197,94,.16);border-color:rgba(134,239,172,.28)}
+html[data-theme="dark"] #productList .lf-product-status-badge.is-inactive{color:#FDA29B;background:rgba(220,38,38,.16);border-color:rgba(253,162,155,.28)}
+
