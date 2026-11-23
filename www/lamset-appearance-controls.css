@@ -1,0 +1,44 @@
+/* Lamset Fan appearance controls: palette and global information density */
+:root{--lf-button-text:#fff}
+button:not(.ghost):not(.textbtn):not(.iconbtn):not(.danger):not(.success):not(.warning):not(.lf-palette-option):not(.nav button):not(.lf-drawer-link):not(.lf-header-menu):not(.lf-header-alerts):not(.lf-header-settings):not(.lf-drawer-close):not(.lf-modal-close){color:var(--lf-button-text,#fff)!important}
+.lf-appearance-palette{display:flex;flex-direction:column;gap:10px;margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.lf-appearance-palette-head{display:flex;flex-direction:column;gap:3px}
+.lf-appearance-palette-head b{font-size:14px;color:var(--ink)}
+.lf-appearance-palette-head small{font-size:12px;color:var(--muted)}
+.lf-palette-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+button.lf-palette-option{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:6px!important;min-width:0!important;min-height:76px!important;padding:8px 4px!important;border:1px solid var(--line)!important;border-radius:12px!important;background:var(--surface)!important;color:var(--ink)!important;box-shadow:none!important;font-size:11px!important}
+button.lf-palette-option.selected{border:2px solid var(--purple)!important;background:var(--lavender-2)!important;color:var(--purple)!important}
+.lf-palette-swatch{display:block;width:27px;height:27px;border-radius:50%;background:var(--swatch);border:2px solid rgba(0,0,0,.10);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.lf-palette-option b{font-size:11px;white-space:nowrap}
+html[data-theme="dark"] .lf-appearance-palette{background:var(--surface);border-color:var(--line)}
+html[data-theme="dark"] .lf-appearance-palette-head b{color:var(--ink)}
+html[data-theme="dark"] button.lf-palette-option{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--line)!important}
+html[data-theme="dark"] button.lf-palette-option.selected{background:var(--lavender-2)!important;color:var(--purple)!important;border-color:var(--purple)!important}
+html[data-density="comfortable"] .card,html[data-density="comfortable"] .metric{padding:17px!important}
+html[data-density="comfortable"] .grid,html[data-density="comfortable"] .row,html[data-density="comfortable"] .actions{gap:13px!important}
+html[data-density="comfortable"] button:not(.nav button):not(.lf-drawer-link):not(.lf-palette-option){min-height:48px!important}
+html[data-density="comfortable"] input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),html[data-density="comfortable"] select{min-height:48px!important}
+html[data-density="compact"][data-font-scale="normal"] body{font-size:14px!important}
+html[data-density="compact"] .card,html[data-density="compact"] .metric,html[data-density="compact"] .customer-card,html[data-density="compact"] .customer-card-v2,html[data-density="compact"] .product-tile,html[data-density="compact"] .analytics-panel,html[data-density="compact"] .lf-alert-card,html[data-density="compact"] .lf-order-card{padding:9px!important;margin-bottom:8px!important;border-radius:12px!important}
+html[data-density="compact"] .grid,html[data-density="compact"] .row,html[data-density="compact"] .actions,html[data-density="compact"] .dash-metrics{gap:6px!important}
+html[data-density="compact"] .sectionhead{margin:8px 0 6px!important;gap:5px!important}
+html[data-density="compact"] .sectionhead h2{font-size:16px!important}
+html[data-density="compact"] .sectionhead h3{font-size:14px!important}
+html[data-density="compact"] .field{gap:3px!important;margin:6px 0!important}
+html[data-density="compact"][data-font-scale="normal"] .field label,html[data-density="compact"][data-font-scale="normal"] .muted{font-size:11px!important}
+html[data-density="compact"] button:not(.nav button):not(.lf-drawer-link):not(.lf-palette-option):not(.lf-header-menu):not(.lf-header-alerts):not(.lf-header-settings):not(.lf-drawer-close):not(.lf-modal-close){min-height:36px!important;padding:6px 10px!important;font-size:12px!important;border-radius:10px!important}
+html[data-density="compact"] button.smallbtn,html[data-density="compact"] .smallbtn{min-height:32px!important;padding:5px 8px!important;font-size:11px!important}
+html[data-density="compact"] button.iconbtn,html[data-density="compact"] button.lf-header-menu,html[data-density="compact"] button.lf-header-alerts,html[data-density="compact"] button.lf-header-settings,html[data-density="compact"] button.lf-drawer-close,html[data-density="compact"] button.lf-modal-close{width:40px!important;min-width:40px!important;height:40px!important;min-height:40px!important;padding:0!important}
+html[data-density="compact"] input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),html[data-density="compact"] select,html[data-density="compact"] textarea{min-height:38px!important;padding:6px 9px!important;font-size:12px!important}
+html[data-density="compact"] .metric{min-height:70px!important}
+html[data-density="compact"] .metric strong{font-size:18px!important;margin-top:4px!important}
+html[data-density="compact"] .lf-app-header{min-height:54px!important;height:54px!important;padding:5px 9px!important}
+html[data-density="compact"] .lf-app-brand .brand-mark,html[data-density="compact"] .lf-app-brand .brand-mark-img{width:36px!important;height:36px!important;flex-basis:36px!important}
+html[data-density="compact"] .lf-app-brand-copy b{font-size:14px!important}
+html[data-density="compact"] .nav button{min-height:42px!important;padding:4px 2px!important}
+html[data-density="compact"] .nav button span{font-size:17px!important}
+html[data-density="compact"] .nav button b{font-size:10px!important}
+html[data-density="compact"] .lf-order-workspace-tab,html[data-density="compact"] .lf-orders-nav-tab{min-height:34px!important;padding:6px 9px!important;font-size:11px!important}
+html[data-density="compact"] .lf-drawer-group>summary{min-height:40px!important;padding:8px 10px!important;font-size:13px!important}
+html[data-density="compact"] .lf-drawer-link{min-height:38px!important;padding:7px 9px!important;font-size:12px!important}
+@media(max-width:380px){.lf-palette-options{gap:4px}.lf-palette-swatch{width:24px;height:24px}.lf-palette-option b{font-size:10px}}
