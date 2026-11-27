@@ -157,7 +157,6 @@ html[data-theme="dark"] .metric,html[data-theme="dark"] .lf-alert-card{backgroun
 .lf-global-search-dialog input{width:100%;flex:0 0 auto}
 .lf-global-search-results{display:flex;flex-direction:column;gap:7px;min-height:80px;overflow-y:auto;padding:2px}
 .lf-global-search-result{display:flex;align-items:center;gap:10px;width:100%;min-height:58px!important;padding:9px 11px!important;border:1px solid var(--lf-border)!important;border-radius:12px!important;background:var(--lf-surface)!important;color:var(--lf-text)!important;text-align:right!important}
-.lf-global-search-result:hover{background:var(--lf-surface-2)!important}
 .lf-global-search-result-icon{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border-radius:50%;background:var(--lf-blue-soft);color:var(--lf-blue);font-size:18px}
 .lf-global-search-result-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}
 .lf-global-search-result-copy b{font-size:14px;color:var(--lf-text)}
