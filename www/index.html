@@ -525,7 +525,7 @@ html[data-theme="dark"] .lf-treasury-tabs button.active{color:#fff}
 /* Android-first global header: fixed across every workspace page, with room for status icons and camera cutout. */
 :root{--lf-header-safe-top:env(safe-area-inset-top,0px);--lf-header-height:78px}
 @media(max-width:699px){:root{--lf-header-safe-top:max(env(safe-area-inset-top,0px),30px);--lf-header-height:78px}}
-body{--lf-fixed-header-gap:calc(var(--lf-header-safe-top) + 8px + var(--lf-header-height) + 16px)}
+body{--lf-fixed-header-gap:calc(var(--lf-header-safe-top) + 8px + var(--lf-header-height) + 8px)}
 .wrap{padding-top:var(--lf-fixed-header-gap)!important}
 .lf-app-header{
  position:fixed!important;top:calc(var(--lf-header-safe-top) + 8px)!important;
