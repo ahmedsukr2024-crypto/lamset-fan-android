@@ -7,10 +7,11 @@ const expected=['appearance','products','security','business','branding','notifi
 assert.match(html,/id="lfSettingsHome" class="lf-settings-home-grid"/,'settings should open on a compact category landing screen');
 assert.match(html,/id="lfSettingsDetail" class="lf-settings-detail" hidden/,'settings details should be hidden until a category is selected');
 for(const key of expected){
- assert.match(html,new RegExp('data-settings-pane="'+key+'"'),'missing settings category '+key);
+ assert.match(html,new RegExp('data-settings-pane="'+key+'" hidden><div class="card'),'settings category must contain its card: '+key);
  assert.match(html,new RegExp("openLamsetSettingsGroup\\('"+key+"'\\)"),'missing settings tile '+key);
 }
-assert.match(html,/function\(\)\{'use strict';[\s\S]*window\.openLamsetSettingsGroup=function\(group\)/,'settings category navigation function missing');
+assert.match(html,/LF_SETTINGS_GROUP_NAV_V2[\s\S]*window\.openLamsetSettingsGroup=function\(group\)/,'settings category navigation function missing');
+assert.match(html,/Array\.from\(detail\.querySelectorAll\('\[data-settings-pane\]'\)\)/,'settings navigation must search all category panes inside the details container');
 assert.match(html,/window\.closeLamsetSettingsGroup=function\(\)/,'settings back navigation missing');
 for(const id of ['appearanceMode','uiFontScale','uiDensity','uiSpacing','uiButtonShape','uiButtonEffect','uiCardDensity','reduceMotionSetting','lfProductTypeList','lockAppSetting','protectCostsSetting','bizName','bizAddress','bizPhone','brandAppLogo','brandInvoiceLogo','brandCatalogLogo','brandLauncherIcon','phoneNotifications'])assert.match(html,new RegExp('id="'+id+'"'),'existing setting control missing: '+id);
 assert.match(html,/document\.body\.appendChild\(backdrop\);document\.body\.appendChild\(drawer\);/,'drawer and backdrop must be moved outside the app wrapper stacking context');
