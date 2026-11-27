@@ -24,6 +24,8 @@ for(const fn of [
 assert(html.includes("function lfFormatProductCode(type,number){return String(type?.prefix||'').trim().toUpperCase()+'-'+String(number).padStart(3,'0')}"),'code format must use a three-digit minimum sequence');
 assert(html.includes("type.lastNumber=lfEffectiveProductTypeLastNumber(type)"),'stored counters must never move below existing codes');
 assert(html.includes("if(!editingProduct&&productTypeId)"),'only new products should receive an automatically generated code');
+assert(html.includes('const defaultProductType=!p?lfGetProductTypes().find(type=>type.active!==false):null;'),'new products should start with the first active automatic type');
+assert(html.includes('LF-ART'),'settings should allow adding future types with their own prefix');
 assert(html.includes("sequenceType.lastNumber=Math.max(Number(sequenceType.lastNumber)||0,nextProductTypeNumber)"),'the sequence counter must advance in the same product save');
 assert(html.includes("productTypeId,design:$('pDesign').value.trim()"),'product type identity must be saved on the existing product record');
 assert(html.includes("const lfProductDraftFields=['pId','pName','pProductType','pCode'"),'product type must be included in product draft recovery');
