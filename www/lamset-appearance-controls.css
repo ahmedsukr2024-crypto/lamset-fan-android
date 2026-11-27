@@ -42,3 +42,29 @@ html[data-density="compact"] .lf-order-workspace-tab,html[data-density="compact"
 html[data-density="compact"] .lf-drawer-group>summary{min-height:40px!important;padding:8px 10px!important;font-size:13px!important}
 html[data-density="compact"] .lf-drawer-link{min-height:38px!important;padding:7px 9px!important;font-size:12px!important}
 @media(max-width:380px){.lf-palette-options{gap:4px}.lf-palette-swatch{width:24px;height:24px}.lf-palette-option b{font-size:10px}}
+
+
+/* Approved appearance customization: button shape/effect, card density, spacing and live preview. */
+html[data-button-shape="round"]{--lf-action-radius:999px}
+html[data-button-shape="medium"]{--lf-action-radius:14px}
+html[data-button-shape="medium"] button:not(.nav button):not(.lf-drawer-link):not(.lf-header-menu):not(.lf-header-alerts):not(.lf-header-settings):not(.lf-drawer-close):not(.lf-modal-close):not(.iconbtn):not(.lf-palette-option){border-radius:14px!important}
+html[data-button-effect="raised"]{--lf-action-glow:0 1px 2px rgba(0,0,0,.10),0 3px 8px rgba(0,0,0,.10)}
+html[data-button-effect="flat"]{--lf-action-glow:none}
+html[data-button-effect="flat"] button:not(.nav button):not(.lf-drawer-link):not(.lf-header-menu):not(.lf-header-alerts):not(.lf-header-settings):not(.lf-drawer-close):not(.lf-modal-close):not(.iconbtn):not(.lf-palette-option){box-shadow:none!important}
+html[data-card-density="compact"] .card,html[data-card-density="compact"] .metric,html[data-card-density="compact"] .customer-card,html[data-card-density="compact"] .customer-card-v2,html[data-card-density="compact"] .product-tile,html[data-card-density="compact"] .analytics-panel,html[data-card-density="compact"] .lf-alert-card,html[data-card-density="compact"] .lf-order-card{padding:9px 11px!important;margin-bottom:8px!important}
+html[data-card-density="normal"] .card,html[data-card-density="normal"] .metric,html[data-card-density="normal"] .customer-card,html[data-card-density="normal"] .customer-card-v2,html[data-card-density="normal"] .product-tile,html[data-card-density="normal"] .analytics-panel,html[data-card-density="normal"] .lf-alert-card,html[data-card-density="normal"] .lf-order-card{padding:12px 16px!important}
+html[data-spacing="narrow"] .row,html[data-spacing="narrow"] .grid,html[data-spacing="narrow"] .actions,html[data-spacing="narrow"] .sectionhead{gap:6px!important}
+html[data-spacing="narrow"] .card,html[data-spacing="narrow"] .metric{margin-bottom:7px!important}
+html[data-spacing="narrow"] .panel{padding-bottom:12px!important}
+html[data-spacing="medium"] .row,html[data-spacing="medium"] .grid,html[data-spacing="medium"] .actions,html[data-spacing="medium"] .sectionhead{gap:10px!important}
+html[data-spacing="medium"] .card,html[data-spacing="medium"] .metric{margin-bottom:12px!important}
+html[data-spacing="medium"] .panel{padding-bottom:20px!important}
+html[data-spacing="wide"] .row,html[data-spacing="wide"] .grid,html[data-spacing="wide"] .actions,html[data-spacing="wide"] .sectionhead{gap:16px!important}
+html[data-spacing="wide"] .card,html[data-spacing="wide"] .metric{margin-bottom:18px!important}
+html[data-spacing="wide"] .panel{padding-bottom:28px!important}
+html[data-font-scale="large"] body{font-size:18px!important}
+html[data-font-scale="large"] .sectionhead h2{font-size:22px!important}
+html[data-font-scale="large"] .sectionhead h3{font-size:19px!important}
+html[data-font-scale="large"] .field label,html[data-font-scale="large"] .muted{font-size:15px!important}
+html[data-font-scale="large"] button,html[data-font-scale="large"] input,html[data-font-scale="large"] select,html[data-font-scale="large"] textarea{font-size:17px}
+html[data-font-scale="large"] .nav button b{font-size:12px!important}
