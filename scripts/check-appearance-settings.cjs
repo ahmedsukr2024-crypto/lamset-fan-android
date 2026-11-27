@@ -12,7 +12,7 @@ assert(html.includes('onchange="previewAppearanceSettings()"'),'appearance contr
 assert(!html.includes('onchange="saveAppearanceSettings()"'),'appearance controls must not persist changes immediately');
 assert(html.includes('function previewAppearanceSettings(){')&&html.includes('lfAppearanceDraft=normalizeAppearanceSettings(next);applyLamsetAppearance();'),'preview must apply a draft without saving it');
 const previewStart=html.indexOf('function previewAppearanceSettings(){');
-const previewEnd=html.indexOf('\\nfunction saveAppearanceSettings()',previewStart);
+const previewEnd=html.indexOf('function saveAppearanceSettings()',previewStart);
 const previewBody=html.slice(previewStart,previewEnd<0?html.length:previewEnd);
 assert(previewStart>=0&&previewBody.includes('lfAppearanceDraft=normalizeAppearanceSettings(next);applyLamsetAppearance();'),'preview must apply the draft');
 assert(!previewBody.includes('db.appSettings='),'preview must not write to persistent app settings');
