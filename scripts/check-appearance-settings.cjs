@@ -19,7 +19,7 @@ assert(!previewBody.includes('db.appSettings='),'preview must not write to persi
 assert(html.includes('function commitAppearanceSettings(){')&&html.includes('db.appSettings={...previous,...lfAppearanceDraft};')&&html.includes('if(!save())'),'save action must persist the reviewed draft with rollback on failure');
 assert(html.includes('function cancelAppearanceSettings(){lfAppearanceDraft=null;applyLamsetAppearance();'),'cancel must restore the saved appearance');
 assert(html.includes("function resetAppearanceSettings(){lfAppearanceDraft={mode:'system',palette:'facebook'"),'reset must prepare defaults for preview, not save immediately');
-assert(html.includes("if(page!=='settings')lfDiscardAppearanceDraft(false);"),'leaving settings must discard an unsaved preview');
+assert(!html.includes("if(page!=='settings')lfDiscardAppearanceDraft(false);")&&!html.includes('function lfDiscardAppearanceDraft('),'preview must remain active across pages until explicit save or cancel');
 assert(html.includes('root.dataset.buttonShape=p.buttonShape')&&html.includes('root.dataset.buttonEffect=p.buttonEffect')&&html.includes('root.dataset.cardDensity=p.cardDensity')&&html.includes('root.dataset.spacing=p.spacing'),'all appearance choices must apply globally');
 
 assert(css.includes('html[data-reduce-motion="true"]'),'reduced motion setting must affect animations globally');
