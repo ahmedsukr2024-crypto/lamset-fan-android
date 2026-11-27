@@ -29,8 +29,8 @@ assert.match(html, /id="lfShipmentModal" class="lf-order-status-overlay" role="d
 assert.match(html, /function closeOrderShipmentModal\(\)/, 'يجب توفير إجراء إغلاق لنافذة تسجيل الشحنة');
 assert.match(bridge, /App\.addListener\('backButton'[\s\S]*window\.lamsetHandleBack\(\)/, 'يجب ربط زر الرجوع الفعلي في Android بالنظام الموحد');
 assert.match(html, /lf-header-actions[\s\S]*lf-app-brand/, 'يجب وجود مجموعة الأزرار والشعار في الهيدر');
-const headerMenu=html.indexOf('id="lfMenuToggle"'),headerSettings=html.indexOf('id="lfHeaderSettings"'),headerAlerts=html.indexOf('id="lfHeaderAlerts"'),headerSearch=html.indexOf('id="lfHeaderSearch"'),headerBrand=html.indexOf('<div class="lf-app-brand">');
-assert.ok(headerMenu<headerSettings&&headerSettings<headerAlerts&&headerAlerts<headerSearch&&headerSearch<headerBrand, 'ترتيب الهيدر من اليمين لليسار يجب أن يكون القائمة ثم الإعدادات ثم التنبيهات ثم البحث ثم الشعار');
+const headerMenu=html.indexOf('id="lfMenuToggle"'),headerAlerts=html.indexOf('id="lfHeaderAlerts"'),headerSettings=html.indexOf('id="lfHeaderSettings"'),headerSearch=html.indexOf('id="lfHeaderSearch"'),headerBrand=html.indexOf('<div class="lf-app-brand">');
+assert.ok(headerMenu<headerAlerts&&headerAlerts<headerSettings&&headerSettings<headerSearch&&headerSearch<headerBrand, 'ترتيب الهيدر من اليمين لليسار يجب أن يكون القائمة ثم التنبيهات ثم الإعدادات ثم البحث ثم الشعار');
 assert.match(html, /id="lfMenuToggle"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة القائمة مباشرة حتى لا تختفي إذا تأخر تحميل الأيقونات');
 assert.match(html, /id="lfHeaderSettings"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة الإعدادات مباشرة');
 assert.match(html, /id="lfHeaderAlerts"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة التنبيهات مباشرة');
