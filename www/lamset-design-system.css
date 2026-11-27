@@ -167,7 +167,7 @@ html[data-theme="dark"] .metric,html[data-theme="dark"] .lf-alert-card{backgroun
 /* Mobile drawer + safe-area refinements (v3) */
 .wrap{padding-top:0!important}
 .lf-app-header{top:env(safe-area-inset-top,0px)!important;margin-top:0!important}
-@media(max-width:699px){.wrap{padding-top:0!important}.lf-app-header{top:env(safe-area-inset-top,0px)!important}}
+@media(max-width:699px){.lf-app-header{top:env(safe-area-inset-top,0px)!important}}
 .nav{direction:rtl!important}
 #lfNavMore{order:-1!important}
 .lf-drawer-backdrop[hidden]{display:none!important}
