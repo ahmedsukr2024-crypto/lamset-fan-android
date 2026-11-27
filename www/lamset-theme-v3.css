@@ -1349,3 +1349,26 @@ html[data-theme="dark"] #invoicePreview .preview-tools{
 .lf-drawer-backdrop[hidden]{display:none!important}
 @media(max-width:360px){.lf-settings-home-grid{gap:8px}.lf-settings-home-card{min-height:104px;padding:11px!important}.lf-settings-home-card>b{font-size:12px}.lf-settings-home-card>small{font-size:9px}}
 @media(min-width:700px){.lf-settings-home-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.lf-settings-home-card{min-height:122px;padding:16px!important}}
+
+
+/* Consistent inline icon alignment for controls that received missing icons. */
+button.lf-has-icon{
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:7px!important;
+}
+button.lf-has-icon>[data-lucide]{
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ flex:0 0 20px!important;
+ width:20px!important;
+ height:20px!important;
+}
+button.lf-has-icon .lf-icon{
+ display:block!important;
+ width:20px!important;
+ height:20px!important;
+ flex:0 0 20px!important;
+}
