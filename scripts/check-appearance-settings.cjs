@@ -22,6 +22,7 @@ assert(html.includes("function resetAppearanceSettings(){lfAppearanceDraft={mode
 assert(html.includes("if(page!=='settings')lfDiscardAppearanceDraft(false);"),'leaving settings must discard an unsaved preview');
 assert(html.includes('root.dataset.buttonShape=p.buttonShape')&&html.includes('root.dataset.buttonEffect=p.buttonEffect')&&html.includes('root.dataset.cardDensity=p.cardDensity')&&html.includes('root.dataset.spacing=p.spacing'),'all appearance choices must apply globally');
 
+assert(css.includes('html[data-reduce-motion="true"]'),'reduced motion setting must affect animations globally');
 for(const selector of ['html[data-button-shape="medium"]','html[data-button-effect="flat"]','html[data-card-density="compact"]','html[data-spacing="narrow"]','html[data-spacing="wide"]','html[data-font-scale="large"]'])assert(css.includes(selector),'missing global appearance style '+selector);
 assert(css.includes('button.lf-palette-option.selected'),'selected palette state missing');
 console.log('Approved appearance preview, save/cancel/reset flow, persistence guards, and global styles checks passed.');
