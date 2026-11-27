@@ -1328,3 +1328,24 @@ html[data-theme="dark"] #invoicePreview .preview-tools{
   background:var(--lf-surface)!important;color:var(--lf-text)!important;
   border-color:var(--lf-border)!important;
 }
+
+/* Compact settings landing screen; preserve all existing controls inside focused groups. */
+.lf-settings-home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0 18px}
+.lf-settings-home-card{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;min-width:0;min-height:112px;padding:14px!important;text-align:right!important;border:1px solid var(--lf-border,var(--line))!important;border-radius:16px!important;background:var(--lf-surface,var(--surface,#fff))!important;color:var(--lf-text,var(--ink))!important;box-shadow:0 3px 12px rgba(0,0,0,.045)!important}
+.lf-settings-home-card>span{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--lf-blue-soft,var(--lavender-2));color:var(--lf-blue,var(--purple))}
+.lf-settings-home-card>span svg{width:20px;height:20px}
+.lf-settings-home-card>b{font-size:13px;font-weight:850;line-height:1.4}
+.lf-settings-home-card>small{font-size:10px;color:var(--lf-muted,var(--muted));line-height:1.5}
+.lf-settings-home-card:active{transform:translateY(1px)}
+.lf-settings-detail-head{display:flex;align-items:center;gap:12px;margin:8px 0 14px;padding:8px 0}
+.lf-settings-detail-head h3{margin:0;font-size:16px;font-weight:900;color:var(--lf-text,var(--ink))}
+.lf-settings-back{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.lf-settings-back svg{width:17px;height:17px}
+.lf-settings-pane[hidden],#lfSettingsDetail[hidden],#lfSettingsHome[hidden]{display:none!important}
+.lf-settings-pane>.card{margin-bottom:12px}
+.lf-settings-pane .lf-product-type-row{margin:9px 0}
+.lf-drawer-backdrop{z-index:2147483000!important}
+.lf-side-drawer{z-index:2147483001!important;isolation:isolate}
+.lf-drawer-backdrop[hidden]{display:none!important}
+@media(max-width:360px){.lf-settings-home-grid{gap:8px}.lf-settings-home-card{min-height:104px;padding:11px!important}.lf-settings-home-card>b{font-size:12px}.lf-settings-home-card>small{font-size:9px}}
+@media(min-width:700px){.lf-settings-home-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.lf-settings-home-card{min-height:122px;padding:16px!important}}
