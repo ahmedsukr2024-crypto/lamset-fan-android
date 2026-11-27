@@ -1,5 +1,6 @@
 const fs=require('node:fs');
 const assert=require('node:assert/strict');
+const vm=require('node:vm');
 const html=fs.readFileSync('www/index.html','utf8');
 const packageJson=JSON.parse(fs.readFileSync('package.json','utf8'));
 
@@ -37,5 +38,18 @@ const deletionStart=html.indexOf('function deleteProduct(pid){');
 const deletionEnd=html.indexOf('\nfunction ',deletionStart+10);
 const deletionBody=html.slice(deletionStart,deletionEnd<0?html.length:deletionEnd);
 assert(deletionStart>=0&&!deletionBody.includes('productTypes')&&!deletionBody.includes('lastNumber'),'deleting a product must not reset its type sequence');
+const helperStart=html.indexOf('function lfDefaultProductTypes(){');
+const helperEnd=html.indexOf('function lfEnsureProductTypes()',helperStart);
+assert(helperStart>=0&&helperEnd>helperStart,'pure sequence helpers must be available for runtime checks');
+const helperCode=html.slice(helperStart,helperEnd);
+const runtimeDb={products:[{code:'LF-3M-001'},{code:'LF-3M-003'},{code:'LF-0M-001'}],appSettings:{}};
+vm.runInNewContext(helperCode+`
+const defaults=lfDefaultProductTypes();
+if(defaults[0].name!=='طقم 3 مجسمات'||defaults[0].prefix!=='LF-3M'||defaults[1].name!=='بدون مجسمات'||defaults[1].prefix!=='LF-0M')throw new Error('approved default type definitions are incorrect');
+if(lfNextProductNumber({prefix:'LF-3M',lastNumber:0})!==4)throw new Error('3M series did not advance from the highest existing code');
+if(lfNextProductNumber({prefix:'LF-0M',lastNumber:1})!==2)throw new Error('0M series is not independent');
+if(lfFormatProductCode({prefix:'LF-3M'},4)!=='LF-3M-004')throw new Error('code formatting is incorrect');
+if(lfNextProductNumber({prefix:'LF-0M',lastNumber:8})!==9)throw new Error('deletion-safe stored counter was reused');
+`,{db:runtimeDb});
 assert(packageJson.scripts['check:all'].includes('check-product-code-sequences.cjs'),'product code sequence test must be part of check:all');
 console.log('Product type management, independent code sequences, legacy compatibility, draft recovery and deletion persistence checks passed.');
