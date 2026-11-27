@@ -4,8 +4,8 @@ const html=fs.readFileSync('www/index.html','utf8');
 const packageJson=JSON.parse(fs.readFileSync('package.json','utf8'));
 
 for(const marker of [
- "id:'product-type-figurines',name:'مجسمات',prefix:'LF-3M'",
- "id:'product-type-no-figures',name:'بدون مجسمات',prefix:'LF-ART'",
+ "id:'product-type-figurines',name:'طقم 3 مجسمات',prefix:'LF-3M'",
+ "id:'product-type-no-figures',name:'بدون مجسمات',prefix:'LF-0M'",
  'id="pProductType"',
  'id="lfProductTypeSettingsCard"',
  'id="lfProductTypeList"',
