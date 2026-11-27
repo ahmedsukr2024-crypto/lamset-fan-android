@@ -621,6 +621,7 @@ body{--lf-fixed-header-gap:calc(var(--lf-header-safe-top) + 8px + var(--lf-heade
 <button type="button" class="lf-settings-home-card" onclick="openLamsetSettingsGroup('business')"><span data-lucide="building-2" aria-hidden="true"></span><b>بيانات النشاط والتواصل</b><small>العنوان والهواتف وبيانات المصنع</small></button>
 <button type="button" class="lf-settings-home-card" onclick="openLamsetSettingsGroup('branding')"><span data-lucide="image" aria-hidden="true"></span><b>الهوية البصرية</b><small>الشعارات وصور التطبيق</small></button>
 <button type="button" class="lf-settings-home-card" onclick="openLamsetSettingsGroup('notifications')"><span data-lucide="bell" aria-hidden="true"></span><b>الإشعارات</b><small>تنبيهات النشاط على الهاتف</small></button>
+<button type="button" class="lf-settings-home-card" onclick="openLamsetSettingsGroup('backup')"><span data-lucide="database-backup" aria-hidden="true"></span><b>النسخ الاحتياطي والاستعادة</b><small>حفظ نسخة أو استعادة بياناتك</small></button>
 </div>
 <div id="lfSettingsDetail" class="lf-settings-detail" hidden>
 <div class="lf-settings-detail-head"><button type="button" class="ghost lf-settings-back" onclick="closeLamsetSettingsGroup()"><span data-lucide="arrow-right" aria-hidden="true"></span> كل الإعدادات</button><h3 id="lfSettingsDetailTitle">الإعدادات</h3></div>
@@ -664,6 +665,7 @@ body{--lf-fixed-header-gap:calc(var(--lf-header-safe-top) + 8px + var(--lf-heade
 <div class="field"><label>أيقونة التطبيق</label><input id="brandLauncherIcon" type="file" accept="image/*" onchange="previewBrandAsset(event,'launcherIcon')"><div id="previewLauncherIcon" class="brand-asset-preview"></div><button type="button" class="ghost smallbtn" onclick="lamsetRunButtonAction(this,()=>clearBrandAsset('launcherIcon'),'جارٍ استعادة الصورة الافتراضية…')">استعادة الافتراضي</button><small class="muted">تُحفظ الأيقونة المختارة هنا كملف معتمد؛ تطبيقها على أيقونة Android الخارجية يتطلب تحديث حزمة التطبيق.</small></div>
 </div><div class="actions"><button type="button" onclick="lamsetRunButtonAction(this,saveBrandAssets,'جارٍ حفظ ملفات الهوية…')">حفظ ملفات الهوية البصرية</button></div><small id="brandAssetsStatus" class="muted"></small></div></div>
 <div class="lf-settings-pane" data-settings-pane="notifications" hidden><div class="card"><h3>إشعارات الهاتف</h3><p class="muted">فعّل الخيار لاستقبال تنبيهات النشاط المهمة على الهاتف.</p><label class="notify-setting"><span><b>تنبيهات النشاط</b><small id="notifyStatus" class="muted">متوقفة</small></span><input id="phoneNotifications" type="checkbox" onchange="togglePhoneNotifications(this.checked)"></label><p class="muted" id="notifyHelp">يتطلب السماح بإشعارات التطبيق من إعدادات Android.</p></div></div>
+<div class="lf-settings-pane" data-settings-pane="backup" hidden><div class="card"><h3>النسخ الاحتياطي والاستعادة</h3><p class="muted">افتح صفحة النسخ الاحتياطي الحالية لحفظ نسخة من بياناتك أو نقلها أو استعادتها. ستظل جميع وظائف النسخ الاحتياطي الحالية كما هي.</p><button type="button" onclick="tab('backup')">فتح النسخ الاحتياطي والاستعادة</button></div></div>
 </div></section><section id="alerts" class="panel"><div class="sectionhead"><h2>مركز التنبيهات</h2></div><div class="card"><div id="alertSummary" class="alert-summary" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px"></div><div id="alertItems"></div></div></section>
 <section id="collections" class="panel"><div class="sectionhead"><h2>التحصيلات</h2></div><div class="card"><h3>تسجيل دفعة جديدة</h3><div class="field"><label>الطلب / العميل</label><select id="paymentOrder"></select></div><div class="row"><div class="field"><label>المبلغ المحصل (ج.م)</label><input id="paymentAmount" type="number" min="0.01" step="0.01" placeholder="0.00"></div><div class="field"><label>طريقة الدفع</label><select id="paymentMethod"><option>نقدي</option><option>تحويل بنكي</option><option>محفظة إلكترونية</option><option>أخرى</option></select></div></div><div class="field"><label>ملاحظات</label><input id="paymentNote" placeholder="اختياري"></div><button onclick="recordPayment()">حفظ التحصيل</button></div><div class="card"><div id="collectionList"></div></div><!-- Refund/exchange settlement UI disabled; historical payment data is retained. --><div class="card"><h3>سجل التحصيلات والتسويات</h3><div class="field"><label for="lfPaymentHistorySearch">بحث برقم الإيصال أو العميل أو الطلب أو المبلغ</label><input id="lfPaymentHistorySearch" type="search" placeholder="مثال: RCPT-000001 أو اسم العميل" oninput="renderCollections()"></div><div id="paymentHistory"></div></div></section>
 <section id="expenses" class="panel">
@@ -4012,7 +4014,7 @@ window.renderProductionBatchHistory();
 <script type="module" src="./mobile-bridge.bundle.js"></script>
 <script id="LF_SETTINGS_GROUP_NAV_V2">
 (function(){'use strict';
- const titles={appearance:'المظهر وتجربة الاستخدام',products:'المنتجات والأكواد',security:'الأمان والخصوصية',business:'بيانات النشاط والتواصل',branding:'الهوية البصرية',notifications:'الإشعارات'};
+ const titles={appearance:'المظهر وتجربة الاستخدام',products:'المنتجات والأكواد',security:'الأمان والخصوصية',business:'بيانات النشاط والتواصل',branding:'الهوية البصرية',notifications:'الإشعارات',backup:'النسخ الاحتياطي والاستعادة'};
  window.openLamsetSettingsGroup=function(group){
   const home=document.getElementById('lfSettingsHome'),detail=document.getElementById('lfSettingsDetail');
   if(!home||!detail)return false;
@@ -4042,7 +4044,7 @@ window.renderProductionBatchHistory();
 <script id="LAMSET_SIDE_DRAWER_NAV_V3">
 (function(){'use strict';
  const drawer=document.getElementById('lfSideDrawer'),backdrop=document.getElementById('lfDrawerBackdrop'),toggle=document.getElementById('lfMenuToggle'),close=document.getElementById('lfDrawerClose');
- if(drawer&&backdrop){document.body.appendChild(backdrop);document.body.appendChild(drawer);}
+ if(drawer&&backdrop){const root=document.documentElement;root.appendChild(backdrop);root.appendChild(drawer);backdrop.style.setProperty('z-index','2147483000','important');drawer.style.setProperty('z-index','2147483001','important');}
  if(!drawer||!backdrop||!toggle||!close)return;
  let previousFocus=null,touchStartX=0,savedScrollY=0,savedBodyStyles=null,savedHtmlOverflow='';
  function labelFor(page){const link=drawer.querySelector('.lf-drawer-link[data-nav-target="'+page+'"]');return link?.getAttribute('data-label')||'الرئيسية'}
