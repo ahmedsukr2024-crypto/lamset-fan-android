@@ -3,7 +3,7 @@ const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const html=fs.readFileSync('www/index.html','utf8');
 const css=fs.readFileSync('www/lamset-theme-v3.css','utf8');
-const expected=['appearance','products','security','business','branding','notifications'];
+const expected=['appearance','products','security','business','branding','notifications','backup'];
 assert.match(html,/id="lfSettingsHome" class="lf-settings-home-grid"/,'settings should open on a compact category landing screen');
 assert.match(html,/id="lfSettingsDetail" class="lf-settings-detail" hidden/,'settings details should be hidden until a category is selected');
 for(const key of expected){
