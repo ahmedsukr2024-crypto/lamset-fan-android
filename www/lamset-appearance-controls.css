@@ -68,3 +68,7 @@ html[data-font-scale="large"] .sectionhead h3{font-size:19px!important}
 html[data-font-scale="large"] .field label,html[data-font-scale="large"] .muted{font-size:15px!important}
 html[data-font-scale="large"] button,html[data-font-scale="large"] input,html[data-font-scale="large"] select,html[data-font-scale="large"] textarea{font-size:17px}
 html[data-font-scale="large"] .nav button b{font-size:12px!important}
+
+/* Ensure the independent large-text and reduced-motion options override base theme rules. */
+html[data-font-scale="large"] button,html[data-font-scale="large"] input,html[data-font-scale="large"] select,html[data-font-scale="large"] textarea{font-size:17px!important}
+html[data-reduce-motion="true"] *,html[data-reduce-motion="true"] *::before,html[data-reduce-motion="true"] *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
