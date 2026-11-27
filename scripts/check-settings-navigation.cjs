@@ -14,7 +14,9 @@ assert.match(html,/LF_SETTINGS_GROUP_NAV_V2[\s\S]*window\.openLamsetSettingsGrou
 assert.match(html,/Array\.from\(detail\.querySelectorAll\('\[data-settings-pane\]'\)\)/,'settings navigation must search all category panes inside the details container');
 assert.match(html,/window\.closeLamsetSettingsGroup=function\(\)/,'settings back navigation missing');
 for(const id of ['appearanceMode','uiFontScale','uiDensity','uiSpacing','uiButtonShape','uiButtonEffect','uiCardDensity','reduceMotionSetting','lfProductTypeList','lockAppSetting','protectCostsSetting','bizName','bizAddress','bizPhone','brandAppLogo','brandInvoiceLogo','brandCatalogLogo','brandLauncherIcon','phoneNotifications'])assert.match(html,new RegExp('id="'+id+'"'),'existing setting control missing: '+id);
-assert.match(html,/document\.body\.appendChild\(backdrop\);document\.body\.appendChild\(drawer\);/,'drawer and backdrop must be moved outside the app wrapper stacking context');
+assert.match(html,/const root=document\.documentElement;root\.appendChild\(backdrop\);root\.appendChild\(drawer\);/,'drawer and backdrop must be portaled to the document root');
+assert.match(html,/backdrop\.style\.setProperty\('z-index','2147483000','important'\);drawer\.style\.setProperty\('z-index','2147483001','important'\)/,'drawer stacking order must be enforced above application content');
+assert.match(html,/data-settings-pane="backup" hidden><div class="card"><h3>النسخ الاحتياطي والاستعادة<\/h3>[\s\S]*onclick="tab\('backup'\)"/,'backup settings shortcut must open the existing backup page');
 assert.match(html,/backdrop\.classList\.add\('is-visible'\);drawer\.classList\.add\('is-open'\)/,'drawer open state must still activate both overlay layers');
 assert.match(css,/\.lf-drawer-backdrop\{z-index:2147483000!important\}/,'drawer backdrop must overlay application pages');
 assert.match(css,/\.lf-side-drawer\{z-index:2147483001!important/,'drawer must render above its backdrop');
