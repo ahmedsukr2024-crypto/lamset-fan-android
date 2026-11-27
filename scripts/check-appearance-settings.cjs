@@ -11,7 +11,11 @@ for(const key of ['normalizeAppearanceSettings','readAppearanceSettings','beginA
 assert(html.includes('onchange="previewAppearanceSettings()"'),'appearance controls must preview before save');
 assert(!html.includes('onchange="saveAppearanceSettings()"'),'appearance controls must not persist changes immediately');
 assert(html.includes('function previewAppearanceSettings(){')&&html.includes('lfAppearanceDraft=normalizeAppearanceSettings(next);applyLamsetAppearance();'),'preview must apply a draft without saving it');
-assert(!/function previewAppearanceSettings\(\)\{[\s\S]*?db\.appSettings\s*=/.test(html),'preview must not write to persistent app settings');
+const previewStart=html.indexOf('function previewAppearanceSettings(){');
+const previewEnd=html.indexOf('\\nfunction saveAppearanceSettings()',previewStart);
+const previewBody=html.slice(previewStart,previewEnd<0?html.length:previewEnd);
+assert(previewStart>=0&&previewBody.includes('lfAppearanceDraft=normalizeAppearanceSettings(next);applyLamsetAppearance();'),'preview must apply the draft');
+assert(!previewBody.includes('db.appSettings='),'preview must not write to persistent app settings');
 assert(html.includes('function commitAppearanceSettings(){')&&html.includes('db.appSettings={...previous,...lfAppearanceDraft};')&&html.includes('if(!save())'),'save action must persist the reviewed draft with rollback on failure');
 assert(html.includes('function cancelAppearanceSettings(){lfAppearanceDraft=null;applyLamsetAppearance();'),'cancel must restore the saved appearance');
 assert(html.includes("function resetAppearanceSettings(){lfAppearanceDraft={mode:'system',palette:'facebook'"),'reset must prepare defaults for preview, not save immediately');
