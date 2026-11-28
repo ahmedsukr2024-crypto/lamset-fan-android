@@ -24,4 +24,11 @@ if(!/button\s*\{[\s\S]*?white-space:nowrap!important[\s\S]*?overflow-wrap:normal
  throw new Error('Button labels must remain on one line');
 if(!/:where\(\.actions,[\s\S]*?flex-wrap:wrap!important/.test(css))
  throw new Error('Action groups must wrap rather than compress button labels');
+
+const fitScript=html.slice(html.indexOf('<script id="lf-button-label-fit-v1">'),html.indexOf('</script>',html.indexOf('<script id="lf-button-label-fit-v1">'))+9);
+if(!fitScript.includes('MAX_SHRINK_RATIO=0.90')||!fitScript.includes('MIN_FONT_SIZE=12')||!fitScript.includes('button.scrollWidth>button.clientWidth+1'))
+ throw new Error('Adaptive button label fitting behavior is missing');
+if(!fitScript.includes('MutationObserver')||!fitScript.includes('ResizeObserver'))
+ throw new Error('Adaptive button label fitting must support dynamic content and resizing');
+
 console.log('Accessibility theme, button labels and text-layout checks passed.');
