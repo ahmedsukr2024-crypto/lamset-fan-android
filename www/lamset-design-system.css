@@ -404,3 +404,18 @@ html[data-theme="dark"] .lf-toast{
 .lf-global-search-group+.lf-global-search-group{margin-top:12px;padding-top:12px;border-top:1px solid var(--lf-border)}
 .lf-global-search-group-title{margin:0 2px 3px;color:var(--lf-muted);font-size:13px;font-weight:800}
 .lf-global-search-group .lf-global-search-result-icon{font-size:19px;font-weight:800}
+
+/* LAMSET DRAWER BACKDROP FULL-VIEWPORT FIX — SET-004 */
+/* The dim layer must cover the status/header area and the bottom navigation too. */
+#lfDrawerBackdrop.lf-drawer-backdrop{
+  position:fixed!important;
+  inset:0!important;
+  top:0!important;right:0!important;bottom:0!important;left:0!important;
+  width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  min-height:100vh!important;
+  min-height:100dvh!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
