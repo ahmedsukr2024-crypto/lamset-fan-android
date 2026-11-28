@@ -31,80 +31,7 @@ function closeDocumentPreview(){
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
  if(modal)modal.classList.remove('open');
  if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body>
-<script id="lf-button-label-fit-v1">
-(function(){
- 'use strict';
- if(window.__lfButtonLabelFitInstalled)return;
- window.__lfButtonLabelFitInstalled=true;
- var MIN_FONT_SIZE=12;
- var MAX_SHRINK_RATIO=0.90;
- var pending=false;
- var resizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(schedule):null;
- function hasVisibleLabel(button){
-  return !!(button&&button.isConnected&&button.textContent&&button.textContent.trim()&&button.getClientRects().length);
- }
- function fitButton(button){
-  if(!hasVisibleLabel(button))return;
-  var width=button.clientWidth;
-  if(width<1)return;
-  var computed=window.getComputedStyle(button);
-  var base=Number(button.dataset.lfLabelBaseSize);
-  if(!Number.isFinite(base)||base<=0){
-   base=parseFloat(computed.fontSize)||14;
-   button.dataset.lfLabelBaseSize=String(base);
-  }
-  button.dataset.lfLabelFit='true';
-  button.style.setProperty('--lf-button-label-fit-size',base+'px');
-  button.style.fontSize=base+'px';
-  var min=Math.max(MIN_FONT_SIZE,base*MAX_SHRINK_RATIO);
-  var size=base;
-  while(button.scrollWidth>button.clientWidth+1&&size-0.5>=min){
-   size=Math.max(min,size-0.5);
-   button.style.fontSize=size+'px';
-  }
-  if(button.scrollWidth<=button.clientWidth+1){
-   button.style.setProperty('--lf-button-label-fit-size',size+'px');
-  }else{
-   button.style.fontSize=min+'px';
-   button.style.setProperty('--lf-button-label-fit-size',min+'px');
-  }
-  if(resizeObserver)resizeObserver.observe(button);
- }
- function scan(root){
-  if(!root)return;
-  if(root.matches&&root.matches('button'))fitButton(root);
-  if(root.querySelectorAll)root.querySelectorAll('button').forEach(fitButton);
- }
- function schedule(){
-  if(pending)return;
-  pending=true;
-  requestAnimationFrame(function(){
-   pending=false;
-   scan(document);
-  });
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});
- else schedule();
- if(typeof MutationObserver==='function'){
-  new MutationObserver(function(records){
-   records.forEach(function(record){
-    if(record.type==='childList'){
-     record.addedNodes.forEach(function(node){if(node.nodeType===1)scan(node)});
-     if(record.target&&record.target.closest){
-      var button=record.target.closest('button');
-      if(button)fitButton(button);
-     }
-    }else if(record.type==='characterData'){
-     var parent=record.target.parentElement;
-     var button=parent&&parent.closest('button');
-     if(button)fitButton(button);
-    }
-   });
-  }).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
- }
- window.addEventListener('resize',schedule,{passive:true});
-})();
-</script>
+
 
 </body></html>';}
  document.body.classList.remove('lf-modal-open');
@@ -4451,6 +4378,68 @@ button{
 
 @media(prefers-reduced-motion:reduce){button{transition:none!important}}
 </style>
+
+<script id="lf-button-label-fit-v1">
+(function(){
+ 'use strict';
+ if(window.__lfButtonLabelFitInstalled)return;
+ window.__lfButtonLabelFitInstalled=true;
+ var MIN_FONT_SIZE=12;
+ var MAX_SHRINK_RATIO=0.90;
+ var pending=false;
+ var resizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(schedule):null;
+ function hasVisibleLabel(button){
+  return !!(button&&button.isConnected&&button.textContent&&button.textContent.trim()&&button.getClientRects().length);
+ }
+ function fitButton(button){
+  if(!hasVisibleLabel(button))return;
+  if(button.dataset.lfLabelBaseSize===undefined){
+   var initial=parseFloat(window.getComputedStyle(button).fontSize)||14;
+   button.dataset.lfLabelBaseSize=String(initial);
+  }
+  var base=Number(button.dataset.lfLabelBaseSize);
+  if(!Number.isFinite(base)||base<=0)return;
+  button.dataset.lfLabelFit='true';
+  button.style.fontSize=base+'px';
+  var min=Math.max(MIN_FONT_SIZE,base*MAX_SHRINK_RATIO);
+  var size=base;
+  while(button.scrollWidth>button.clientWidth+1&&size-0.5>=min){
+   size=Math.max(min,size-0.5);
+   button.style.fontSize=size+'px';
+  }
+  if(resizeObserver)resizeObserver.observe(button);
+ }
+ function scan(root){
+  if(!root)return;
+  if(root.matches&&root.matches('button'))fitButton(root);
+  if(root.querySelectorAll)root.querySelectorAll('button').forEach(fitButton);
+ }
+ function schedule(){
+  if(pending)return;
+  pending=true;
+  requestAnimationFrame(function(){pending=false;scan(document)});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});
+ else schedule();
+ if(typeof MutationObserver==='function'){
+  new MutationObserver(function(records){
+   records.forEach(function(record){
+    if(record.type==='childList'){
+     record.addedNodes.forEach(function(node){if(node.nodeType===1)scan(node)});
+     var button=record.target.closest&&record.target.closest('button');
+     if(button)fitButton(button);
+    }else if(record.type==='characterData'){
+     var parent=record.target.parentElement;
+     var button=parent&&parent.closest('button');
+     if(button)fitButton(button);
+    }
+   });
+  }).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+ }
+ window.addEventListener('resize',schedule,{passive:true});
+})();
+</script>
+
 </body></html>
 
 <!-- Lamset Fan: delivery test commit -->
