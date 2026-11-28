@@ -28,7 +28,8 @@ if(!html.includes('LamsetLocalDB.listTreasuryMovements()')||!html.includes('Lams
 const pageBlock=html.slice(html.indexOf('const lfGlobalSearchPages=['),html.indexOf('];',html.indexOf('const lfGlobalSearchPages=['))+2);
 const pageIds=[...pageBlock.matchAll(/\bid:'([^']+)'/g)].map(m=>m[1]);
 if(pageIds.length!==17)throw new Error('Expected all 17 top-level application pages in global search; found '+pageIds.length);
-for(const id of pageIds){const panel=new RegExp('<(?:section|div)\\b[^>]*\\bid=["\\']'+id+'["\\'][^>]*class=["\\'][^"\\']*\\bpanel\\b').test(html)||new RegExp('<(?:section|div)\\b[^>]*class=["\\'][^"\\']*\\bpanel\\b[^"\\']*["\\'][^>]*\\bid=["\\']'+id+'["\\']').test(html);if(!panel)throw new Error('Page shortcut points to a missing panel: '+id)}
+const panelTags=[...html.matchAll(/<(?:section|div)\\b[^>]*>/g)].map(match=>match[0]);
+for(const id of pageIds){const panel=panelTags.some(tag=>tag.includes('id="'+id+'"')&&/\\bclass="[^"]*\\bpanel\\b/.test(tag));if(!panel)throw new Error('Page shortcut points to a missing panel: '+id)}
 const fullScreen=['#lfGlobalSearchModal.lf-global-search-modal','height:100%!important','max-width:none!important','align-items:stretch!important'];
 for(const needle of fullScreen){if(!css.includes(needle))throw new Error('Missing full-screen search CSS: '+needle)}
 for(const needle of ['.lf-global-search-group{','.lf-global-search-group-title{'])if(!css.includes(needle))throw new Error('Missing grouped search styling: '+needle);
