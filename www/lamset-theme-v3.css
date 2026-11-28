@@ -1372,3 +1372,24 @@ button.lf-has-icon .lf-icon{
  height:20px!important;
  flex:0 0 20px!important;
 }
+
+
+/* Header icon buttons: keep icons bare; prevent global theme button styles from drawing circles. */
+.lf-app-header .lf-header-actions>button,
+.lf-app-header .lf-header-actions>button:hover,
+.lf-app-header .lf-header-actions>button:active,
+.lf-app-header .lf-header-actions>button:focus,
+.lf-app-header .lf-header-actions>button:focus-visible{
+  appearance:none!important;-webkit-appearance:none!important;
+  width:40px!important;min-width:40px!important;max-width:40px!important;
+  height:40px!important;min-height:40px!important;
+  margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;
+  background:transparent!important;background-color:transparent!important;background-image:none!important;
+  box-shadow:none!important;filter:none!important;transform:none!important;
+}
+.lf-app-header .lf-header-actions>button::before,
+.lf-app-header .lf-header-actions>button::after{content:none!important;display:none!important}
+.lf-app-header .lf-header-actions>button:focus-visible{outline:2px solid var(--lf-blue)!important;outline-offset:2px!important}
+.lf-app-header .lf-header-actions>button [data-lucide],
+.lf-app-header .lf-header-actions>button svg{background:transparent!important;box-shadow:none!important}
