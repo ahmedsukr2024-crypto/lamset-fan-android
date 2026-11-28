@@ -30,7 +30,22 @@ function closeDocumentPreview(){
  window.lfCurrentDocumentKind='';
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
  if(modal)modal.classList.remove('open');
- if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body></body></html>';}
+ if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body><style id="lf-header-notification-badge-material-v1">
+/* Material-style unread notification badge; presentation only. */
+.lf-app-header .lf-header-alerts{position:relative!important;overflow:visible!important}
+.lf-app-header .lf-header-alert-count:not(.hidden){
+ position:absolute!important;top:-4px!important;left:-4px!important;
+ display:grid!important;place-items:center!important;
+ min-width:18px!important;width:auto!important;height:18px!important;
+ padding:0 4px!important;box-sizing:border-box!important;
+ border:2px solid var(--surface,#fff)!important;border-radius:999px!important;
+ background:#D32F2F!important;color:#fff!important;
+ font-size:10px!important;font-weight:700!important;line-height:1!important;
+ font-variant-numeric:tabular-nums!important;white-space:nowrap!important;
+ box-shadow:0 1px 2px rgba(0,0,0,.18)!important;
+}
+</style>
+</body></html>';}
  document.body.classList.remove('lf-modal-open');
 }
 async function printDocumentPreview(){
