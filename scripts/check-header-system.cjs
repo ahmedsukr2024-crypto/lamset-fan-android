@@ -1,0 +1,14 @@
+const fs=require('fs');
+const html=fs.readFileSync('www/index.html','utf8');
+const css=fs.readFileSync('www/lamset-design-system.css','utf8');
+const ids=['lfMenuToggle','lfHeaderAlerts','lfHeaderSettings','lfHeaderSearch','lfHeaderAlertCount'];
+for(const id of ids)if(!html.includes('id="'+id+'"'))throw new Error('Missing header control: '+id);
+if((html.match(/id="lf-header-system-v1"/g)||[]).length!==1)throw new Error('Expected one canonical header stylesheet');
+for(const id of ['lf-header-final-icons-v5','lf-android-fixed-header-v4','lf-header-no-button-chrome-v7','lf-header-final-icons-v6','lf-header-notification-badge-material-v1'])if(html.includes('id="'+id+'"'))throw new Error('Legacy header stylesheet remains: '+id);
+if(/\.iconbtn,\.lf-header-menu,\.lf-drawer-close,\.lf-header-alerts,\.lf-header-settings\{[^}]*border-radius:50%/s.test(css))throw new Error('Legacy circular header rule remains');
+if(/\.lf-app-header::before\s*\{/.test(css))throw new Error('Header pseudo surface remains');
+const start=html.indexOf('<header class="lf-app-header"'),end=html.indexOf('</header>',start),header=html.slice(start,end);
+const order=['lfMenuToggle','lfHeaderAlerts','lfHeaderSettings','lfHeaderSearch'].map(id=>header.indexOf('id="'+id+'"'));
+if(!order.every((v,i)=>v>=0&&(i===0||v>order[i-1])))throw new Error('Header button order changed');
+if(!/id="lfHeaderAlertCount"[^>]*aria-live="polite"/.test(header))throw new Error('Notification badge accessibility missing');
+console.log('Header system checks passed.');
