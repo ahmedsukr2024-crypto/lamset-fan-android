@@ -4205,30 +4205,57 @@ window.renderProductionBatchHistory();
 
 
 <style id="lf-header-system-v1">
-:root{--lf-header-safe-top:env(safe-area-inset-top,0px);--lf-header-height:78px}
-@media(max-width:699px){:root{--lf-header-safe-top:max(env(safe-area-inset-top,0px),30px);--lf-header-height:70px}}
-body{--lf-fixed-header-gap:calc(var(--lf-header-safe-top) + 8px + var(--lf-header-height) + 8px)}
-.wrap{padding-top:var(--lf-fixed-header-gap)!important}
-.lf-app-header{position:fixed!important;top:calc(var(--lf-header-safe-top) + 8px)!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;width:min(1100px,calc(100% - 24px))!important;max-width:1100px!important;min-height:var(--lf-header-height)!important;height:var(--lf-header-height)!important;margin:0!important;padding:10px 14px!important;box-sizing:border-box!important;border:1px solid var(--line)!important;border-radius:16px!important;background:var(--surface,#fff)!important;color:var(--ink)!important;box-shadow:0 2px 10px rgba(0,0,0,.08)!important;z-index:120!important;overflow:visible!important}
-.lf-header-actions{order:1!important;display:flex!important;flex:0 0 auto!important;flex-direction:row!important;direction:rtl!important;align-items:center!important;justify-content:flex-start!important;gap:5px!important}
+/* Single canonical header and drawer layer. Header is one integrated bar; action glyphs have no decorative frames. */
+:root{--lf-header-height:66px}
+.lf-app-header{
+ position:sticky!important;top:env(safe-area-inset-top,0px)!important;z-index:100!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;
+ gap:10px!important;width:auto!important;max-width:none!important;min-height:66px!important;height:auto!important;
+ margin:0 -14px 14px!important;padding:8px 14px!important;box-sizing:border-box!important;overflow:visible!important;
+ border:0!important;border-bottom:1px solid var(--lf-border,var(--line,#e4e6eb))!important;border-radius:0!important;
+ background:var(--lf-surface,var(--surface,#fff))!important;color:var(--lf-text,var(--ink,#242526))!important;
+ box-shadow:none!important;transform:none!important;left:auto!important;right:auto!important;
+}
+.lf-app-header::before,.lf-app-header::after{content:none!important;display:none!important}
+.wrap{padding-top:0!important}
+.lf-header-actions{order:1!important;display:flex!important;flex:0 0 auto!important;flex-direction:row!important;direction:rtl!important;align-items:center!important;justify-content:flex-start!important;gap:6px!important;min-width:0!important}
 .lf-app-brand{order:2!important;display:flex!important;align-items:center!important;flex:0 1 auto!important;min-width:0!important;gap:8px!important}
 .lf-app-brand-copy{display:flex!important;flex-direction:column!important;min-width:0!important}
-.lf-app-brand-copy b{color:var(--ink)!important;font-size:17px!important;line-height:1.25!important}
-.lf-app-brand-copy small{color:var(--muted)!important;font-size:9px!important;line-height:1.3!important}
-.lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:43px!important;height:43px!important;flex:0 0 43px!important}
-.lf-header-actions>button{appearance:none!important;-webkit-appearance:none!important;position:relative!important;display:grid!important;place-items:center!important;flex:0 0 42px!important;width:42px!important;min-width:42px!important;height:42px!important;min-height:42px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;outline:0!important;background:transparent!important;background-color:transparent!important;background-image:none!important;box-shadow:none!important;color:var(--ink)!important}
-.lf-header-actions>button:hover,.lf-header-actions>button:active{border:0!important;border-radius:0!important;background:transparent!important;background-color:transparent!important;box-shadow:none!important;filter:none!important}
+.lf-app-brand-copy b{color:var(--lf-text,var(--ink,#242526))!important;font-size:16px!important;line-height:1.25!important}
+.lf-app-brand-copy small{color:var(--lf-muted,var(--muted,#65676b))!important;font-size:9px!important;line-height:1.3!important}
+.lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:42px!important;height:42px!important;flex:0 0 42px!important}
+.lf-header-actions>button,.lf-header-actions>button:hover,.lf-header-actions>button:active,.lf-header-actions>button:focus{
+ appearance:none!important;-webkit-appearance:none!important;position:relative!important;display:grid!important;place-items:center!important;
+ flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important;min-height:40px!important;
+ margin:0!important;padding:0!important;border:0!important;border-radius:0!important;outline-offset:2px!important;
+ background:transparent!important;background-color:transparent!important;background-image:none!important;
+ box-shadow:none!important;color:var(--lf-text,var(--ink,#242526))!important;filter:none!important;transform:none!important;
+}
+.lf-header-actions>button:hover,.lf-header-actions>button:active{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;filter:none!important;transform:none!important}
 .lf-header-actions>button::before,.lf-header-actions>button::after{content:none!important;display:none!important}
-.lf-header-actions>button:focus-visible{outline:2px solid var(--purple)!important;outline-offset:2px!important}
-.lf-header-actions>button>.lf-header-svg{display:block!important;place-self:center!important;width:24px!important;height:24px!important;max-width:24px!important;max-height:24px!important;margin:0!important;pointer-events:none!important;fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;stroke-linecap:round!important;stroke-linejoin:round!important}
-.lf-header-actions>#lfHeaderAlerts{position:relative!important;overflow:visible!important}
-.lf-header-actions>#lfHeaderAlertCount:not(.hidden){position:absolute!important;top:-3px!important;left:-3px!important;display:grid!important;place-items:center!important;min-width:19px!important;width:auto!important;height:19px!important;padding:0 5px!important;box-sizing:border-box!important;border:2px solid var(--surface,#fff)!important;border-radius:999px!important;background:#D32F2F!important;color:#fff!important;font-size:10px!important;font-weight:800!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 1px 2px rgba(0,0,0,.16)!important}
-html[data-theme="dark"] .lf-app-header{background:#242526!important;color:#E4E6EB!important;border-color:#3E4042!important}
-html[data-theme="dark"] .lf-header-actions>button,html[data-theme="dark"] .lf-app-brand-copy b{color:#E4E6EB!important}
-html[data-theme="dark"] .lf-app-brand-copy small{color:#B0B3B8!important}
-html[data-theme="dark"] .lf-header-actions>#lfHeaderAlertCount:not(.hidden){border-color:#242526!important}
-@media(min-width:700px){.lf-app-header{width:min(1100px,calc(100% - 40px))!important;padding-inline:20px!important}}
-@media(max-width:390px){:root{--lf-header-height:68px}.lf-app-header{width:calc(100% - 16px)!important;padding:7px 9px!important;gap:6px!important}.lf-header-actions{gap:2px!important}.lf-header-actions>button{flex-basis:38px!important;width:38px!important;min-width:38px!important;height:40px!important;min-height:40px!important}.lf-header-actions>button>.lf-header-svg{width:23px!important;height:23px!important}.lf-app-brand{gap:6px!important}.lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:39px!important;height:39px!important;flex-basis:39px!important}.lf-app-brand-copy b{font-size:14px!important}.lf-app-brand-copy small{font-size:8px!important}}
+.lf-header-actions>button:focus-visible{outline:2px solid var(--lf-blue,var(--primary,#0866ff))!important;outline-offset:2px!important}
+.lf-header-actions>button>.lf-header-svg{display:block!important;place-self:center!important;width:23px!important;height:23px!important;max-width:23px!important;max-height:23px!important;margin:0!important;pointer-events:none!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+.lf-header-actions>#lfHeaderAlerts{position:relative!important;overflow:visible!important;color:var(--lf-blue,var(--primary,#0866ff))!important}
+#lfHeaderAlertCount:not(.hidden){position:absolute!important;top:-1px!important;right:-1px!important;z-index:2!important;display:flex!important;align-items:center!important;justify-content:center!important;min-width:18px!important;height:18px!important;padding:0 4px!important;box-sizing:border-box!important;border:2px solid var(--lf-surface,var(--surface,#fff))!important;border-radius:999px!important;background:#d92d3a!important;color:#fff!important;font-size:10px!important;font-weight:800!important;line-height:1!important;white-space:nowrap!important;box-shadow:none!important}
+#lfHeaderAlertCount.hidden{display:none!important}
+.lf-header-connection{display:none!important}
+body.lf-drawer-open .lf-app-header{visibility:visible!important;opacity:1!important;pointer-events:auto!important;transform:none!important}
+#lfDrawerBackdrop.lf-drawer-backdrop{
+ position:fixed!important;inset:0!important;top:0!important;right:0!important;bottom:0!important;left:0!important;
+ width:100vw!important;height:100vh!important;height:100dvh!important;min-height:100svh!important;
+ margin:0!important;padding:0!important;z-index:310!important;box-sizing:border-box!important;
+ background:rgba(0,0,0,.46)!important;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+}
+#lfDrawerBackdrop[hidden]{display:none!important}
+#lfSideDrawer.lf-side-drawer{position:fixed!important;top:0!important;right:0!important;bottom:0!important;height:100vh!important;height:100dvh!important;max-height:100dvh!important;z-index:320!important}
+@media(max-width:420px){
+ .lf-app-header{min-height:62px!important;padding:6px 10px!important;gap:7px!important}
+ .lf-header-actions{gap:3px!important}
+ .lf-header-actions>button{flex-basis:38px!important;width:38px!important;min-width:38px!important;height:40px!important;min-height:40px!important}
+ .lf-header-actions>button>.lf-header-svg{width:22px!important;height:22px!important}
+ .lf-app-brand{gap:6px!important}.lf-app-brand .brand-mark,.lf-app-brand .brand-mark-img{width:39px!important;height:39px!important;flex-basis:39px!important}
+ .lf-app-brand-copy b{font-size:14px!important}.lf-app-brand-copy small{font-size:8px!important}
+}
 @media(max-width:340px){.lf-app-brand-copy small{display:none!important}.lf-header-actions{gap:1px!important}}
 </style>
 </body></html>
