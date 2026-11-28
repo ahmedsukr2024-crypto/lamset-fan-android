@@ -11,4 +11,23 @@ const start=html.indexOf('<header class="lf-app-header"'),end=html.indexOf('</he
 const order=['lfMenuToggle','lfHeaderAlerts','lfHeaderSettings','lfHeaderSearch'].map(id=>header.indexOf('id="'+id+'"'));
 if(!order.every((v,i)=>v>=0&&(i===0||v>order[i-1])))throw new Error('Header button order changed');
 if(!/id="lfHeaderAlertCount"[^>]*aria-live="polite"/.test(header))throw new Error('Notification badge accessibility missing');
+
+const styleStart=html.indexOf('<style id="lf-header-system-v1">');
+const styleEnd=html.indexOf('</style>',styleStart);
+if(styleStart<0||styleEnd<0)throw new Error('Canonical header style block missing');
+const headerCss=html.slice(styleStart,styleEnd);
+for(const rule of [
+  '.lf-header-actions>button',
+  'border-radius:0!important',
+  'background:transparent!important',
+  'html[data-theme="dark"]',
+  '#lfDrawerBackdrop.lf-drawer-backdrop',
+  'inset:0!important',
+  'z-index:310!important',
+  '#lfSideDrawer.lf-side-drawer',
+  'z-index:320!important'
+])if(!headerCss.includes(rule))throw new Error('Canonical header/drawer rule missing: '+rule);
+if(/\.lf-app-header\{[^}]*position:fixed/s.test(headerCss))throw new Error('Legacy floating header positioning remains');
+if(/\.lf-header-actions>button\{[^}]*border-radius:(?!0)/s.test(headerCss))throw new Error('Circular header button styling returned');
+
 console.log('Header system checks passed.');
