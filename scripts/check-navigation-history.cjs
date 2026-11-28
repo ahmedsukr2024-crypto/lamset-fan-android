@@ -4,6 +4,8 @@ const assert = require('node:assert/strict');
 const html = fs.readFileSync('www/index.html', 'utf8');
 const bridge = fs.readFileSync('www/mobile-bridge.js', 'utf8');
 const designSystem = fs.readFileSync('www/lamset-design-system.css', 'utf8');
+const topHeaderCss = fs.readFileSync('www/lamset-header-top.css', 'utf8');
+const bottomNavCss = fs.readFileSync('www/lamset-bottom-nav.css', 'utf8');
 
 assert.match(html, /function lfCaptureNavigationSnapshot\(page\)/, 'يجب حفظ حالة الصفحة قبل مغادرتها');
 assert.match(html, /function lfRestoreNavigationSnapshot\(page\)/, 'يجب استعادة حالة الصفحة عند الرجوع');
@@ -35,7 +37,11 @@ assert.match(html, /id="lfMenuToggle"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 
 assert.match(html, /id="lfHeaderSettings"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة الإعدادات مباشرة');
 assert.match(html, /id="lfHeaderAlerts"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة التنبيهات مباشرة');
 assert.match(html, /id="lfHeaderSearch"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة البحث مباشرة');
-assert.match(html, /id="lf-header-system-v1"[\s\S]*?border-radius:0!important[\s\S]*?background:transparent!important[\s\S]*?html\[data-theme="dark"\]/, 'يجب أن يطبق مصدر الهيدر الموحد أزراراً بلا دوائر مع تباين للوضعين الفاتح والداكن');
+assert.match(topHeaderCss, /border-radius:0!important[\s\S]*?background:transparent!important[\s\S]*?html\[data-theme="dark"\]/, 'يجب أن يطبق ملف الهيدر المستقل أزراراً بلا دوائر مع تباين للوضعين الفاتح والداكن');
+assert.match(html, /lamset-header-top\.css/, 'يجب ربط ملف تنسيق الهيدر العلوي المستقل');
+assert.match(html, /lamset-bottom-nav\.css/, 'يجب ربط ملف تنسيق شريط التنقل السفلي المستقل');
+assert.match(bottomNavCss, /\.nav\{[\s\S]*?z-index:200!important[\s\S]*?env\(safe-area-inset-bottom/, 'يجب أن يحتفظ ملف التنقل السفلي بتثبيت الشريط ودعم مساحة Android الآمنة');
+assert.match(bottomNavCss, /html\[data-theme="dark"\] \.nav/, 'يجب دعم الوضع الداكن في ملف التنقل السفلي');
 assert.doesNotMatch(html, /lf-drawer-alert-link|id="lfHeaderAlerts"[^>]*class="lf-drawer-link/, 'يجب ألا يكون مركز التنبيهات مخفياً داخل القائمة الجانبية');
 
 assert.equal((html.match(/data-nav-target="production" data-scroll-target="stockDashboard"/g)||[]).length,1,'يجب توفير اختصار مستقل للمخزون داخل المزيد دون إنشاء صفحة مخزون مكررة');
