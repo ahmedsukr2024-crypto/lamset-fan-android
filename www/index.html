@@ -4400,11 +4400,13 @@ button{
   var base=Number(button.dataset.lfLabelBaseSize);
   if(!Number.isFinite(base)||base<=0)return;
   button.dataset.lfLabelFit='true';
+  button.style.setProperty('--lf-button-label-fit-size',base+'px');
   button.style.fontSize=base+'px';
   var min=Math.max(MIN_FONT_SIZE,base*MAX_SHRINK_RATIO);
   var size=base;
   while(button.scrollWidth>button.clientWidth+1&&size-0.5>=min){
    size=Math.max(min,size-0.5);
+   button.style.setProperty('--lf-button-label-fit-size',size+'px');
    button.style.fontSize=size+'px';
   }
   if(resizeObserver)resizeObserver.observe(button);
