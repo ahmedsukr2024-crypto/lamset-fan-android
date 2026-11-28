@@ -384,13 +384,18 @@ html[data-theme="dark"] .lf-toast{
   flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;padding-bottom:12px!important;
 }
 
-/* Header top extension: paint into the Android status-bar gap without moving header content. */
+/* Unified header silhouette: straight top edge, continuous surface, original rounded lower corners. */
 @media(max-width:699px){
-  .lf-app-header{position:sticky!important;top:0!important;isolation:isolate!important}
+  .lf-app-header{
+    position:sticky!important;top:0!important;isolation:isolate!important;
+    background:transparent!important;
+  }
   .lf-app-header::before{
     content:""!important;position:absolute!important;
-    top:-24px!important;left:0!important;right:0!important;height:24px!important;
-    background:var(--lf-surface,#fff)!important;pointer-events:none!important;
+    top:-24px!important;left:0!important;right:0!important;bottom:0!important;
+    border-radius:0 0 14px 14px!important;
+    background:var(--lf-surface,#fff)!important;
+    pointer-events:none!important;z-index:-1!important;
   }
 }
 
