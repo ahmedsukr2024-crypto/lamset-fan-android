@@ -73,12 +73,7 @@ button.danger,.danger{background:var(--lf-danger-soft)!important;color:var(--lf-
 button.success,.success{background:var(--lf-success-soft)!important;color:var(--lf-success)!important;border-color:var(--lf-success)!important}
 button.warning,.warning{background:var(--lf-warning-soft)!important;color:var(--lf-text)!important;border-color:var(--lf-warning)!important}
 button.smallbtn,.smallbtn{min-height:var(--lf-control-small-height)!important;padding:8px 14px!important;font-size:14px!important}
-.iconbtn,.lf-header-menu,.lf-drawer-close,.lf-header-alerts,.lf-header-settings{
-  width:var(--lf-icon-size)!important;min-width:var(--lf-icon-size)!important;
-  height:var(--lf-icon-size)!important;min-height:var(--lf-icon-size)!important;
-  padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
-  border-radius:50%!important;
-}
+
 input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),select,textarea{
   min-height:48px!important;padding:10px 12px!important;border:1px solid var(--lf-border)!important;
   border-radius:10px!important;background:var(--lf-surface)!important;color:var(--lf-text)!important;
@@ -384,20 +379,7 @@ html[data-theme="dark"] .lf-toast{
   flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;padding-bottom:12px!important;
 }
 
-/* Unified header silhouette: straight top edge, continuous surface, original rounded lower corners. */
-@media(max-width:699px){
-  .lf-app-header{
-    position:sticky!important;top:0!important;isolation:isolate!important;
-    background:transparent!important;
-  }
-  .lf-app-header::before{
-    content:""!important;position:absolute!important;
-    top:-24px!important;left:0!important;right:0!important;bottom:0!important;
-    border-radius:0 0 14px 14px!important;
-    background:var(--lf-surface,#fff)!important;
-    pointer-events:none!important;z-index:-1!important;
-  }
-}
+
 
 /* Global search: grouped page shortcuts appear before matching business records. */
 .lf-global-search-group{display:flex;flex-direction:column;gap:7px}
