@@ -12,6 +12,7 @@ const required=[
  '--lf-text:#E4E6EB','--lf-muted:#B0B3B8','--lf-border:#4A4D52',
  'html[data-theme="dark"]','button.danger','button.success','button.warning',
  'white-space:normal','overflow-wrap:anywhere','min-width:0',
+ 'white-space:nowrap!important','word-break:normal!important','min-width:fit-content!important','flex-wrap:wrap!important',
  '.tablewrap,.table-wrap','prefers-reduced-motion'
 ];
 for(const token of required)if(!css.includes(token))throw new Error('Accessibility theme rule missing: '+token);
@@ -19,4 +20,8 @@ if(!/html\[data-theme="dark"\][\s\S]*?button:not\(\.nav button\)[\s\S]*?color:va
  throw new Error('Dark-mode secondary button text contrast rule is missing');
 if(!/html\[data-theme="dark"\][\s\S]*?\.card[\s\S]*?color:var\(--lf-text\)!important/.test(css))
  throw new Error('Dark-mode card text contrast rule is missing');
-console.log('Accessibility theme and text-layout checks passed.');
+if(!/button\\s*\\{[\\s\\S]*?white-space:nowrap!important[\\s\\S]*?overflow-wrap:normal!important/.test(css))
+ throw new Error('Button labels must remain on one line');
+if(!/:where\\(\\.actions,[\\s\\S]*?flex-wrap:wrap!important/.test(css))
+ throw new Error('Action groups must wrap rather than compress button labels');
+console.log('Accessibility theme, button labels and text-layout checks passed.');
