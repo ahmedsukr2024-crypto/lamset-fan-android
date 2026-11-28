@@ -30,8 +30,6 @@ const pageIds=[...pageBlock.matchAll(/\bid:'([^']+)'/g)].map(m=>m[1]);
 if(pageIds.length!==17)throw new Error('Expected all 17 top-level application pages in global search; found '+pageIds.length);
 const panelTags=[...html.matchAll(/<(?:section|div)[^>]*>/g)].map(match=>match[0]);
 for(const id of pageIds){const panel=panelTags.some(tag=>{const attrs=tag.match(/class="([^"]+)"/);return tag.includes('id="'+id+'"')&&!!attrs&&attrs[1].split(' ').includes('panel')});if(!panel)throw new Error('Page shortcut points to a missing panel: '+id)}
-for(const id of pageIds){const panel=panelTags.some(tag=>{const attrs=tag.match(/class="([^"]+)"/);return tag.includes('id="'+id+'"')&&!!attrs&&attrs[1].split(/\s+/).includes('panel')});if(!panel)throw new Error('Page shortcut points to a missing panel: '+id)}
-for(const id of pageIds){const panel=panelTags.some(tag=>tag.includes('id="'+id+'"')&&/\\bclass="[^"]*\\bpanel\\b/.test(tag));if(!panel)throw new Error('Page shortcut points to a missing panel: '+id)}
 const fullScreen=['#lfGlobalSearchModal.lf-global-search-modal','height:100%!important','max-width:none!important','align-items:stretch!important'];
 for(const needle of fullScreen){if(!css.includes(needle))throw new Error('Missing full-screen search CSS: '+needle)}
 for(const needle of ['.lf-global-search-group{','.lf-global-search-group-title{'])if(!css.includes(needle))throw new Error('Missing grouped search styling: '+needle);
