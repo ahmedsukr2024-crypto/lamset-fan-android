@@ -35,7 +35,7 @@ assert.match(html, /id="lfMenuToggle"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 
 assert.match(html, /id="lfHeaderSettings"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة الإعدادات مباشرة');
 assert.match(html, /id="lfHeaderAlerts"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة التنبيهات مباشرة');
 assert.match(html, /id="lfHeaderSearch"[^>]*>[\s\S]*?<svg class="lf-header-svg"/, 'يجب تضمين أيقونة البحث مباشرة');
-assert.match(html, /id="lf-header-final-icons-v6"[\s\S]*?border-radius:0!important[\s\S]*?background:transparent!important[\s\S]*?html\[data-theme="dark"\]/, 'يجب إزالة الدوائر وضبط تباين الأيقونات في الوضعين الفاتح والداكن');
+assert.match(html, /id="lf-header-system-v1"[\s\S]*?border-radius:0!important[\s\S]*?background:transparent!important[\s\S]*?html\[data-theme="dark"\]/, 'يجب أن يطبق مصدر الهيدر الموحد أزراراً بلا دوائر مع تباين للوضعين الفاتح والداكن');
 assert.doesNotMatch(html, /lf-drawer-alert-link|id="lfHeaderAlerts"[^>]*class="lf-drawer-link/, 'يجب ألا يكون مركز التنبيهات مخفياً داخل القائمة الجانبية');
 
 assert.equal((html.match(/data-nav-target="production" data-scroll-target="stockDashboard"/g)||[]).length,1,'يجب توفير اختصار مستقل للمخزون داخل المزيد دون إنشاء صفحة مخزون مكررة');
