@@ -4322,6 +4322,37 @@ html[data-theme="dark"] .lf-app-header .lf-app-brand-copy small{color:#B0B3B8!im
  box-shadow:0 1px 2px rgba(0,0,0,.18)!important;
 }
 </style>
+<style id="lf-header-icon-no-circles-v8">
+/* ID-scoped terminal reset: remove every decorative circle/frame from the four header icon buttons. */
+#lfMenuToggle,#lfMenuToggle:hover,#lfMenuToggle:active,#lfMenuToggle:focus,
+#lfHeaderAlerts,#lfHeaderAlerts:hover,#lfHeaderAlerts:active,#lfHeaderAlerts:focus,
+#lfHeaderSettings,#lfHeaderSettings:hover,#lfHeaderSettings:active,#lfHeaderSettings:focus,
+#lfHeaderSearch,#lfHeaderSearch:hover,#lfHeaderSearch:active,#lfHeaderSearch:focus{
+  -webkit-appearance:none!important;appearance:none!important;
+  border:0!important;border-style:none!important;border-width:0!important;border-color:transparent!important;
+  border-radius:0!important;outline:0!important;
+  background:transparent!important;background-color:transparent!important;background-image:none!important;
+  box-shadow:none!important;filter:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+#lfMenuToggle::before,#lfMenuToggle::after,
+#lfHeaderAlerts::before,#lfHeaderAlerts::after,
+#lfHeaderSettings::before,#lfHeaderSettings::after,
+#lfHeaderSearch::before,#lfHeaderSearch::after{
+  content:none!important;display:none!important;border:0!important;border-radius:0!important;
+  background:none!important;box-shadow:none!important;
+}
+#lfMenuToggle:focus-visible,#lfHeaderAlerts:focus-visible,
+#lfHeaderSettings:focus-visible,#lfHeaderSearch:focus-visible{
+  outline:2px solid #0866FF!important;outline-offset:3px!important;border-radius:0!important;
+}
+#lfMenuToggle>.lf-header-svg,#lfHeaderAlerts>.lf-header-svg,
+#lfHeaderSettings>.lf-header-svg,#lfHeaderSearch>.lf-header-svg{
+  display:block!important;place-self:center!important;margin:0!important;
+  background:transparent!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;filter:none!important;
+}
+</style>
 </body></html>
 
 <!-- Lamset Fan: delivery test commit -->
