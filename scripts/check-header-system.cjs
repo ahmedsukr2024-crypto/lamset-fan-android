@@ -33,7 +33,7 @@ if(/\.lf-header-actions>button\{[^}]*border-radius:(?!0)/s.test(headerCss))throw
 
 const finalStyleStart=html.lastIndexOf('<style id="lf-header-icons-final-override-v2">');
 const finalStyleEnd=html.indexOf('</style>',finalStyleStart);
-const bodyEnd=html.indexOf('</body>');
+const bodyEnd=html.lastIndexOf('</body>');
 if(finalStyleStart<0||finalStyleEnd<0||bodyEnd<finalStyleEnd)throw new Error('Final header icon override is missing or misplaced');
 if(html.indexOf('<style',finalStyleEnd)>bodyEnd)throw new Error('A later stylesheet can override the final header icon cleanup');
 const finalHeaderCss=html.slice(finalStyleStart,finalStyleEnd);
