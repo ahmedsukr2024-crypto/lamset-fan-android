@@ -15,7 +15,7 @@
     "check:order-shipping-history": "node scripts/check-order-shipping-history.cjs",
     "check:customers-route": "node --check www/customers-route/customers-route.js && node scripts/check-customers-route.cjs",
     "check:navigation-history": "node scripts/check-navigation-history.cjs",
-    "check:header-system": "node scripts/check-header-system.cjs"
+    "check:header-system": "node scripts/check-header-system.cjs && node scripts/check-accessibility-theme.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
