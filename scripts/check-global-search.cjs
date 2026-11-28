@@ -28,7 +28,8 @@ if(!html.includes('LamsetLocalDB.listTreasuryMovements()')||!html.includes('Lams
 const pageBlock=html.slice(html.indexOf('const lfGlobalSearchPages=['),html.indexOf('];',html.indexOf('const lfGlobalSearchPages=['))+2);
 const pageIds=[...pageBlock.matchAll(/\bid:'([^']+)'/g)].map(m=>m[1]);
 if(pageIds.length!==17)throw new Error('Expected all 17 top-level application pages in global search; found '+pageIds.length);
-const panelTags=[...html.matchAll(/<(?:section|div)\b[^>]*>/g)].map(match=>match[0]);
+const panelTags=[...html.matchAll(/<(?:section|div)[^>]*>/g)].map(match=>match[0]);
+for(const id of pageIds){const panel=panelTags.some(tag=>{const attrs=tag.match(/class="([^"]+)"/);return tag.includes('id="'+id+'"')&&!!attrs&&attrs[1].split(' ').includes('panel')});if(!panel)throw new Error('Page shortcut points to a missing panel: '+id)}
 for(const id of pageIds){const panel=panelTags.some(tag=>{const attrs=tag.match(/class="([^"]+)"/);return tag.includes('id="'+id+'"')&&!!attrs&&attrs[1].split(/\s+/).includes('panel')});if(!panel)throw new Error('Page shortcut points to a missing panel: '+id)}
 for(const id of pageIds){const panel=panelTags.some(tag=>tag.includes('id="'+id+'"')&&/\\bclass="[^"]*\\bpanel\\b/.test(tag));if(!panel)throw new Error('Page shortcut points to a missing panel: '+id)}
 const fullScreen=['#lfGlobalSearchModal.lf-global-search-modal','height:100%!important','max-width:none!important','align-items:stretch!important'];
