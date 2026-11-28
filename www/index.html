@@ -4353,6 +4353,22 @@ img,svg,video,canvas{max-width:100%}
  .sectionhead h2,.sectionhead h3{min-width:0;overflow-wrap:anywhere}
  .actions button{flex:1 1 calc(50% - 6px)}
 }
+
+/* Keep every button label on one line; let action groups wrap instead of squeezing words. */
+button{
+ white-space:nowrap!important;
+ overflow-wrap:normal!important;
+ word-break:normal!important;
+}
+:where(.actions,.lf-cr-actions,.lf-cr-card-actions,.lf-cr-task-actions,.lf-executive-actions){
+ flex-wrap:wrap!important;
+}
+:where(.actions,.lf-cr-actions,.lf-cr-card-actions,.lf-cr-task-actions,.lf-executive-actions)>button{
+ flex:0 1 auto!important;
+ min-width:fit-content!important;
+ max-width:100%;
+}
+
 @media(prefers-reduced-motion:reduce){button{transition:none!important}}
 </style>
 </body></html>
