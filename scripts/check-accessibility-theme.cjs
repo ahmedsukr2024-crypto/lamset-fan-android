@@ -20,8 +20,8 @@ if(!/html\[data-theme="dark"\][\s\S]*?button:not\(\.nav button\)[\s\S]*?color:va
  throw new Error('Dark-mode secondary button text contrast rule is missing');
 if(!/html\[data-theme="dark"\][\s\S]*?\.card[\s\S]*?color:var\(--lf-text\)!important/.test(css))
  throw new Error('Dark-mode card text contrast rule is missing');
-if(!/button\\s*\\{[\\s\\S]*?white-space:nowrap!important[\\s\\S]*?overflow-wrap:normal!important/.test(css))
+if(!/button\s*\{[\s\S]*?white-space:nowrap!important[\s\S]*?overflow-wrap:normal!important/.test(css))
  throw new Error('Button labels must remain on one line');
-if(!/:where\\(\\.actions,[\\s\\S]*?flex-wrap:wrap!important/.test(css))
+if(!/:where\(\.actions,[\s\S]*?flex-wrap:wrap!important/.test(css))
  throw new Error('Action groups must wrap rather than compress button labels');
 console.log('Accessibility theme, button labels and text-layout checks passed.');
