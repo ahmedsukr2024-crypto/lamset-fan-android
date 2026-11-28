@@ -30,7 +30,48 @@ function closeDocumentPreview(){
  window.lfCurrentDocumentKind='';
  const modal=$('lamsetDocumentPreview'),frame=$('lamsetDocumentFrame');
  if(modal)modal.classList.remove('open');
- if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body></body></html>';}
+ if(frame){frame.onload=null;frame.srcdoc='<!doctype html><html><body>
+<style id="lf-header-icons-final-override-v2">
+/* Last cascade guard: header icon buttons stay visually bare in every interaction state. */
+html body .lf-app-header .lf-header-actions>button#lfMenuToggle,
+html body .lf-app-header .lf-header-actions>button#lfHeaderAlerts,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSettings,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSearch,
+html body .lf-app-header .lf-header-actions>button#lfMenuToggle:hover,
+html body .lf-app-header .lf-header-actions>button#lfHeaderAlerts:hover,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSettings:hover,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSearch:hover,
+html body .lf-app-header .lf-header-actions>button#lfMenuToggle:active,
+html body .lf-app-header .lf-header-actions>button#lfHeaderAlerts:active,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSettings:active,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSearch:active,
+html body .lf-app-header .lf-header-actions>button#lfMenuToggle:focus,
+html body .lf-app-header .lf-header-actions>button#lfHeaderAlerts:focus,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSettings:focus,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSearch:focus {
+ appearance:none!important;-webkit-appearance:none!important;
+ border:0!important;border-radius:0!important;
+ background:transparent!important;background-color:transparent!important;background-image:none!important;
+ box-shadow:none!important;filter:none!important;transform:none!important;
+}
+html body .lf-app-header .lf-header-actions>button#lfMenuToggle::before,
+html body .lf-app-header .lf-header-actions>button#lfMenuToggle::after,
+html body .lf-app-header .lf-header-actions>button#lfHeaderAlerts::before,
+html body .lf-app-header .lf-header-actions>button#lfHeaderAlerts::after,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSettings::before,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSettings::after,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSearch::before,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSearch::after {
+ content:none!important;display:none!important;
+}
+html body .lf-app-header .lf-header-actions>button#lfMenuToggle:focus-visible,
+html body .lf-app-header .lf-header-actions>button#lfHeaderAlerts:focus-visible,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSettings:focus-visible,
+html body .lf-app-header .lf-header-actions>button#lfHeaderSearch:focus-visible {
+ outline:2px solid var(--lf-blue,var(--primary,#0866ff))!important;outline-offset:2px!important;
+}
+</style>
+</body></html>';}
  document.body.classList.remove('lf-modal-open');
 }
 async function printDocumentPreview(){
