@@ -50,7 +50,7 @@ button.smallbtn,.smallbtn{
   padding:8px 14px!important;
   font-size:13px!important;
 }
-button.iconbtn,button.lf-header-menu,button.lf-header-alerts,button.lf-header-settings,
+button.iconbtn,
 button.lf-drawer-close,button.lf-modal-close{
   display:inline-grid!important;place-items:center!important;
   width:var(--lf-control-icon-size)!important;min-width:var(--lf-control-icon-size)!important;
