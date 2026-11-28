@@ -1,1 +1,27 @@
-const fs=require('fs');const html=fs.readFileSync('www/index.html','utf8');const css=fs.readFileSync('www/lamset-design-system.css','utf8');const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));const must=[['global search modal','lfGlobalSearchModal'],['all collection scan','Object.entries(db||{})'],['recursive record search','lfGlobalSearchValues'],['invoice number search','invoiceNumber'],['search result routing','openLamsetGlobalSearchResult'],['full-screen search layout','lf-global-search-page-layout-v2'],['single close icon','data-global-search-close']];for(const [label,needle] of must){if(!html.includes(needle))throw new Error('Missing '+label)}if(html.includes('</span>×'))throw new Error('Duplicate close glyph remains');if(!html.includes('LamsetLocalDB.listTreasuryMovements()')||!html.includes('LamsetLocalDB.listCashLinks()')||!html.includes('LamsetLocalDB.listTreasuryCloseouts()'))throw new Error('Treasury records are missing from global search');if(!css.includes('Keep header icon hit areas square'))throw new Error('Header centering rules missing');if(!pkg.scripts['check:all'].includes('check-global-search.cjs'))throw new Error('Global search check not included in check:all');console.log('Global search, treasury coverage, and header checks passed');
+const fs=require('fs');
+const html=fs.readFileSync('www/index.html','utf8');
+const css=fs.readFileSync('www/lamset-design-system.css','utf8');
+const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
+const mustHtml=[
+ ['global search modal','lfGlobalSearchModal'],
+ ['all collection scan','Object.entries(db||{})'],
+ ['recursive record search','lfGlobalSearchValues'],
+ ['invoice number search','invoiceNumber'],
+ ['search result routing','openLamsetGlobalSearchResult'],
+ ['single close control','data-global-search-close']
+];
+for(const [label,needle] of mustHtml){if(!html.includes(needle))throw new Error('Missing '+label)}
+if(html.includes('lf-global-search-page-layout-v2'))throw new Error('Search layout CSS was injected into document preview HTML');
+if(html.includes('</span>×'))throw new Error('Duplicate close glyph remains');
+const searchStart=html.indexOf('<div id="lfGlobalSearchModal"');
+const searchEnd=html.indexOf('</section></div>',searchStart);
+if(searchStart<0||searchEnd<0)throw new Error('Global search page markup is incomplete');
+const searchMarkup=html.slice(searchStart,searchEnd);
+if((searchMarkup.match(/data-global-search-close/g)||[]).length!==1)throw new Error('Global search must have exactly one close control');
+if((searchMarkup.match(/data-lucide="x"/g)||[]).length!==1)throw new Error('Global search must have exactly one close icon');
+if(!html.includes('LamsetLocalDB.listTreasuryMovements()')||!html.includes('LamsetLocalDB.listCashLinks()')||!html.includes('LamsetLocalDB.listTreasuryCloseouts()'))throw new Error('Treasury records are missing from global search');
+const fullScreen=['#lfGlobalSearchModal.lf-global-search-modal','height:100%!important','max-width:none!important','align-items:stretch!important'];
+for(const needle of fullScreen){if(!css.includes(needle))throw new Error('Missing full-screen search CSS: '+needle)}
+if(!css.includes('Keep header icon hit areas square')||!css.includes('place-items:center!important')||!css.includes('border:0!important'))throw new Error('Header centering and border removal rules missing');
+if(!pkg.scripts['check:all'].includes('check-global-search.cjs'))throw new Error('Global search check not included in check:all');
+console.log('Global search page, treasury coverage, single close control, and header checks passed');
