@@ -30,4 +30,18 @@ for(const rule of [
 if(/\.lf-app-header\{[^}]*position:fixed/s.test(headerCss))throw new Error('Legacy floating header positioning remains');
 if(/\.lf-header-actions>button\{[^}]*border-radius:(?!0)/s.test(headerCss))throw new Error('Circular header button styling returned');
 
+
+const finalStyleStart=html.lastIndexOf('<style id="lf-header-icons-final-override-v2">');
+const finalStyleEnd=html.indexOf('</style>',finalStyleStart);
+const bodyEnd=html.indexOf('</body>');
+if(finalStyleStart<0||finalStyleEnd<0||bodyEnd<finalStyleEnd)throw new Error('Final header icon override is missing or misplaced');
+if(html.indexOf('<style',finalStyleEnd)>bodyEnd)throw new Error('A later stylesheet can override the final header icon cleanup');
+const finalHeaderCss=html.slice(finalStyleStart,finalStyleEnd);
+for(const id of ['lfMenuToggle','lfHeaderAlerts','lfHeaderSettings','lfHeaderSearch']){
+ if(!finalHeaderCss.includes('#'+id))throw new Error('Final icon cleanup missing: '+id);
+}
+for(const rule of ['border:0!important','border-radius:0!important','background:transparent!important','background-image:none!important','box-shadow:none!important','content:none!important','focus-visible']){
+ if(!finalHeaderCss.includes(rule))throw new Error('Final icon cleanup rule missing: '+rule);
+}
+
 console.log('Header system checks passed.');
