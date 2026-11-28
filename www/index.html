@@ -4262,6 +4262,99 @@ body.lf-drawer-open .lf-app-header{visibility:visible!important;opacity:1!import
 }
 @media(max-width:340px){.lf-app-brand-copy small{display:none!important}.lf-header-actions{gap:1px!important}}
 </style>
+<style id="lf-accessible-theme-layout-v1">
+/* Final accessibility pass: semantic contrast, readable controls and resilient text layout. */
+:root{
+ --lf-bg:#F0F2F5;--lf-surface:#FFFFFF;--lf-surface-2:#F7F8FA;
+ --lf-text:#1C1E21;--lf-muted:#65676B;--lf-border:#CED0D4;
+ --lf-success:#187A43;--lf-success-soft:#E7F5EC;
+ --lf-warning:#8A5A00;--lf-warning-soft:#FFF4D6;
+ --lf-danger:#B4233D;--lf-danger-soft:#FCE8EC;
+ --ink:var(--lf-text);--muted:var(--lf-muted);--line:var(--lf-border);
+ --bg:var(--lf-bg);--surface:var(--lf-surface);--card:var(--lf-surface);
+}
+html[data-theme="dark"]{
+ color-scheme:dark;
+ --lf-bg:#18191A;--lf-surface:#242526;--lf-surface-2:#303133;
+ --lf-text:#E4E6EB;--lf-muted:#B0B3B8;--lf-border:#4A4D52;
+ --lf-success:#75D58A;--lf-success-soft:#20392A;
+ --lf-warning:#FFD166;--lf-warning-soft:#40351F;
+ --lf-danger:#FF8798;--lf-danger-soft:#44272D;
+ --ink:var(--lf-text);--muted:var(--lf-muted);--line:var(--lf-border);
+ --bg:var(--lf-bg);--surface:var(--lf-surface);--card:var(--lf-surface);
+}
+html,body{background:var(--lf-bg)!important;color:var(--lf-text)!important}
+body{line-height:1.65}
+:where(.wrap,.panel,.card,.lf-card,.metric,.customer-card,.customer-card-v2,.product-tile,
+.stock-status-card,.stock-table-card,.appearance-card,.security-card,.analytics-panel,
+.lf-alert-card,.lf-order-card,.lf-executive,.lf-document-shell,.lf-order-customer-card,
+.lf-orders-action-card,.lf-orders-stat-card,.lf-cr-card,.lf-cr-stat,.lf-cr-detail-item){
+ color:var(--lf-text);
+}
+:where(h1,h2,h3,h4,h5,h6,.sectionhead h2,.sectionhead h3){color:var(--lf-text)}
+:where(p,li,td,dd,.field label,.customer-form label){color:inherit}
+:where(.muted,.empty,.field .hint,.help-text,.lf-cr-muted){color:var(--lf-muted)!important}
+input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),
+select,textarea{
+ color:var(--lf-text)!important;background:var(--lf-surface)!important;
+ border-color:var(--lf-border)!important;caret-color:var(--lf-text);
+}
+input::placeholder,textarea::placeholder{color:var(--lf-muted)!important;opacity:1!important}
+button:not(.nav button):not(.lf-drawer-link):not(.lf-header-menu):not(.lf-header-alerts):not(.lf-header-settings):not(.lf-drawer-close):not(.lf-modal-close):not(.iconbtn):not(.lf-palette-option):not(.lf-alert-filter):not(.lf-order-workspace-tab):not(.lf-orders-nav-tab):not(.lf-whatsapp-smart-trigger):not(.order-pdf-btn):not(#lfDocumentWhatsAppButton):not(#invoicePreviewWhatsApp):not(.product-image-button):not(.product-name):not(.lf-orders-stat-card):not(.lf-orders-action-card):not(.customer-card-full){
+ max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.4;
+}
+button.ghost,button.textbtn,.textbtn,.iconbtn,.lf-alert-snooze,.lf-drawer-close,
+.lf-header-menu,.lf-header-alerts,.lf-header-settings,.lf-order-workspace-tab,
+.lf-orders-nav-tab,.dash-shortcuts button{
+ background:var(--lf-surface)!important;color:var(--lf-text)!important;
+ border-color:var(--lf-border)!important;
+}
+button.danger,.danger{background:var(--lf-danger-soft)!important;color:var(--lf-danger)!important;border-color:var(--lf-danger)!important}
+button.success,.success{background:var(--lf-success-soft)!important;color:var(--lf-success)!important;border-color:var(--lf-success)!important}
+button.warning,.warning{background:var(--lf-warning-soft)!important;color:var(--lf-warning)!important;border-color:var(--lf-warning)!important}
+html[data-theme="dark"] button:not(.nav button):not(.lf-drawer-link):not(.lf-header-menu):not(.lf-header-alerts):not(.lf-header-settings):not(.lf-drawer-close):not(.lf-modal-close):not(.iconbtn):not(.lf-palette-option):not(.lf-alert-filter):not(.lf-order-workspace-tab):not(.lf-orders-nav-tab):not(.lf-whatsapp-smart-trigger):not(.order-pdf-btn):not(#lfDocumentWhatsAppButton):not(#invoicePreviewWhatsApp):not(.product-image-button):not(.product-name):not(.lf-orders-stat-card):not(.lf-orders-action-card):not(.customer-card-full):not(.danger):not(.success):not(.warning){
+ background:var(--lf-action-surface,var(--lf-surface))!important;
+ color:var(--lf-action-ink,var(--lf-text))!important;
+ border-color:var(--lf-action-outline,var(--lf-border))!important;
+}
+html[data-theme="dark"] :where(.card,.lf-card,.metric,.customer-card,.customer-card-v2,.product-tile,
+.stock-status-card,.stock-table-card,.appearance-card,.security-card,.analytics-panel,
+.lf-alert-card,.lf-order-card,.lf-executive,.lf-document-shell,.lf-order-customer-card,
+.lf-orders-action-card,.lf-orders-stat-card,.lf-cr-card,.lf-cr-stat,.lf-cr-detail-item,
+.lf-drawer-current,.lf-drawer-group,.lf-drawer-group>summary,.lf-global-search-dialog){
+ background:var(--lf-surface)!important;color:var(--lf-text)!important;border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] :where(.card,.lf-card,.metric,.customer-card,.customer-card-v2,.product-tile,
+.stock-status-card,.stock-table-card,.appearance-card,.security-card,.analytics-panel,
+.lf-alert-card,.lf-order-card,.lf-executive,.lf-document-shell,.lf-order-customer-card,
+.lf-orders-action-card,.lf-orders-stat-card,.lf-cr-card,.lf-cr-stat,.lf-cr-detail-item)
+ :where(h1,h2,h3,h4,p,label,li,td,th,strong,b){color:var(--lf-text)!important}
+html[data-theme="dark"] :where(.muted,small,.empty,.lf-cr-muted,.lf-cr-meta,.lf-cr-task-desc){color:var(--lf-muted)!important}
+html[data-theme="dark"] :where(.result,.collection-total,.customer-stats>div,.lf-executive-stats>div,
+.lf-executive-focus,.lf-drawer-current,.lf-global-search-kind){
+ background:var(--lf-surface-2)!important;color:var(--lf-text)!important;border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] :where(.pill,.badge,.lf-alert-category,.lf-alert-priority,.lf-dash-order-status){
+ background:var(--lf-blue-soft)!important;color:var(--lf-text)!important;border-color:var(--lf-border)!important;
+}
+html[data-theme="dark"] :where(.lf-dash-order-status.is-late,.lf-cr-badge.orange){background:var(--lf-danger-soft)!important;color:var(--lf-danger)!important}
+html[data-theme="dark"] .lf-cr-badge.blue,html[data-theme="dark"] .lf-cr-badge.purple,
+html[data-theme="dark"] .lf-cr-badge.green{background:var(--lf-surface-2)!important;color:var(--lf-text)!important}
+:where(.row,.grid,.actions,.sectionhead,.lf-cr-card-head,.lf-cr-task,.lf-dash-order-main)>*{min-width:0;max-width:100%}
+:where(.card,.metric,.product-tile,.lf-order-card,.lf-alert-card,.lf-cr-card,.lf-cr-task-title,
+.lf-cr-task-desc,.lf-global-search-result-copy,.lf-drawer-link){overflow-wrap:anywhere;word-break:normal}
+:where(.actions,.lf-cr-actions,.lf-cr-card-actions,.lf-cr-task-actions,.lf-executive-actions){display:flex;flex-wrap:wrap;min-width:0;max-width:100%}
+:where(.actions,.lf-cr-actions,.lf-cr-card-actions,.lf-cr-task-actions,.lf-executive-actions) button{flex:1 1 auto;min-width:0;max-width:100%;white-space:normal}
+.tablewrap,.table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{max-width:100%}td{overflow-wrap:anywhere;word-break:normal}
+img,svg,video,canvas{max-width:100%}
+@media(max-width:380px){
+ .sectionhead{align-items:flex-start}
+ .sectionhead h2,.sectionhead h3{min-width:0;overflow-wrap:anywhere}
+ .actions button{flex:1 1 calc(50% - 6px)}
+}
+@media(prefers-reduced-motion:reduce){button{transition:none!important}}
+</style>
 </body></html>
 
 <!-- Lamset Fan: delivery test commit -->
