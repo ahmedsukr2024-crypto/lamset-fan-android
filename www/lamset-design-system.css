@@ -393,3 +393,9 @@ html[data-theme="dark"] .lf-toast{
     background:var(--lf-surface,#fff)!important;pointer-events:none!important;
   }
 }
+
+/* Global search: grouped page shortcuts appear before matching business records. */
+.lf-global-search-group{display:flex;flex-direction:column;gap:7px}
+.lf-global-search-group+.lf-global-search-group{margin-top:12px;padding-top:12px;border-top:1px solid var(--lf-border)}
+.lf-global-search-group-title{margin:0 2px 3px;color:var(--lf-muted);font-size:13px;font-weight:800}
+.lf-global-search-group .lf-global-search-result-icon{font-size:19px;font-weight:800}
